@@ -242,7 +242,7 @@ internal class Program
 //}
 //";
 
-        var uriPath = "file:///C:/Users/hunte/Repos/New folder (6)/Editor/src/RendererFiles/dialogGlobal.js";
+        var uriPath = "file:///C:/Users/hunte/Repos/New folder (7)/Editor2/src/RendererFiles/dialogGlobal.js";
         var localPath = new Uri(uriPath).LocalPath;
         var str = File.ReadAllText(localPath);
 
