@@ -580,7 +580,7 @@ internal static class LspDispatcher
             return request;
         }
 
-        File.WriteAllText(Program.path_customEditorVerifyLspTextAgainstEditorTextRequest, javaScriptDocument.Chars.ToString());
+        File.WriteAllText(Program.path_customEditorVerifyLspTextAgainstEditorTextRequest, new string(javaScriptDocument.Chars.ToArray()));
 
         return request;
     }
