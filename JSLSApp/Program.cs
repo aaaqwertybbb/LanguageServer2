@@ -10,6 +10,7 @@ using System.Text.Json;
 internal class Program
 {
     internal const string myPath = "C:\\Users\\hunte\\Repos\\file.txt";
+    internal const string path_customEditorVerifyLspTextAgainstEditorTextRequest = "C:\\Users\\hunte\\Repos\\customEditorVerifyLspTextAgainstEditorTextRequest.txt";
 
     internal static JsonSerializerOptions _jsonSerializerOptions = new JsonSerializerOptions { PropertyNameCaseInsensitive = true };
     internal static List<StdoutChunkObject> stdoutChunkObjects = new();

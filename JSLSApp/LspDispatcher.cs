@@ -38,6 +38,8 @@ internal static class LspDispatcher
                 return DeserializeContent_CompletionSlice(content, request);
             case "textDocument/CustomFullFileLexRequest":
                 return DeserializeContent_CustomFullFileLexRequest(content, request);
+            case "textDocument/CustomEditorVerifyLspTextAgainstEditorTextRequest":
+                return DeserializeContent_CustomEditorVerifyLspTextAgainstEditorTextRequest(content, request);
             default:
                 return request;
         }
@@ -560,6 +562,27 @@ internal static class LspDispatcher
         var initializeResponse = new InitializeResponse(new InitializeResponseResult());
         Console.Out.WriteLine(Program.MAIN_encodeMessageObject(initializeResponse));
         return initializeRequest;
+    }
+
+    private static Message DeserializeContent_CustomEditorVerifyLspTextAgainstEditorTextRequest(string content, Message request)
+    {
+        var customEditorVerifyLspTextAgainstEditorTextRequest = JsonSerializer.Deserialize<CustomEditorVerifyLspTextAgainstEditorTextRequest>(content);
+        if (customEditorVerifyLspTextAgainstEditorTextRequest is null || customEditorVerifyLspTextAgainstEditorTextRequest.@params.textDocument.uri is null)
+        {
+            return request;
+        }
+
+        customEditorVerifyLspTextAgainstEditorTextRequest.@params.textDocument.uri = EnsureLocalPath(customEditorVerifyLspTextAgainstEditorTextRequest.@params.textDocument.uri);
+
+        var found = _javaScriptWorkspace.OpenedSourceFileAbsolutePathToInMemoryContentMap.TryGetValue(customEditorVerifyLspTextAgainstEditorTextRequest.@params.textDocument.uri, out var javaScriptDocument);
+        if (!found || javaScriptDocument is null)
+        {
+            return request;
+        }
+
+        File.WriteAllText(Program.path_customEditorVerifyLspTextAgainstEditorTextRequest, javaScriptDocument.Chars.ToString());
+
+        return request;
     }
 
     /// <summary>
