@@ -94,7 +94,7 @@ public class JavaScriptWorkspace
 
             if (change.range.start.line != change.range.end.line || change.range.start.character != change.range.end.character)
             {
-                if (change.text is not null)
+                if (change.text is not null && change.text.Length > 0)
                 {
                     // TODO: You're allowed to provide text to insert here as well, so this needs to be supported.
                     File.AppendAllText(myPath, $"\n====change.text is not null====\n");
