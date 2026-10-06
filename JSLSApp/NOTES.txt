@@ -1,0 +1,15 @@
+I am making a JavaScript "compiler" with C#. Do not respond much if anything, this is just context.
+
+====
+
+Understood. That sounds like an awesome project! C# is fantastic for building compilers thanks to its strong typing, pattern matching, and excellent performance.
+
+Whenever you are ready, let me know what part you are working on or if you want to brainstorm—whether it's the lexer, parser, Abstract Syntax Tree (AST),
+or code generation (like targeting WebAssembly, native code, or optimized JS).
+
+What specific component or problem are you tackling first?
+
+====
+
+I want to understand how to make useful unit tests.
+I have an xUnit test project that I just made now.
