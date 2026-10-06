@@ -13,3 +13,83 @@ What specific component or problem are you tackling first?
 
 I want to understand how to make useful unit tests.
 I have an xUnit test project that I just made now.
+
+====
+
+To make your unit tests truly useful for a compiler, you should focus on testing your compiler phases in isolation using a technique called Data-Driven Testing.
+
+Instead of writing a separate test method for every single JavaScript snippet, xUnit allows you to feed a list of inputs and expected outputs into a
+single test structure using the [Theory] and [InlineData] attributes. This keeps your test suite massive, comprehensive, and incredibly easy to maintain.
+
+1. Test Your Lexer (Tokenizer) First
+
+The lexer is the easiest place to start.
+You want to pass a string of JavaScript code and verify that it produces the correct sequence of tokens (type and literal value).
+```csharp
+using Xunit;
+using System.Collections.Generic;
+
+public class LexerTests
+{
+    [Theory]
+    // Test simple variable declarations
+    [InlineData("let x = 42;", new[] { "LET", "IDENT(x)", "ASSIGN", "INT(42)", "SEMICOLON" })]
+    // Test operators
+    [InlineData("a + b", new[] { "IDENT(a)", "PLUS", "IDENT(b)" })]
+    // Test invalid syntax (lexer should handle errors gracefully)
+    [InlineData("@", new[] { "ILLEGAL" })]
+    public void Tokenizer_ShouldReturn_ExpectedTokenTypes(string source, string[] expectedTokens)
+    {
+        // 1. Arrange & Act
+        var lexer = new Lexer(source);
+        var actualTokens = new List<string>();
+        
+        Token token;
+        do
+        {
+            token = lexer.NextToken();
+            actualTokens.Add(token.ToTestString()); // e.g., "LET" or "IDENT(x)"
+        } while (token.Type != TokenType.EOF);
+
+        // Remove EOF for easier assertions if desired, then assert
+        actualTokens.RemoveAt(actualTokens.Count - 1); 
+        
+        // 2. Assert
+        Assert.Equal(expectedTokens, actualTokens);
+    }
+}
+```
+
+2. Test Your Parser (AST Generation)
+
+For the parser, you want to verify that a string of code builds the correct Abstract Syntax Tree (AST) structure. A great trick here is to implement a
+clean ToString() or a serialization method on your AST nodes so you can compare text rather than asserting deeply nested objects.
+```csharp
+public class ParserTests
+{
+    [Theory]
+    [InlineData("if (true) { return 1; }", "IfStatement(Condition: true, Body: [ReturnStatement(1)])")]
+    [InlineData("1 + 2 * 3", "BinaryExpression(+, 1, BinaryExpression(*, 2, 3))")] // Tests operator precedence!
+    public void Parser_ShouldBuild_CorrectAst(string source, string expectedAstString)
+    {
+        var lexer = new Lexer(source);
+        var parser = new Parser(lexer);
+        
+        var program = parser.ParseProgram();
+        
+        Assert.False(parser.HasErrors(), $"Parser had errors: {string.Join(", ", parser.Errors)}");
+        Assert.Equal(expectedAstString, program.ToDebugString());
+    }
+}
+```
+
+3. Core Golden Rules for Compiler Unit Tests
+- Test for Failure, Not Just Success: Don't just test valid JavaScript. Create tests that pass invalid JavaScript (like const x = ;) and
+  assert that your parser catches the error and populates an error list rather than throwing a hard crash (NullReferenceException).
+- Keep Inputs Tiny: A single unit test input should target one behavior (e.g., just testing precedence of * over +, or just testing a while loop).
+  Do not feed an entire 50-line script into a single unit test.
+- Isolate Components: Never test your Parser by manually constructing tokens. Let the Lexer feed the Parser inside the test, or mock the Lexer.
+  (In compilers, letting a real Lexer feed the Parser in tests is generally accepted because Lexers are deterministic and fast).
+
+Would you like to look at a concrete layout for your Token structure to see how ToTestString() simplifies assertions,
+or should we write a test for handling syntax errors?
