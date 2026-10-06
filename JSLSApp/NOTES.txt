@@ -93,3 +93,8 @@ public class ParserTests
 
 Would you like to look at a concrete layout for your Token structure to see how ToTestString() simplifies assertions,
 or should we write a test for handling syntax errors?
+
+
+
+i feel depressed
+
