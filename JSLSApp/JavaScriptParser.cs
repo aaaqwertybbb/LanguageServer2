@@ -606,8 +606,8 @@ public class JavaScriptParser
                 break;
             case 3357: // if
                 if (length == 2 &&
-                    _doc.Chars[_pos - 8] == 'i' &&
-                    _doc.Chars[_pos - 8] == 'f')
+                    _doc.Chars[_pos - 2] == 'i' &&
+                    _doc.Chars[_pos - 1] == 'f')
                 {
                     syntaxKind = SyntaxKind.IfKeywordToken;
                     break;
@@ -615,9 +615,9 @@ public class JavaScriptParser
                 break;
             case 115131: // try
                 if (length == 3 &&
-                    _doc.Chars[_pos - 8] == 't' &&
-                    _doc.Chars[_pos - 8] == 'r' &&
-                    _doc.Chars[_pos - 8] == 'y')
+                    _doc.Chars[_pos - 3] == 't' &&
+                    _doc.Chars[_pos - 2] == 'r' &&
+                    _doc.Chars[_pos - 1] == 'y')
                 {
                     syntaxKind = SyntaxKind.TryKeywordToken;
                     break;
@@ -625,9 +625,9 @@ public class JavaScriptParser
                 break;
             case 101577: // for
                 if (length == 3 &&
-                    _doc.Chars[_pos - 8] == 'f' &&
-                    _doc.Chars[_pos - 8] == 'o' &&
-                    _doc.Chars[_pos - 8] == 'r')
+                    _doc.Chars[_pos - 3] == 'f' &&
+                    _doc.Chars[_pos - 2] == 'o' &&
+                    _doc.Chars[_pos - 1] == 'r')
                 {
                     syntaxKind = SyntaxKind.ForKeywordToken;
                     break;
@@ -635,9 +635,9 @@ public class JavaScriptParser
                 break;
             case 116519: // var
                 if (length == 3 &&
-                    _doc.Chars[_pos - 8] == 'v' &&
-                    _doc.Chars[_pos - 8] == 'a' &&
-                    _doc.Chars[_pos - 8] == 'r')
+                    _doc.Chars[_pos - 3] == 'v' &&
+                    _doc.Chars[_pos - 2] == 'a' &&
+                    _doc.Chars[_pos - 1] == 'r')
                 {
                     syntaxKind = SyntaxKind.VarKeywordToken;
                     break;
@@ -645,11 +645,11 @@ public class JavaScriptParser
                 break;
             case 94432955: // catch
                 if (length == 5 &&
-                    _doc.Chars[_pos - 8] == 'c' &&
-                    _doc.Chars[_pos - 8] == 'a' &&
-                    _doc.Chars[_pos - 8] == 't' &&
-                    _doc.Chars[_pos - 8] == 'c' &&
-                    _doc.Chars[_pos - 8] == 'h')
+                    _doc.Chars[_pos - 5] == 'c' &&
+                    _doc.Chars[_pos - 4] == 'a' &&
+                    _doc.Chars[_pos - 3] == 't' &&
+                    _doc.Chars[_pos - 2] == 'c' &&
+                    _doc.Chars[_pos - 1] == 'h')
                 {
                     syntaxKind = SyntaxKind.CatchKeywordToken;
                     break;
@@ -657,12 +657,12 @@ public class JavaScriptParser
                 break;
             case -934396624: // return
                 if (length == 6 &&
-                    _doc.Chars[_pos - 8] == 'r' &&
-                    _doc.Chars[_pos - 8] == 'e' &&
-                    _doc.Chars[_pos - 8] == 't' &&
-                    _doc.Chars[_pos - 8] == 'u' &&
-                    _doc.Chars[_pos - 8] == 'r' &&
-                    _doc.Chars[_pos - 8] == 'n')
+                    _doc.Chars[_pos - 6] == 'r' &&
+                    _doc.Chars[_pos - 5] == 'e' &&
+                    _doc.Chars[_pos - 4] == 't' &&
+                    _doc.Chars[_pos - 3] == 'u' &&
+                    _doc.Chars[_pos - 2] == 'r' &&
+                    _doc.Chars[_pos - 1] == 'n')
                 {
                     syntaxKind = SyntaxKind.ReturnKeywordToken;
                     break;
@@ -670,12 +670,12 @@ public class JavaScriptParser
                 break;
             case -889473228: // switch
                 if (length == 6 &&
-                    _doc.Chars[_pos - 8] == 's' &&
-                    _doc.Chars[_pos - 8] == 'w' &&
-                    _doc.Chars[_pos - 8] == 'i' &&
-                    _doc.Chars[_pos - 8] == 't' &&
-                    _doc.Chars[_pos - 8] == 'c' &&
-                    _doc.Chars[_pos - 8] == 'h')
+                    _doc.Chars[_pos - 6] == 's' &&
+                    _doc.Chars[_pos - 5] == 'w' &&
+                    _doc.Chars[_pos - 4] == 'i' &&
+                    _doc.Chars[_pos - 3] == 't' &&
+                    _doc.Chars[_pos - 2] == 'c' &&
+                    _doc.Chars[_pos - 1] == 'h')
                 {
                     syntaxKind = SyntaxKind.SwitchKeywordToken;
                     break;
@@ -683,10 +683,10 @@ public class JavaScriptParser
                 break;
             case 3046192: // case
                 if (length == 4 &&
-                    _doc.Chars[_pos - 8] == 'c' &&
-                    _doc.Chars[_pos - 8] == 'a' &&
-                    _doc.Chars[_pos - 8] == 's' &&
-                    _doc.Chars[_pos - 8] == 'e')
+                    _doc.Chars[_pos - 4] == 'c' &&
+                    _doc.Chars[_pos - 3] == 'a' &&
+                    _doc.Chars[_pos - 2] == 's' &&
+                    _doc.Chars[_pos - 1] == 'e')
                 {
                     syntaxKind = SyntaxKind.CaseKeywordToken;
                     break;
@@ -694,11 +694,11 @@ public class JavaScriptParser
                 break;
             case 93127292: // async
                 if (length == 5 &&
-                    _doc.Chars[_pos - 8] == 'a' &&
-                    _doc.Chars[_pos - 8] == 's' &&
-                    _doc.Chars[_pos - 8] == 'y' &&
-                    _doc.Chars[_pos - 8] == 'n' &&
-                    _doc.Chars[_pos - 8] == 'c')
+                    _doc.Chars[_pos - 5] == 'a' &&
+                    _doc.Chars[_pos - 4] == 's' &&
+                    _doc.Chars[_pos - 3] == 'y' &&
+                    _doc.Chars[_pos - 2] == 'n' &&
+                    _doc.Chars[_pos - 1] == 'c')
                 {
                     syntaxKind = SyntaxKind.AsyncKeywordToken;
                     break;
@@ -706,10 +706,10 @@ public class JavaScriptParser
                 break;
             case 3116345: // else
                 if (length == 4 &&
-                    _doc.Chars[_pos - 8] == 'e' &&
-                    _doc.Chars[_pos - 8] == 'l' &&
-                    _doc.Chars[_pos - 8] == 's' &&
-                    _doc.Chars[_pos - 8] == 'e')
+                    _doc.Chars[_pos - 4] == 'e' &&
+                    _doc.Chars[_pos - 3] == 'l' &&
+                    _doc.Chars[_pos - 2] == 's' &&
+                    _doc.Chars[_pos - 1] == 'e')
                 {
                     syntaxKind = SyntaxKind.ElseKeywordToken;
                     break;
@@ -717,13 +717,13 @@ public class JavaScriptParser
                 break;
             case 1544803905: // default
                 if (length == 7 &&
-                    _doc.Chars[_pos - 8] == 'd' &&
-                    _doc.Chars[_pos - 8] == 'e' &&
-                    _doc.Chars[_pos - 8] == 'f' &&
-                    _doc.Chars[_pos - 8] == 'a' &&
-                    _doc.Chars[_pos - 8] == 'u' &&
-                    _doc.Chars[_pos - 8] == 'l' &&
-                    _doc.Chars[_pos - 8] == 't')
+                    _doc.Chars[_pos - 7] == 'd' &&
+                    _doc.Chars[_pos - 6] == 'e' &&
+                    _doc.Chars[_pos - 5] == 'f' &&
+                    _doc.Chars[_pos - 4] == 'a' &&
+                    _doc.Chars[_pos - 3] == 'u' &&
+                    _doc.Chars[_pos - 2] == 'l' &&
+                    _doc.Chars[_pos - 1] == 't')
                 {
                     syntaxKind = SyntaxKind.DefaultKeywordToken;
                     break;
@@ -731,11 +731,11 @@ public class JavaScriptParser
                 break;
             case 110339814: // throw
                 if (length == 5 &&
-                    _doc.Chars[_pos - 8] == 't' &&
-                    _doc.Chars[_pos - 8] == 'h' &&
-                    _doc.Chars[_pos - 8] == 'r' &&
-                    _doc.Chars[_pos - 8] == 'o' &&
-                    _doc.Chars[_pos - 8] == 'w')
+                    _doc.Chars[_pos - 5] == 't' &&
+                    _doc.Chars[_pos - 4] == 'h' &&
+                    _doc.Chars[_pos - 3] == 'r' &&
+                    _doc.Chars[_pos - 2] == 'o' &&
+                    _doc.Chars[_pos - 1] == 'w')
                 {
                     syntaxKind = SyntaxKind.ThrowKeywordToken;
                     break;
@@ -743,9 +743,9 @@ public class JavaScriptParser
                 break;
             case 108960: // new
                 if (length == 3 &&
-                    _doc.Chars[_pos - 8] == 'n' &&
-                    _doc.Chars[_pos - 8] == 'e' &&
-                    _doc.Chars[_pos - 8] == 'w')
+                    _doc.Chars[_pos - 3] == 'n' &&
+                    _doc.Chars[_pos - 2] == 'e' &&
+                    _doc.Chars[_pos - 1] == 'w')
                 {
                     syntaxKind = SyntaxKind.NewKeywordToken;
                     break;
@@ -753,11 +753,11 @@ public class JavaScriptParser
                 break;
             case 93223254: // await
                 if (length == 5 &&
-                    _doc.Chars[_pos - 8] == 'a' &&
-                    _doc.Chars[_pos - 8] == 'w' &&
-                    _doc.Chars[_pos - 8] == 'a' &&
-                    _doc.Chars[_pos - 8] == 'i' &&
-                    _doc.Chars[_pos - 8] == 't')
+                    _doc.Chars[_pos - 5] == 'a' &&
+                    _doc.Chars[_pos - 4] == 'w' &&
+                    _doc.Chars[_pos - 3] == 'a' &&
+                    _doc.Chars[_pos - 2] == 'i' &&
+                    _doc.Chars[_pos - 1] == 't')
                 {
                     syntaxKind = SyntaxKind.AwaitKeywordToken;
                     break;
@@ -765,11 +765,11 @@ public class JavaScriptParser
                 break;
             case 94742904: // class
                 if (length == 5 &&
-                    _doc.Chars[_pos - 8] == 'c' &&
-                    _doc.Chars[_pos - 8] == 'l' &&
-                    _doc.Chars[_pos - 8] == 'a' &&
-                    _doc.Chars[_pos - 8] == 's' &&
-                    _doc.Chars[_pos - 8] == 's')
+                    _doc.Chars[_pos - 5] == 'c' &&
+                    _doc.Chars[_pos - 4] == 'l' &&
+                    _doc.Chars[_pos - 3] == 'a' &&
+                    _doc.Chars[_pos - 2] == 's' &&
+                    _doc.Chars[_pos - 1] == 's')
                 {
                     syntaxKind = SyntaxKind.ClassKeywordToken;
                     break;
@@ -777,17 +777,17 @@ public class JavaScriptParser
                 break;
             case -1588406278: // constructor
                 if (length == 11 &&
-                    _doc.Chars[_pos - 8] == 'c' &&
-                    _doc.Chars[_pos - 8] == 'o' &&
-                    _doc.Chars[_pos - 8] == 'n' &&
-                    _doc.Chars[_pos - 8] == 's' &&
-                    _doc.Chars[_pos - 8] == 't' &&
-                    _doc.Chars[_pos - 8] == 'r' &&
-                    _doc.Chars[_pos - 8] == 'u' &&
-                    _doc.Chars[_pos - 8] == 'c' &&
-                    _doc.Chars[_pos - 8] == 't' &&
-                    _doc.Chars[_pos - 8] == 'o' &&
-                    _doc.Chars[_pos - 8] == 'r')
+                    _doc.Chars[_pos - 11] == 'c' &&
+                    _doc.Chars[_pos - 10] == 'o' &&
+                    _doc.Chars[_pos - 9]  == 'n' &&
+                    _doc.Chars[_pos - 8]  == 's' &&
+                    _doc.Chars[_pos - 7]  == 't' &&
+                    _doc.Chars[_pos - 6]  == 'r' &&
+                    _doc.Chars[_pos - 5]  == 'u' &&
+                    _doc.Chars[_pos - 4]  == 'c' &&
+                    _doc.Chars[_pos - 3]  == 't' &&
+                    _doc.Chars[_pos - 2]  == 'o' &&
+                    _doc.Chars[_pos - 1]  == 'r')
                 {
                     syntaxKind = SyntaxKind.ConstructorKeywordToken;
                     break;
@@ -795,12 +795,12 @@ public class JavaScriptParser
                 break;
             case -1184795739: // import
                 if (length == 6 &&
-                    _doc.Chars[_pos - 8] == 'i' &&
-                    _doc.Chars[_pos - 8] == 'm' &&
-                    _doc.Chars[_pos - 8] == 'p' &&
-                    _doc.Chars[_pos - 8] == 'o' &&
-                    _doc.Chars[_pos - 8] == 'r' &&
-                    _doc.Chars[_pos - 8] == 't')
+                    _doc.Chars[_pos - 6] == 'i' &&
+                    _doc.Chars[_pos - 5] == 'm' &&
+                    _doc.Chars[_pos - 4] == 'p' &&
+                    _doc.Chars[_pos - 3] == 'o' &&
+                    _doc.Chars[_pos - 2] == 'r' &&
+                    _doc.Chars[_pos - 1] == 't')
                 {
                     syntaxKind = SyntaxKind.ImportKeywordToken;
                     break;
@@ -808,10 +808,10 @@ public class JavaScriptParser
                 break;
             case 3151786: // from
                 if (length == 4 &&
-                    _doc.Chars[_pos - 8] == 'f' &&
-                    _doc.Chars[_pos - 8] == 'r' &&
-                    _doc.Chars[_pos - 8] == 'o' &&
-                    _doc.Chars[_pos - 8] == 'm')
+                    _doc.Chars[_pos - 4] == 'f' &&
+                    _doc.Chars[_pos - 3] == 'r' &&
+                    _doc.Chars[_pos - 2] == 'o' &&
+                    _doc.Chars[_pos - 1] == 'm')
                 {
                     syntaxKind = SyntaxKind.FromKeywordToken;
                     break;
@@ -819,12 +819,12 @@ public class JavaScriptParser
                 break;
             case -1289153612: // export
                 if (length == 6 &&
-                    _doc.Chars[_pos - 8] == 'e' &&
-                    _doc.Chars[_pos - 8] == 'x' &&
-                    _doc.Chars[_pos - 8] == 'p' &&
-                    _doc.Chars[_pos - 8] == 'o' &&
-                    _doc.Chars[_pos - 8] == 'r' &&
-                    _doc.Chars[_pos - 8] == 't')
+                    _doc.Chars[_pos - 6] == 'e' &&
+                    _doc.Chars[_pos - 5] == 'x' &&
+                    _doc.Chars[_pos - 4] == 'p' &&
+                    _doc.Chars[_pos - 3] == 'o' &&
+                    _doc.Chars[_pos - 2] == 'r' &&
+                    _doc.Chars[_pos - 1] == 't')
                 {
                     syntaxKind = SyntaxKind.ExportKeywordToken;
                     break;
@@ -832,10 +832,10 @@ public class JavaScriptParser
                 break;
             case 3559070: // this
                 if (length == 4 &&
-                    _doc.Chars[_pos - 8] == 't' &&
-                    _doc.Chars[_pos - 8] == 'h' &&
-                    _doc.Chars[_pos - 8] == 'i' &&
-                    _doc.Chars[_pos - 8] == 's')
+                    _doc.Chars[_pos - 4] == 't' &&
+                    _doc.Chars[_pos - 3] == 'h' &&
+                    _doc.Chars[_pos - 2] == 'i' &&
+                    _doc.Chars[_pos - 1] == 's')
                 {
                     syntaxKind = SyntaxKind.ThisKeywordToken;
                     break;
@@ -843,11 +843,11 @@ public class JavaScriptParser
                 break;
             case 113101617: // while
                 if (length == 5 &&
-                    _doc.Chars[_pos - 8] == 'w' &&
-                    _doc.Chars[_pos - 8] == 'h' &&
-                    _doc.Chars[_pos - 8] == 'i' &&
-                    _doc.Chars[_pos - 8] == 'l' &&
-                    _doc.Chars[_pos - 8] == 'e')
+                    _doc.Chars[_pos - 5] == 'w' &&
+                    _doc.Chars[_pos - 4] == 'h' &&
+                    _doc.Chars[_pos - 3] == 'i' &&
+                    _doc.Chars[_pos - 2] == 'l' &&
+                    _doc.Chars[_pos - 1] == 'e')
                 {
                     syntaxKind = SyntaxKind.WhileKeywordToken;
                     break;
@@ -855,11 +855,11 @@ public class JavaScriptParser
                 break;
             case 94001407: // break
                 if (length == 5 &&
-                    _doc.Chars[_pos - 8] == 'b' &&
-                    _doc.Chars[_pos - 8] == 'r' &&
-                    _doc.Chars[_pos - 8] == 'e' &&
-                    _doc.Chars[_pos - 8] == 'a' &&
-                    _doc.Chars[_pos - 8] == 'k')
+                    _doc.Chars[_pos - 5] == 'b' &&
+                    _doc.Chars[_pos - 4] == 'r' &&
+                    _doc.Chars[_pos - 3] == 'e' &&
+                    _doc.Chars[_pos - 2] == 'a' &&
+                    _doc.Chars[_pos - 1] == 'k')
                 {
                     syntaxKind = SyntaxKind.BreakKeywordToken;
                     break;
@@ -868,13 +868,13 @@ public class JavaScriptParser
             case -567202649: // continue
                 if (length == 8 &&
                     _doc.Chars[_pos - 8] == 'c' &&
-                    _doc.Chars[_pos - 8] == 'o' &&
-                    _doc.Chars[_pos - 8] == 'n' &&
-                    _doc.Chars[_pos - 8] == 't' &&
-                    _doc.Chars[_pos - 8] == 'i' &&
-                    _doc.Chars[_pos - 8] == 'n' &&
-                    _doc.Chars[_pos - 8] == 'u' &&
-                    _doc.Chars[_pos - 8] == 'e')
+                    _doc.Chars[_pos - 7] == 'o' &&
+                    _doc.Chars[_pos - 6] == 'n' &&
+                    _doc.Chars[_pos - 5] == 't' &&
+                    _doc.Chars[_pos - 4] == 'i' &&
+                    _doc.Chars[_pos - 3] == 'n' &&
+                    _doc.Chars[_pos - 2] == 'u' &&
+                    _doc.Chars[_pos - 1] == 'e')
                 {
                     syntaxKind = SyntaxKind.ContinueKeywordToken;
                     break;
@@ -882,10 +882,10 @@ public class JavaScriptParser
                 break;
             case 3569038: // true
                 if (length == 4 &&
-                    _doc.Chars[_pos - 8] == 't' &&
-                    _doc.Chars[_pos - 8] == 'r' &&
-                    _doc.Chars[_pos - 8] == 'u' &&
-                    _doc.Chars[_pos - 8] == 'e')
+                    _doc.Chars[_pos - 4] == 't' &&
+                    _doc.Chars[_pos - 3] == 'r' &&
+                    _doc.Chars[_pos - 2] == 'u' &&
+                    _doc.Chars[_pos - 1] == 'e')
                 {
                     syntaxKind = SyntaxKind.TrueKeywordToken;
                     break;
@@ -893,11 +893,11 @@ public class JavaScriptParser
                 break;
             case 97196323: // false
                 if (length == 5 &&
-                    _doc.Chars[_pos - 8] == 'f' &&
-                    _doc.Chars[_pos - 8] == 'a' &&
-                    _doc.Chars[_pos - 8] == 'l' &&
-                    _doc.Chars[_pos - 8] == 's' &&
-                    _doc.Chars[_pos - 8] == 'e')
+                    _doc.Chars[_pos - 5] == 'f' &&
+                    _doc.Chars[_pos - 4] == 'a' &&
+                    _doc.Chars[_pos - 3] == 'l' &&
+                    _doc.Chars[_pos - 2] == 's' &&
+                    _doc.Chars[_pos - 1] == 'e')
                 {
                     syntaxKind = SyntaxKind.FalseKeywordToken;
                     break;
@@ -905,10 +905,10 @@ public class JavaScriptParser
                 break;
             case 3392903: // null
                 if (length == 4 &&
-                    _doc.Chars[_pos - 8] == 'n' &&
-                    _doc.Chars[_pos - 8] == 'u' &&
-                    _doc.Chars[_pos - 8] == 'l' &&
-                    _doc.Chars[_pos - 8] == 'l')
+                    _doc.Chars[_pos - 4] == 'n' &&
+                    _doc.Chars[_pos - 3] == 'u' &&
+                    _doc.Chars[_pos - 2] == 'l' &&
+                    _doc.Chars[_pos - 1] == 'l')
                 {
                     syntaxKind = SyntaxKind.NullKeywordToken;
                     break;
