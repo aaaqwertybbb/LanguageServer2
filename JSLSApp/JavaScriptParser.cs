@@ -33,6 +33,7 @@ public class JavaScriptParser
     /// _peekToken is also used for temporary storage, when the boolean '_peekTokenExists' is false.
     /// </summary>
     private SyntaxToken _peekToken;
+    private SyntaxToken _previousToken;
     private bool _peekTokenExists;
 
     private Scope _globalScope;
@@ -168,6 +169,7 @@ public class JavaScriptParser
                 case SyntaxKind.WhitespaceToken:
                     break;
             }
+            _previousToken = token;
         }
 
         exitOuterWhileLoop:
@@ -933,7 +935,14 @@ public class JavaScriptParser
 
         if (_doc.Chars[_pos] == '(')
         {
-            SyntaxHighlightByteList.SetSyntaxHighlighting(_pos - length, length, TrackedSyntaxKind.Function);
+            if (_previousToken.SyntaxKind == SyntaxKind.NewKeywordToken)
+            {
+                SyntaxHighlightByteList.SetSyntaxHighlighting(_pos - length, length, TrackedSyntaxKind.Type);
+            }
+            else
+            {
+                SyntaxHighlightByteList.SetSyntaxHighlighting(_pos - length, length, TrackedSyntaxKind.Function);
+            }
         }
         else if (_doc.Chars[_pos] == ':')
         {
