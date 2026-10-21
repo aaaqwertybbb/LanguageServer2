@@ -64,7 +64,9 @@ internal static class LspDispatcher
         var javascriptParser = new JavaScriptParser(javaScriptDocument, _javaScriptWorkspace);
         javaScriptDocument.CompilationUnit = javascriptParser.Parse();
 
-        var textDocumentDocumentSymbolResponse = new CustomFullFileLexResponse(customFullFileLexRequest.id, javascriptParser.PsuedoFourFieldTrackedSyntaxList.ToArray());
+        var base64String = Convert.ToBase64String(javascriptParser.SyntaxHighlightByteList);
+
+        var textDocumentDocumentSymbolResponse = new CustomFullFileLexResponse(customFullFileLexRequest.id, base64String);
         Console.Out.WriteLine(Program.MAIN_encodeMessageObject(textDocumentDocumentSymbolResponse));
 
         return request;

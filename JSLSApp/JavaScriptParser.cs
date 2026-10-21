@@ -19,16 +19,11 @@ public class JavaScriptParser
     private int _indexLine = 0;
     private int _indexChar = 0;
 
-    public List<int> PsuedoFourFieldTrackedSyntaxList { get => _psuedoFourFieldTrackedSyntaxList; set => _psuedoFourFieldTrackedSyntaxList = value; }
+    public byte[] SyntaxHighlightByteList { get => _syntaxHighlightByteList; set => _syntaxHighlightByteList = value; }
 
     private List<FunctionDefinitionSyntax> _functionDefinitionStartPositionList = new();
     private List<SyntaxNode> _bodyList = new();
-    /// <summary>
-    /// TODO: Don't store this, presumably only the editor client needs this information, and it would be done once upon opening a file.
-    /// 
-    /// TODO: Just serialize a list of the structs or something?
-    /// </summary>
-    private List<int> _psuedoFourFieldTrackedSyntaxList = new List<int>();
+    private byte[] _syntaxHighlightByteList = new byte[0];
     /// <summary>
     /// TODO: Perhaps storing the _indexLine prior to invoking Lex and then checking if it changed is equivalent functionality with less overhead.
     /// </summary>
@@ -101,6 +96,7 @@ public class JavaScriptParser
     public JavaScriptCompilationUnit Parse()
     {
         var stringBuilder = new StringBuilder(capacity: 64);
+        _syntaxHighlightByteList = new byte[_doc.Chars.Count];
 
         _doc.HasBeenParsedAtLeastOnce = true;
 
@@ -143,21 +139,13 @@ public class JavaScriptParser
                 case SyntaxKind.StringToken:
                     if (_seenLineEnd_flagForStringsAndComments)
                     {
-                        _psuedoFourFieldTrackedSyntaxList.Add((int)TrackedSyntaxKind.String);
-                        // TODO: Update comments to reflect this idea (The editor needs the line,character because the text isn't stored equivalently between the server and the editor).
-                        _psuedoFourFieldTrackedSyntaxList.Add(token.Position.line);
-                        _psuedoFourFieldTrackedSyntaxList.Add(token.Position.character);
-                        _psuedoFourFieldTrackedSyntaxList.Add(token.Length);
+                        SyntaxHighlightByteList.SetSyntaxHighlighting(token.Start, token.Length, TrackedSyntaxKind.String);
                     }
                     break;
                 case SyntaxKind.MultiLineCommentToken:
                     if (_seenLineEnd_flagForStringsAndComments)
                     {
-                        _psuedoFourFieldTrackedSyntaxList.Add((int)TrackedSyntaxKind.Comment);
-                        // TODO: Update comments to reflect this idea (The editor needs the line,character because the text isn't stored equivalently between the server and the editor).
-                        _psuedoFourFieldTrackedSyntaxList.Add(token.Position.line);
-                        _psuedoFourFieldTrackedSyntaxList.Add(token.Position.character);
-                        _psuedoFourFieldTrackedSyntaxList.Add(token.Length);
+                        SyntaxHighlightByteList.SetSyntaxHighlighting(token.Start, token.Length, TrackedSyntaxKind.Comment);
                     }
                     break;
                 case SyntaxKind.CloseBraceToken:
@@ -901,7 +889,7 @@ public class JavaScriptParser
         }
 
         functionEnding:
-        return new SyntaxToken(SyntaxKind.StringToken, startPosition, length);
+        return new SyntaxToken(SyntaxKind.StringToken, startPosition, length, _pos - length);
     }
 
     public SyntaxToken Lex_SingleLineComment()
@@ -1011,7 +999,7 @@ public class JavaScriptParser
         }
 
         functionEnding:
-        return new SyntaxToken(SyntaxKind.MultiLineCommentToken, startPosition, length);
+        return new SyntaxToken(SyntaxKind.MultiLineCommentToken, startPosition, length, _pos - length);
     }
 }
 

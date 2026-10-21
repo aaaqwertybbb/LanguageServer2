@@ -2,10 +2,10 @@
 
 public class CustomFullFileLexResponse
 {
-    public CustomFullFileLexResponse(int id, int[] pseudoThreeFieldEntryList)
+    public CustomFullFileLexResponse(int id, string base64String_of_syntaxHighlight_byteArray)
     {
         this.id = id;
-        this.result = pseudoThreeFieldEntryList;
+        result = base64String_of_syntaxHighlight_byteArray;
     }
 
     public int id { get; }
@@ -46,5 +46,5 @@ public class CustomFullFileLexResponse
     /// Or I can provide the line or something so the tab issue is isolated to the line itself then I can
     /// in the editor client convert the line based data to the position based data that accounts for my odd tab logic.
     /// </summary>
-    public int[] result { get; set; }
+    public string result { get; set; }
 }
