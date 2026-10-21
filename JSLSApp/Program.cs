@@ -17,8 +17,6 @@ internal class Program
 
     private static void Main(string[] args)
     {
-        ThrowIfAnyoneElseTriesToRunThisProgram();
-
         //Console.Out.WriteLine(Environment.ProcessId.ToString() + '\n');
 
         using StreamReader reader = new StreamReader(Console.OpenStandardInput());
@@ -216,19 +214,5 @@ internal class Program
         var content = JsonSerializer.Serialize(messageObject);
         var spacing = "\r\n\r\n";
         return $"Content-Length: {content.Length}{spacing}{content}";
-    }
-
-    /// <summary>
-    /// The code is too egregiously bad at the moment I wanna make certain that nobody runs this.
-    /// </summary>
-    private static void ThrowIfAnyoneElseTriesToRunThisProgram()
-    {
-        string homePath = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile);
-
-        if (homePath != "C:\\Users\\hunte")
-        {
-            Console.WriteLine(@"if (homePath != ""C:\\Users\\hunte"")");
-            throw new Exception();
-        }
     }
 }
