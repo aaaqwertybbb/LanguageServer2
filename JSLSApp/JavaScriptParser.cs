@@ -528,25 +528,30 @@ public class JavaScriptParser
         // This is the only way I've thought to make this work and I'm not overly focused on optimizing this heuristic at the moment so I'm gonna continue using it.
         // You sum every character in the word, and enter a switch statement to compare that sum against hardcoded sums of every keyword that exists in the language.
         //
-        var charIntSum = (int)_doc.Chars[_pos];
+        var charIntSum = 0; // TODO: Google AI "a starting seed" // A standard starting seed for DJB2 is 5381"
         var startPosition = new Position(_indexLine, _indexChar);
+        
+        // TODO: if you just let it enter the loop you'd get rid of this specific line of duplicated hash logic
+        charIntSum = ((charIntSum << 5) - charIntSum) + _doc.Chars[_pos];
+
         var length = 1;
         _pos++;
         _indexChar++;
+
 
         while (_pos < _doc.Chars.Count)
         {
             if (char.IsLetterOrDigit(_doc.Chars[_pos]))
             {
                 length++;
-                charIntSum += _doc.Chars[_pos];
+                charIntSum = ((charIntSum << 5) - charIntSum) + _doc.Chars[_pos];
             }
             else
             {
                 if (_doc.Chars[_pos] == '_')
                 {
                     length++;
-                    charIntSum += _doc.Chars[_pos];
+                    charIntSum = ((charIntSum << 5) - charIntSum) + _doc.Chars[_pos];
                 }
                 else
                 {
@@ -562,77 +567,354 @@ public class JavaScriptParser
 
         switch (charIntSum)
         {
-            case 870:
-                if (length == 8 &&
-                    _doc.Chars[_pos - 8] == 102 /* 'f' */ &&
-                    _doc.Chars[_pos - 7] == 117 /* 'u' */ &&
-                    _doc.Chars[_pos - 6] == 110 /* 'n' */ &&
-                    _doc.Chars[_pos - 5] == 99  /* 'c' */ &&
-                    _doc.Chars[_pos - 4] == 116 /* 't' */ &&
-                    _doc.Chars[_pos - 3] == 105 /* 'i' */ &&
-                    _doc.Chars[_pos - 2] == 111 /* 'o' */ &&
-                    _doc.Chars[_pos - 1] == 110 /* 'n' */)
-                {
-                    _functionDefinitionStartPositionList.Add(new FunctionDefinitionSyntax(startPosition));
-                    syntaxKind = SyntaxKind.FunctionKeywordToken;
-                }
-                break;
-            case 534:
+            case 94844771: // const
                 if (length == 5 &&
-                    _doc.Chars[_pos - 5] == 99  /* 'c' */ &&
-                    _doc.Chars[_pos - 4] == 108 /* 'l' */ &&
-                    _doc.Chars[_pos - 3] == 97  /* 'a' */ &&
-                    _doc.Chars[_pos - 2] == 115 /* 's' */ &&
-                    _doc.Chars[_pos - 1] == 115 /* 's' */)
+                    _doc.Chars[_pos - 5] == 'c' &&
+                    _doc.Chars[_pos - 4] == 'o' &&
+                    _doc.Chars[_pos - 3] == 'n' &&
+                    _doc.Chars[_pos - 2] == 's' &&
+                    _doc.Chars[_pos - 1] == 't')
                 {
-                    //_functionDefinitionStartPositionList.Add(new FunctionDefinitionSyntax(startPosition));
-                    syntaxKind = SyntaxKind.ClassKeywordToken;
-                }
-                break;
-            case 667:
-                if (length == 6 &&
-                    _doc.Chars[_pos - 6] == 105 /* 'i' */ &&
-                    _doc.Chars[_pos - 5] == 109 /* 'm' */ &&
-                    _doc.Chars[_pos - 4] == 112 /* 'p' */ &&
-                    _doc.Chars[_pos - 3] == 111 /* 'o' */ &&
-                    _doc.Chars[_pos - 2] == 114 /* 'r' */ &&
-                    _doc.Chars[_pos - 1] == 116 /* 't' */)
-                {
-                    //_functionDefinitionStartPositionList.Add(new FunctionDefinitionSyntax(startPosition));
-                    syntaxKind = SyntaxKind.ImportKeywordToken;
-                }
-                break;
-            case 325:
-                if (length == 3 &&
-                    _doc.Chars[_pos - 3] == 108 /* 'l' */ &&
-                    _doc.Chars[_pos - 2] == 101 /* 'e' */ &&
-                    _doc.Chars[_pos - 1] == 116 /* 't' */)
-                {
-                    //_functionDefinitionStartPositionList.Add(new FunctionDefinitionSyntax(startPosition));
-                    syntaxKind = SyntaxKind.LetKeywordContextualToken;
-                }
-                break;
-            case 551:
-                if (length == 5 &&
-                    _doc.Chars[_pos - 5] == 99  /* 'c' */ &&
-                    _doc.Chars[_pos - 4] == 111 /* 'o' */ &&
-                    _doc.Chars[_pos - 3] == 110 /* 'n' */ &&
-                    _doc.Chars[_pos - 2] == 115 /* 's' */ &&
-                    _doc.Chars[_pos - 1] == 116 /* 't' */)
-                {
-                    //_functionDefinitionStartPositionList.Add(new FunctionDefinitionSyntax(startPosition));
                     syntaxKind = SyntaxKind.ConstKeywordToken;
+                    break;
                 }
                 break;
-            case 329:
+            case 107035: // let
                 if (length == 3 &&
-                    _doc.Chars[_pos - 3] == 118 /* 'v' */ &&
-                    _doc.Chars[_pos - 2] == 97  /* 'a' */ &&
-                    _doc.Chars[_pos - 1] == 114 /* 'r' */)
+                    _doc.Chars[_pos - 3] == 'l' &&
+                    _doc.Chars[_pos - 2] == 'e' &&
+                    _doc.Chars[_pos - 1] == 't')
                 {
-                    //_functionDefinitionStartPositionList.Add(new FunctionDefinitionSyntax(startPosition));
-                    syntaxKind = SyntaxKind.VarKeywordToken;
+                    syntaxKind = SyntaxKind.LetKeywordToken;
+                    break;
                 }
+                break;
+            case 1380938712: // function
+                if (length == 8 &&
+                    _doc.Chars[_pos - 8] == 'f' &&
+                    _doc.Chars[_pos - 7] == 'u' &&
+                    _doc.Chars[_pos - 6] == 'n' &&
+                    _doc.Chars[_pos - 5] == 'c' &&
+                    _doc.Chars[_pos - 4] == 't' &&
+                    _doc.Chars[_pos - 3] == 'i' &&
+                    _doc.Chars[_pos - 2] == 'o' &&
+                    _doc.Chars[_pos - 1] == 'n')
+                {
+                    syntaxKind = SyntaxKind.FunctionKeywordToken;
+                    break;
+                }
+                break;
+            case 3357: // if
+                if (length == 2 &&
+                    _doc.Chars[_pos - 8] == 'i' &&
+                    _doc.Chars[_pos - 8] == 'f')
+                {
+                    syntaxKind = SyntaxKind.IfKeywordToken;
+                    break;
+                }
+                break;
+            case 115131: // try
+                if (length == 3 &&
+                    _doc.Chars[_pos - 8] == 't' &&
+                    _doc.Chars[_pos - 8] == 'r' &&
+                    _doc.Chars[_pos - 8] == 'y')
+                {
+                    syntaxKind = SyntaxKind.TryKeywordToken;
+                    break;
+                }
+                break;
+            case 101577: // for
+                if (length == 3 &&
+                    _doc.Chars[_pos - 8] == 'f' &&
+                    _doc.Chars[_pos - 8] == 'o' &&
+                    _doc.Chars[_pos - 8] == 'r')
+                {
+                    syntaxKind = SyntaxKind.ForKeywordToken;
+                    break;
+                }
+                break;
+            case 116519: // var
+                if (length == 3 &&
+                    _doc.Chars[_pos - 8] == 'v' &&
+                    _doc.Chars[_pos - 8] == 'a' &&
+                    _doc.Chars[_pos - 8] == 'r')
+                {
+                    syntaxKind = SyntaxKind.VarKeywordToken;
+                    break;
+                }
+                break;
+            case 94432955: // catch
+                if (length == 5 &&
+                    _doc.Chars[_pos - 8] == 'c' &&
+                    _doc.Chars[_pos - 8] == 'a' &&
+                    _doc.Chars[_pos - 8] == 't' &&
+                    _doc.Chars[_pos - 8] == 'c' &&
+                    _doc.Chars[_pos - 8] == 'h')
+                {
+                    syntaxKind = SyntaxKind.CatchKeywordToken;
+                    break;
+                }
+                break;
+            case -934396624: // return
+                if (length == 6 &&
+                    _doc.Chars[_pos - 8] == 'r' &&
+                    _doc.Chars[_pos - 8] == 'e' &&
+                    _doc.Chars[_pos - 8] == 't' &&
+                    _doc.Chars[_pos - 8] == 'u' &&
+                    _doc.Chars[_pos - 8] == 'r' &&
+                    _doc.Chars[_pos - 8] == 'n')
+                {
+                    syntaxKind = SyntaxKind.ReturnKeywordToken;
+                    break;
+                }
+                break;
+            case -889473228: // switch
+                if (length == 6 &&
+                    _doc.Chars[_pos - 8] == 's' &&
+                    _doc.Chars[_pos - 8] == 'w' &&
+                    _doc.Chars[_pos - 8] == 'i' &&
+                    _doc.Chars[_pos - 8] == 't' &&
+                    _doc.Chars[_pos - 8] == 'c' &&
+                    _doc.Chars[_pos - 8] == 'h')
+                {
+                    syntaxKind = SyntaxKind.SwitchKeywordToken;
+                    break;
+                }
+                break;
+            case 3046192: // case
+                if (length == 4 &&
+                    _doc.Chars[_pos - 8] == 'c' &&
+                    _doc.Chars[_pos - 8] == 'a' &&
+                    _doc.Chars[_pos - 8] == 's' &&
+                    _doc.Chars[_pos - 8] == 'e')
+                {
+                    syntaxKind = SyntaxKind.CaseKeywordToken;
+                    break;
+                }
+                break;
+            case 93127292: // async
+                if (length == 5 &&
+                    _doc.Chars[_pos - 8] == 'a' &&
+                    _doc.Chars[_pos - 8] == 's' &&
+                    _doc.Chars[_pos - 8] == 'y' &&
+                    _doc.Chars[_pos - 8] == 'n' &&
+                    _doc.Chars[_pos - 8] == 'c')
+                {
+                    syntaxKind = SyntaxKind.AsyncKeywordToken;
+                    break;
+                }
+                break;
+            case 3116345: // else
+                if (length == 4 &&
+                    _doc.Chars[_pos - 8] == 'e' &&
+                    _doc.Chars[_pos - 8] == 'l' &&
+                    _doc.Chars[_pos - 8] == 's' &&
+                    _doc.Chars[_pos - 8] == 'e')
+                {
+                    syntaxKind = SyntaxKind.ElseKeywordToken;
+                    break;
+                }
+                break;
+            case 1544803905: // default
+                if (length == 7 &&
+                    _doc.Chars[_pos - 8] == 'd' &&
+                    _doc.Chars[_pos - 8] == 'e' &&
+                    _doc.Chars[_pos - 8] == 'f' &&
+                    _doc.Chars[_pos - 8] == 'a' &&
+                    _doc.Chars[_pos - 8] == 'u' &&
+                    _doc.Chars[_pos - 8] == 'l' &&
+                    _doc.Chars[_pos - 8] == 't')
+                {
+                    syntaxKind = SyntaxKind.DefaultKeywordToken;
+                    break;
+                }
+                break;
+            case 110339814: // throw
+                if (length == 5 &&
+                    _doc.Chars[_pos - 8] == 't' &&
+                    _doc.Chars[_pos - 8] == 'h' &&
+                    _doc.Chars[_pos - 8] == 'r' &&
+                    _doc.Chars[_pos - 8] == 'o' &&
+                    _doc.Chars[_pos - 8] == 'w')
+                {
+                    syntaxKind = SyntaxKind.ThrowKeywordToken;
+                    break;
+                }
+                break;
+            case 108960: // new
+                if (length == 3 &&
+                    _doc.Chars[_pos - 8] == 'n' &&
+                    _doc.Chars[_pos - 8] == 'e' &&
+                    _doc.Chars[_pos - 8] == 'w')
+                {
+                    syntaxKind = SyntaxKind.NewKeywordToken;
+                    break;
+                }
+                break;
+            case 93223254: // await
+                if (length == 5 &&
+                    _doc.Chars[_pos - 8] == 'a' &&
+                    _doc.Chars[_pos - 8] == 'w' &&
+                    _doc.Chars[_pos - 8] == 'a' &&
+                    _doc.Chars[_pos - 8] == 'i' &&
+                    _doc.Chars[_pos - 8] == 't')
+                {
+                    syntaxKind = SyntaxKind.AwaitKeywordToken;
+                    break;
+                }
+                break;
+            case 94742904: // class
+                if (length == 5 &&
+                    _doc.Chars[_pos - 8] == 'c' &&
+                    _doc.Chars[_pos - 8] == 'l' &&
+                    _doc.Chars[_pos - 8] == 'a' &&
+                    _doc.Chars[_pos - 8] == 's' &&
+                    _doc.Chars[_pos - 8] == 's')
+                {
+                    syntaxKind = SyntaxKind.ClassKeywordToken;
+                    break;
+                }
+                break;
+            case -1588406278: // constructor
+                if (length == 11 &&
+                    _doc.Chars[_pos - 8] == 'c' &&
+                    _doc.Chars[_pos - 8] == 'o' &&
+                    _doc.Chars[_pos - 8] == 'n' &&
+                    _doc.Chars[_pos - 8] == 's' &&
+                    _doc.Chars[_pos - 8] == 't' &&
+                    _doc.Chars[_pos - 8] == 'r' &&
+                    _doc.Chars[_pos - 8] == 'u' &&
+                    _doc.Chars[_pos - 8] == 'c' &&
+                    _doc.Chars[_pos - 8] == 't' &&
+                    _doc.Chars[_pos - 8] == 'o' &&
+                    _doc.Chars[_pos - 8] == 'r')
+                {
+                    syntaxKind = SyntaxKind.ConstructorKeywordToken;
+                    break;
+                }
+                break;
+            case -1184795739: // import
+                if (length == 6 &&
+                    _doc.Chars[_pos - 8] == 'i' &&
+                    _doc.Chars[_pos - 8] == 'm' &&
+                    _doc.Chars[_pos - 8] == 'p' &&
+                    _doc.Chars[_pos - 8] == 'o' &&
+                    _doc.Chars[_pos - 8] == 'r' &&
+                    _doc.Chars[_pos - 8] == 't')
+                {
+                    syntaxKind = SyntaxKind.ImportKeywordToken;
+                    break;
+                }
+                break;
+            case 3151786: // from
+                if (length == 4 &&
+                    _doc.Chars[_pos - 8] == 'f' &&
+                    _doc.Chars[_pos - 8] == 'r' &&
+                    _doc.Chars[_pos - 8] == 'o' &&
+                    _doc.Chars[_pos - 8] == 'm')
+                {
+                    syntaxKind = SyntaxKind.FromKeywordToken;
+                    break;
+                }
+                break;
+            case -1289153612: // export
+                if (length == 6 &&
+                    _doc.Chars[_pos - 8] == 'e' &&
+                    _doc.Chars[_pos - 8] == 'x' &&
+                    _doc.Chars[_pos - 8] == 'p' &&
+                    _doc.Chars[_pos - 8] == 'o' &&
+                    _doc.Chars[_pos - 8] == 'r' &&
+                    _doc.Chars[_pos - 8] == 't')
+                {
+                    syntaxKind = SyntaxKind.ExportKeywordToken;
+                    break;
+                }
+                break;
+            case 3559070: // this
+                if (length == 4 &&
+                    _doc.Chars[_pos - 8] == 't' &&
+                    _doc.Chars[_pos - 8] == 'h' &&
+                    _doc.Chars[_pos - 8] == 'i' &&
+                    _doc.Chars[_pos - 8] == 's')
+                {
+                    syntaxKind = SyntaxKind.ThisKeywordToken;
+                    break;
+                }
+                break;
+            case 113101617: // while
+                if (length == 5 &&
+                    _doc.Chars[_pos - 8] == 'w' &&
+                    _doc.Chars[_pos - 8] == 'h' &&
+                    _doc.Chars[_pos - 8] == 'i' &&
+                    _doc.Chars[_pos - 8] == 'l' &&
+                    _doc.Chars[_pos - 8] == 'e')
+                {
+                    syntaxKind = SyntaxKind.WhileKeywordToken;
+                    break;
+                }
+                break;
+            case 94001407: // break
+                if (length == 5 &&
+                    _doc.Chars[_pos - 8] == 'b' &&
+                    _doc.Chars[_pos - 8] == 'r' &&
+                    _doc.Chars[_pos - 8] == 'e' &&
+                    _doc.Chars[_pos - 8] == 'a' &&
+                    _doc.Chars[_pos - 8] == 'k')
+                {
+                    syntaxKind = SyntaxKind.BreakKeywordToken;
+                    break;
+                }
+                break;
+            case -567202649: // continue
+                if (length == 8 &&
+                    _doc.Chars[_pos - 8] == 'c' &&
+                    _doc.Chars[_pos - 8] == 'o' &&
+                    _doc.Chars[_pos - 8] == 'n' &&
+                    _doc.Chars[_pos - 8] == 't' &&
+                    _doc.Chars[_pos - 8] == 'i' &&
+                    _doc.Chars[_pos - 8] == 'n' &&
+                    _doc.Chars[_pos - 8] == 'u' &&
+                    _doc.Chars[_pos - 8] == 'e')
+                {
+                    syntaxKind = SyntaxKind.ContinueKeywordToken;
+                    break;
+                }
+                break;
+            case 3569038: // true
+                if (length == 4 &&
+                    _doc.Chars[_pos - 8] == 't' &&
+                    _doc.Chars[_pos - 8] == 'r' &&
+                    _doc.Chars[_pos - 8] == 'u' &&
+                    _doc.Chars[_pos - 8] == 'e')
+                {
+                    syntaxKind = SyntaxKind.TrueKeywordToken;
+                    break;
+                }
+                break;
+            case 97196323: // false
+                if (length == 5 &&
+                    _doc.Chars[_pos - 8] == 'f' &&
+                    _doc.Chars[_pos - 8] == 'a' &&
+                    _doc.Chars[_pos - 8] == 'l' &&
+                    _doc.Chars[_pos - 8] == 's' &&
+                    _doc.Chars[_pos - 8] == 'e')
+                {
+                    syntaxKind = SyntaxKind.FalseKeywordToken;
+                    break;
+                }
+                break;
+            case 3392903: // null
+                if (length == 4 &&
+                    _doc.Chars[_pos - 8] == 'n' &&
+                    _doc.Chars[_pos - 8] == 'u' &&
+                    _doc.Chars[_pos - 8] == 'l' &&
+                    _doc.Chars[_pos - 8] == 'l')
+                {
+                    syntaxKind = SyntaxKind.NullKeywordToken;
+                    break;
+                }
+                break;
+            default:
                 break;
         }
 
