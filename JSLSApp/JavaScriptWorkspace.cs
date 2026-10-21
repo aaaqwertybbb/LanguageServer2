@@ -74,13 +74,13 @@ public class JavaScriptWorkspace
         var found = OpenedSourceFileAbsolutePathToInMemoryContentMap.TryGetValue(sourceFileAbsolutePath, out var doc);
         if (!found)
         {
-            Console.Out.WriteLine($"\n====ERROR DidChangeTextDocumentNotification did not find file====\n");
+            //Console.Out.WriteLine($"\n====ERROR DidChangeTextDocumentNotification did not find file====\n");
             return;
         }
 
         if (contentChanges.Length == 0)
         {
-            Console.Out.WriteLine($"\n====DidChangeTextDocumentNotification; {nameof(contentChanges)} length was 0====\n");
+            //Console.Out.WriteLine($"\n====DidChangeTextDocumentNotification; {nameof(contentChanges)} length was 0====\n");
             return;
         }
 
@@ -88,7 +88,7 @@ public class JavaScriptWorkspace
         {
             if (change.range is null)
             {
-                Console.Out.WriteLine($"\n====DidChangeTextDocumentNotification; TODO: support 'if (change.range is null)'====\n");
+                //Console.Out.WriteLine($"\n====DidChangeTextDocumentNotification; TODO: support 'if (change.range is null)'====\n");
                 continue;
             }
 
@@ -97,7 +97,7 @@ public class JavaScriptWorkspace
                 if (change.text is not null && change.text.Length > 0)
                 {
                     // TODO: You're allowed to provide text to insert here as well, so this needs to be supported.
-                    Console.Out.WriteLine($"\n====change.text is not null====\n");
+                    //Console.Out.WriteLine($"\n====change.text is not null====\n");
                     continue;
                 }
 
@@ -109,14 +109,14 @@ public class JavaScriptWorkspace
             {
                 if (change.text is null)
                 {
-                    Console.Out.WriteLine($"\n====DidChangeTextDocumentNotification; change.text is null====\n");
+                    //Console.Out.WriteLine($"\n====DidChangeTextDocumentNotification; change.text is null====\n");
                     continue;
                 }
 
                 var indexPosition = FindPositionFromLineAndCharacter(doc.Chars, change.range.start.line, change.range.start.character);
                 if (indexPosition == -1)
                 {
-                    Console.Out.WriteLine($"\n====DidChangeTextDocumentNotification; if (indexPosition == -1)====\n");
+                    //Console.Out.WriteLine($"\n====DidChangeTextDocumentNotification; if (indexPosition == -1)====\n");
                     continue;
                 }
                 

@@ -450,17 +450,17 @@ internal static class LspDispatcher
 
         if (didChangeTextDocumentNotification.@params.contentChanges is null)
         {
-            Console.Out.WriteLine($"\n====didChangeTextDocumentNotification.@params.contentChanges is null====\n");
+            //Console.Out.WriteLine($"\n====didChangeTextDocumentNotification.@params.contentChanges is null====\n");
             return request;
         }
 
         if (didChangeTextDocumentNotification.@params.contentChanges.Length == 0)
         {
-            Console.Out.WriteLine($"\n====didChangeTextDocumentNotification.@params.contentChanges.Length == 0====\n");
+            //Console.Out.WriteLine($"\n====didChangeTextDocumentNotification.@params.contentChanges.Length == 0====\n");
             return request;
         }
-        
-        foreach (var item in didChangeTextDocumentNotification.@params.contentChanges)
+
+        /*foreach (var item in didChangeTextDocumentNotification.@params.contentChanges)
         {
             if (item.range is null)
                 Console.Out.WriteLine($"\n====didChangeTextDocumentNotification item range is null====\n");
@@ -470,11 +470,11 @@ internal static class LspDispatcher
 
             if (item.text is null)
                 Console.Out.WriteLine($"\n====didChangeTextDocumentNotification item text is null====\n");
-        }
+        }*/
 
         if (_javaScriptWorkspace is null)
         {
-            Console.Out.WriteLine($"\n====_javaScriptWorkspace is null====\n");
+            //Console.Out.WriteLine($"\n====_javaScriptWorkspace is null====\n");
             return request;
         }
 
@@ -494,7 +494,7 @@ internal static class LspDispatcher
 
         if (_javaScriptWorkspace is null)
         {
-            Console.Out.WriteLine($"\n====_javaScriptWorkspace is null====\n");
+            //Console.Out.WriteLine($"\n====_javaScriptWorkspace is null====\n");
             return request;
         }
 
@@ -519,7 +519,7 @@ internal static class LspDispatcher
             
         if (_javaScriptWorkspace is null)
         {
-            Console.Out.WriteLine($"\n====_javaScriptWorkspace is null====\n");
+            //Console.Out.WriteLine($"\n====_javaScriptWorkspace is null====\n");
             return didOpenTextDocumentNotification;
         }
         
@@ -548,15 +548,15 @@ internal static class LspDispatcher
         }
         else if (initializeRequest.@params.workspaceFolders is null)
         {
-            Console.Out.WriteLine($"\n====initializeRequest?.Params?.workspaceFolders:null====\n");
+            //Console.Out.WriteLine($"\n====initializeRequest?.Params?.workspaceFolders:null====\n");
         }
         else
         {
             _javaScriptWorkspace = new JavaScriptWorkspace(initializeRequest.@params.workspaceFolders);
-            Console.Out.WriteLine($"\n====initializeRequest?.Params?.workspaceFolders...====\n");
+            //Console.Out.WriteLine($"\n====initializeRequest?.Params?.workspaceFolders...====\n");
             foreach (var workspaceFolder in initializeRequest.@params.workspaceFolders)
             {
-                Console.Out.WriteLine($"\n====workspaceFolder: name->{workspaceFolder.name} | uri->{workspaceFolder.uri}====\n");
+                //Console.Out.WriteLine($"\n====workspaceFolder: name->{workspaceFolder.name} | uri->{workspaceFolder.uri}====\n");
             }
         }
 

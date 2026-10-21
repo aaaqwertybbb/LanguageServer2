@@ -19,7 +19,7 @@ internal class Program
     {
         ThrowIfAnyoneElseTriesToRunThisProgram();
 
-        Console.Out.WriteLine(Environment.ProcessId.ToString() + '\n');
+        //Console.Out.WriteLine(Environment.ProcessId.ToString() + '\n');
 
         using StreamReader reader = new StreamReader(Console.OpenStandardInput());
         
@@ -35,6 +35,8 @@ internal class Program
     {
         try
         {
+            // TODO: send a 'server crashed notification' to the editor.
+            //throw new Exception("aaa");
             if (stdoutChunkObjects.Count == 0)
             {
                 return MAIN_decodeMessage_start(json);
@@ -83,7 +85,7 @@ internal class Program
         var contentLengthString = json.Substring(substringIndexStart, substringIndexEnd - substringIndexStart);
         if (!int.TryParse(contentLengthString, out var contentLengthNumber))
         {
-            Console.Out.WriteLine($"\n====if (!int.TryParse(contentLengthString, out var contentLengthNumber))====\n");
+            //Console.Out.WriteLine($"\n====if (!int.TryParse(contentLengthString, out var contentLengthNumber))====\n");
             return null;
         }
 
@@ -204,7 +206,7 @@ internal class Program
         var request = JsonSerializer.Deserialize<Message>(content, _jsonSerializerOptions);
         if (request is null)
         {
-            Console.Out.WriteLine($"\n====request is null====\n");
+            //Console.Out.WriteLine($"\n====request is null====\n");
         }
         return LspDispatcher.GiveMessage(content, request);
     }
