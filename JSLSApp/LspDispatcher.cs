@@ -581,7 +581,9 @@ internal static class LspDispatcher
             return request;
         }
 
-        File.WriteAllText(Program.path_customEditorVerifyLspTextAgainstEditorTextRequest, new string(javaScriptDocument.Chars.ToArray()));
+        // TODO: CustomEditorVerifyLspTextAgainstEditorTextRequest responds with the string so you can copy it to clipboard from the editor without having to modify...
+        // ...code for Windows only or adding libraries.
+        //Console.Out.WriteLine(new string(javaScriptDocument.Chars.ToArray()));
 
         return request;
     }

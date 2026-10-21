@@ -97,7 +97,7 @@ or should we write a test for handling syntax errors?
 - [ ] Remove all my stuff that makes me uncomfortable with other people running this so I can remove 'ThrowIfAnyoneElseTriesToRunThisProgram();'
     - [ ] Program.cs
         - [x] myPath
-        - [ ] path_customEditorVerifyLspTextAgainstEditorTextRequest
+        - [x] path_customEditorVerifyLspTextAgainstEditorTextRequest
         - [x] MyDebuggingFunction
         - [ ] File.WriteAllText invocations
         - [ ] File.AppendAllText invocations
@@ -123,3 +123,4 @@ or should we write a test for handling syntax errors?
             - [ ] Other available place?
                 - [ ] verify that they're sensible to have, i.e.: just delete them?
                 - [ ] does writing to Console.Out.WriteLine bug out of the editor reading the server responses/etc...?
+                - [ ] // TODO: CustomEditorVerifyLspTextAgainstEditorTextRequest responds with the string so you can copy it to clipboard from the editor without having to modify code for Windows only or adding libraries.
