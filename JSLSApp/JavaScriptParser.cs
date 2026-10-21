@@ -34,6 +34,10 @@ public class JavaScriptParser
     /// </summary>
     private SyntaxToken _peekToken;
     private SyntaxToken _previousToken;
+    /// <summary>
+    /// TODO: Probably don't do this but I want 'this.apple' to work so I can feel at peace.
+    /// </summary>
+    private SyntaxToken _previousPreviousToken;
     private bool _peekTokenExists;
 
     private Scope _globalScope;
@@ -169,6 +173,7 @@ public class JavaScriptParser
                 case SyntaxKind.WhitespaceToken:
                     break;
             }
+            _previousPreviousToken = _previousToken;
             _previousToken = token;
         }
 
@@ -950,7 +955,15 @@ public class JavaScriptParser
         }
         else if (_pos > (length + 1) && _doc.Chars[_pos - (length + 1)] == '.')
         {
-            SyntaxHighlightByteList.SetSyntaxHighlighting(_pos - length, length, TrackedSyntaxKind.Member);
+            // I guess '.' isn't being lexed yet? "|| _previousToken.SyntaxKind == SyntaxKind.ThisKeywordToken"
+            if (_previousPreviousToken.SyntaxKind == SyntaxKind.ThisKeywordToken || _previousToken.SyntaxKind == SyntaxKind.ThisKeywordToken)
+            {
+                SyntaxHighlightByteList.SetSyntaxHighlighting(_pos - length, length, TrackedSyntaxKind.Identifier);
+            }
+            else
+            {
+                SyntaxHighlightByteList.SetSyntaxHighlighting(_pos - length, length, TrackedSyntaxKind.Member);
+            }
         }
         else
         {
