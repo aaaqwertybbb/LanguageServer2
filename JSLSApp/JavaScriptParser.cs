@@ -358,6 +358,8 @@ public class JavaScriptParser
             return;
         _ = ConsumePeekToken();
 
+        SyntaxHighlightByteList.SetSyntaxHighlighting(_pos - token.Length, token.Length, TrackedSyntaxKind.Type);
+
         // TODO: Constructing a string here is likely to be extremely GC expensive
         // TODO: Presuming that the entry was added then just taking the most recent function definition perhaps is a bit hacky; I'm not sure
         stringBuilder.Clear();
