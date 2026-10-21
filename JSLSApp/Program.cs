@@ -20,7 +20,6 @@ internal class Program
     private static void Main(string[] args)
     {
         ThrowIfAnyoneElseTriesToRunThisProgram();
-        MyDebuggingFunction();
 
         Console.Out.WriteLine(Environment.ProcessId.ToString() + '\n');
 
@@ -231,25 +230,5 @@ internal class Program
             Console.WriteLine(@"if (homePath != ""C:\\Users\\hunte"")");
             throw new Exception();
         }
-    }
-
-    private static void MyDebuggingFunction()
-    {
-//        var str = @"
-//public class Foo {
-//    Bar() {
-//    }
-//}
-//";
-
-        var uriPath = "file:///C:/Users/hunte/Repos/New folder (7)/Editor2/src/RendererFiles/dialogGlobal.js";
-        var localPath = new Uri(uriPath).LocalPath;
-        var str = File.ReadAllText(localPath);
-
-        var javaScriptDocument = new JavaScriptDocument(localPath, str.ToList());
-        var javaScriptParser = new JavaScriptParser(javaScriptDocument, JavaScriptWorkspace.Empty);
-        javaScriptDocument.CompilationUnit = javaScriptParser.Parse();
-        var aaa = javaScriptDocument.CompilationUnit.FunctionDefinitionStartPositionList;
-        var bbb = javaScriptDocument.CompilationUnit.GetString();
     }
 }

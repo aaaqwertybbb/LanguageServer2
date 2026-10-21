@@ -98,7 +98,7 @@ or should we write a test for handling syntax errors?
     - [ ] Program.cs
         - [x] myPath
         - [ ] path_customEditorVerifyLspTextAgainstEditorTextRequest
-        - [ ] MyDebuggingFunction
+        - [x] MyDebuggingFunction
         - [ ] File.WriteAllText invocations
         - [ ] File.AppendAllText invocations
         - [ ] Environment.GetFolderPath
