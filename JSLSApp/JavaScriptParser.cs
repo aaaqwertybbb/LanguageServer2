@@ -601,6 +601,7 @@ public class JavaScriptParser
                     _doc.Chars[_pos - 1] == 'n')
                 {
                     syntaxKind = SyntaxKind.FunctionKeywordToken;
+                    _functionDefinitionStartPositionList.Add(new FunctionDefinitionSyntax(startPosition));
                     break;
                 }
                 break;
