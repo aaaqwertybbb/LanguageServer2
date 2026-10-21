@@ -931,17 +931,24 @@ public class JavaScriptParser
                 break;
         }
 
-        if (syntaxKind == SyntaxKind.IdentifierToken)
+        if (_doc.Chars[_pos] == '(')
         {
-            SyntaxHighlightByteList.SetSyntaxHighlighting(_pos - length, length, TrackedSyntaxKind.Identifier);
-        }
-        else if (flagControlKeyword)
-        {
-            SyntaxHighlightByteList.SetSyntaxHighlighting(_pos - length, length, TrackedSyntaxKind.KeywordControl);
+            SyntaxHighlightByteList.SetSyntaxHighlighting(_pos - length, length, TrackedSyntaxKind.Function);
         }
         else
         {
-            SyntaxHighlightByteList.SetSyntaxHighlighting(_pos - length, length, TrackedSyntaxKind.Keyword);
+            if (syntaxKind == SyntaxKind.IdentifierToken)
+            {
+                SyntaxHighlightByteList.SetSyntaxHighlighting(_pos - length, length, TrackedSyntaxKind.Identifier);
+            }
+            else if (flagControlKeyword)
+            {
+                SyntaxHighlightByteList.SetSyntaxHighlighting(_pos - length, length, TrackedSyntaxKind.KeywordControl);
+            }
+            else
+            {
+                SyntaxHighlightByteList.SetSyntaxHighlighting(_pos - length, length, TrackedSyntaxKind.Keyword);
+            }
         }
         return new SyntaxToken(syntaxKind, startPosition, length);
     }

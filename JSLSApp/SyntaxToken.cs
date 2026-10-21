@@ -24,6 +24,7 @@ public enum TrackedSyntaxKind : byte
     Keyword = 3,
     KeywordControl = 4,
     Identifier = 5,
+    Function = 6,
 }
 
 public static class SyntaxExtensions
