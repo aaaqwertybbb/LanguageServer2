@@ -99,18 +99,22 @@ or should we write a test for handling syntax errors?
         - [x] myPath
         - [x] path_customEditorVerifyLspTextAgainstEditorTextRequest
         - [x] MyDebuggingFunction
-        - [ ] File.WriteAllText invocations
-        - [ ] File.AppendAllText invocations
+        - [x] File.WriteAllText invocations
+        - [x] File.AppendAllText invocations
         - [ ] Environment.GetFolderPath
-        - [ ] 
     - [ ] JavaScriptParser.cs
-        - [ ] Check whether this one is completely safe it generates a file path string but only as an id (I think): ParseImportNode
+        - [x] Check whether this one is completely safe it generates a file path string but only as an id (I think): ParseImportNode
+        - [x] removed
     - [ ] JavaScriptWorkspace.cs
-        - [ ] suspect: Recursive_FileDiscovery
+        - [x] suspect: Recursive_FileDiscovery
+        - [x] removed
     - [ ] LspDispatcher.cs
-        - [ ] suspect: EnsureLocalPath (is just an id?)
-        - [ ] File.AppendAllText invocations
-        - [ ] Look for 'File.' too when done just to be sure
+        - [/] suspect: EnsureLocalPath (is just an id?)
+            - [/] is id for import nodes? '_javaScriptWorkspace.OpenedSourceFileAbsolutePathToInMemoryContentMap'. So you could read the file.
+            - [ ] But I removed import nodes for now. so it should just be an id at this point.
+        - [x] File.AppendAllText invocations
+        - [x] Look for 'File.' too when done just to be sure (all files)
+        - [x] Look for 'Directory.' (all files)
     - [ ] 
     
 

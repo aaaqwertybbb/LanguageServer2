@@ -257,77 +257,7 @@ public class JavaScriptParser
 
     private void ParseImportNode(StringBuilder stringBuilder)
     {
-        var stringToken = PeekToken();
-        if (stringToken.SyntaxKind == SyntaxKind.StringToken)
-        {
-            ConsumePeekToken();
-            // TODO: Constructing a string here is likely to be extremely GC expensive
-            // TODO: Presuming that the entry was added then just taking the most recent function definition perhaps is a bit hacky; I'm not sure
-            stringBuilder.Clear();
-            for (int k = 1; k < stringToken.Length - 1; k++)
-            {
-                stringBuilder.Append(_doc.Chars[(_pos - stringToken.Length) + k]);
-            }
-            // ./fieldBuffer
-            
-            var aaa = stringBuilder.ToString();
-            if (!aaa.EndsWith(".js"))
-            {
-                aaa += ".js";
-            }
-
-            // TODO: are there any oddities related to exclusion of the .js extension when importing and .js vs .cjs when two files exist with the same name minus their extentions.
-
-            ///
-            ///
-            /// TODO: AI generated answer this looks sufficient for the time being... (1 of 2)
-            /// 
-            ///
-            string absoluteFilePath = _doc.UriPath;
-            string relativePath = aaa;
-            // 1. Get the folder containing the file: C:\Users\hunte...\src\RendererFiles
-            string directoryPath = Path.GetDirectoryName(absoluteFilePath);
-            // 2. Combine them and resolve any "." or ".." shortcuts
-            string resultPath = Path.GetFullPath(Path.Combine(directoryPath, relativePath));
-            ///
-            ///
-            /// TODO: AI generated answer this looks sufficient for the time being... (2 of 2)
-            ///
-            ///
-
-            var found = _javaScriptWorkspace.OpenedSourceFileAbsolutePathToInMemoryContentMap.TryGetValue(resultPath, out var innerDocument);
-            if (!found || innerDocument is null)
-            {
-                if (!File.Exists(resultPath))
-                {
-                    // TODO: This is a race condition but that isn't the point. I just want a simple way to skip files I can't find for the time being.
-                    return;
-                }
-                innerDocument = new JavaScriptDocument(resultPath, File.ReadAllText(resultPath).ToList());
-                var innerParser = new JavaScriptParser(innerDocument, _javaScriptWorkspace);
-                innerDocument.CompilationUnit = innerParser.Parse();
-            }
-
-            foreach (var node in innerDocument.CompilationUnit.BodyList)
-            {
-                if (node.Body is not null && node.Body.Type == BodyKind.FunctionBody)
-                {
-                    node.Body.Type = BodyKind.EXTERNAL_FunctionBody;
-
-                    // TODO: You  might want an import node otherwise this spills out into the current document and causes confusion with the ranges.
-                    _currentScope.GetBodyList(_bodyList).Add(node);
-                    _currentScope.LexicalScope.Add(node.Id_name, node);
-                }
-            }
-
-            var bbb = 2;
-
-            // TODO: Support the protocol definition for showing a message from the server to the client.
-
-            // Use the C# path APIs to standardize the filepath?
-            // And more guarantee that the import resolves the same each time whether it is "../abc" or some equivalent filesystem "path expression".
-            //stringToken.
-        }
+        return;
     }
 
     public void ParseFunctionDefinitionNode(StringBuilder stringBuilder, SyntaxToken identifierToken, bool identifierTokenExists)

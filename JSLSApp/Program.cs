@@ -93,7 +93,7 @@ internal class Program
         {
             // TODO: This is a little scuffed because readline is losing the line endings that delimiter header from content...
             // ...
-            //File.AppendAllText(myPath, $"\n====indexOfSearchTerm == -1-delaying====\n");
+            //Console.Out.WriteLine($"\n====indexOfSearchTerm == -1-delaying====\n");
             // delaying
             stdoutChunkObjects.Add(new StdoutChunkObject(json));
             stdoutChunkFirstEntryMetadataSubstringIndexStart = json.Length;

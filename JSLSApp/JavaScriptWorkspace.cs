@@ -37,24 +37,24 @@ public class JavaScriptWorkspace
 
     public JavaScriptWorkspace(string rootAbsolutePath)
     {
-        _workspaceFolders = new();
-        _workspaceFolders.Add(new WorkspaceFolder
-        {
-            name = rootAbsolutePath,
-            uri = rootAbsolutePath
-        });
-
-        Recursive_FileDiscovery(rootAbsolutePath);
+        //_workspaceFolders = new();
+        //_workspaceFolders.Add(new WorkspaceFolder
+        //{
+        //    name = rootAbsolutePath,
+        //    uri = rootAbsolutePath
+        //});
+        //
+        //Recursive_FileDiscovery(rootAbsolutePath);
     }
 
     public JavaScriptWorkspace(List<WorkspaceFolder> workspaceFolders)
     {
-        _isWorkspace = true;
-        _workspaceFolders = workspaceFolders;
-        foreach (var workspaceFolder in _workspaceFolders)
-        {
-            Recursive_FileDiscovery(workspaceFolder.uri);
-        }
+        //_isWorkspace = true;
+        //_workspaceFolders = workspaceFolders;
+        //foreach (var workspaceFolder in _workspaceFolders)
+        //{
+        //    Recursive_FileDiscovery(workspaceFolder.uri);
+        //}
     }
 
     public void DidOpenTextDocumentNotification(string sourceFileAbsolutePath, string text)
@@ -125,7 +125,7 @@ public class JavaScriptWorkspace
         }
     }
 
-    public void Recursive_FileDiscovery(string targetDir)
+    /*public void Recursive_FileDiscovery(string targetDir)
     {
         foreach (var childFile in Directory.EnumerateFiles(targetDir))
         {
@@ -166,7 +166,7 @@ public class JavaScriptWorkspace
                 Recursive_FileDiscovery(childDir);
             }
         }
-    }
+    }*/
 
     /// <summary>
     /// Returns the positionIndex if found, otherwise -1.
