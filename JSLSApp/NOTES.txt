@@ -96,7 +96,7 @@ or should we write a test for handling syntax errors?
 
 - [ ] Remove all my stuff that makes me uncomfortable with other people running this so I can remove 'ThrowIfAnyoneElseTriesToRunThisProgram();'
     - [ ] Program.cs
-        - [ ] myPath
+        - [x] myPath
         - [ ] path_customEditorVerifyLspTextAgainstEditorTextRequest
         - [ ] MyDebuggingFunction
         - [ ] File.WriteAllText invocations
@@ -119,3 +119,7 @@ or should we write a test for handling syntax errors?
     - [ ] lower priority for this main-goal cause you'd need to validate every single case that it actually shouldn't be returning null but instead throwing an exception etc...
         - [ ] probably silent exceptions where I just 'return null' should be made actual thrown exceptions
         - [ ] Editor settings to point to the exe and have in appdata rather than in the code.
+        - [ ] Console.Out.WriteLine
+            - [ ] Other available place?
+                - [ ] verify that they're sensible to have, i.e.: just delete them?
+                - [ ] does writing to Console.Out.WriteLine bug out of the editor reading the server responses/etc...?

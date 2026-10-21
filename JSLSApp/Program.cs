@@ -9,7 +9,6 @@ using System.Text.Json;
 
 internal class Program
 {
-    internal const string myPath = "C:\\Users\\hunte\\Repos\\file.txt";
     internal const string path_customEditorVerifyLspTextAgainstEditorTextRequest = "C:\\Users\\hunte\\Repos\\customEditorVerifyLspTextAgainstEditorTextRequest.txt";
 
     internal static JsonSerializerOptions _jsonSerializerOptions = new JsonSerializerOptions { PropertyNameCaseInsensitive = true };
@@ -23,7 +22,7 @@ internal class Program
         ThrowIfAnyoneElseTriesToRunThisProgram();
         MyDebuggingFunction();
 
-        File.WriteAllText(myPath, Environment.ProcessId.ToString() + '\n');
+        Console.Out.WriteLine(Environment.ProcessId.ToString() + '\n');
 
         using StreamReader reader = new StreamReader(Console.OpenStandardInput());
         
@@ -51,7 +50,7 @@ internal class Program
         catch (Exception e)
         {
             //Console.WriteLine(e);
-            File.AppendAllText(myPath, e.ToString() + '\n');
+            Console.Out.WriteLine(e.ToString() + '\n');
             return null;
         }
     }
@@ -87,7 +86,7 @@ internal class Program
         var contentLengthString = json.Substring(substringIndexStart, substringIndexEnd - substringIndexStart);
         if (!int.TryParse(contentLengthString, out var contentLengthNumber))
         {
-            File.AppendAllText(myPath, $"\n====if (!int.TryParse(contentLengthString, out var contentLengthNumber))====\n");
+            Console.Out.WriteLine($"\n====if (!int.TryParse(contentLengthString, out var contentLengthNumber))====\n");
             return null;
         }
 
@@ -208,7 +207,7 @@ internal class Program
         var request = JsonSerializer.Deserialize<Message>(content, _jsonSerializerOptions);
         if (request is null)
         {
-            File.AppendAllText(myPath, $"\n====request is null====\n");
+            Console.Out.WriteLine($"\n====request is null====\n");
         }
         return LspDispatcher.GiveMessage(content, request);
     }

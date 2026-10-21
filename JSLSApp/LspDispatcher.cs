@@ -450,35 +450,35 @@ internal static class LspDispatcher
 
         if (didChangeTextDocumentNotification.@params.contentChanges is null)
         {
-            File.AppendAllText(Program.myPath, $"\n====didChangeTextDocumentNotification.@params.contentChanges is null====\n");
+            Console.Out.WriteLine($"\n====didChangeTextDocumentNotification.@params.contentChanges is null====\n");
             return request;
         }
 
         if (didChangeTextDocumentNotification.@params.contentChanges.Length == 0)
         {
-            File.AppendAllText(Program.myPath, $"\n====didChangeTextDocumentNotification.@params.contentChanges.Length == 0====\n");
+            Console.Out.WriteLine($"\n====didChangeTextDocumentNotification.@params.contentChanges.Length == 0====\n");
             return request;
         }
         
         foreach (var item in didChangeTextDocumentNotification.@params.contentChanges)
         {
             if (item.range is null)
-                File.AppendAllText(Program.myPath, $"\n====didChangeTextDocumentNotification item range is null====\n");
+                Console.Out.WriteLine($"\n====didChangeTextDocumentNotification item range is null====\n");
 
             if (item.rangeLength is null)
-                File.AppendAllText(Program.myPath, $"\n====didChangeTextDocumentNotification item rangeLength is null====\n");
+                Console.Out.WriteLine($"\n====didChangeTextDocumentNotification item rangeLength is null====\n");
 
             if (item.text is null)
-                File.AppendAllText(Program.myPath, $"\n====didChangeTextDocumentNotification item text is null====\n");
+                Console.Out.WriteLine($"\n====didChangeTextDocumentNotification item text is null====\n");
         }
 
         if (_javaScriptWorkspace is null)
         {
-            File.AppendAllText(Program.myPath, $"\n====_javaScriptWorkspace is null====\n");
+            Console.Out.WriteLine($"\n====_javaScriptWorkspace is null====\n");
             return request;
         }
 
-        _javaScriptWorkspace.DidChangeTextDocumentNotification(Program.myPath, didChangeTextDocumentNotification.@params.textDocument.uri, didChangeTextDocumentNotification.@params.contentChanges);
+        _javaScriptWorkspace.DidChangeTextDocumentNotification(didChangeTextDocumentNotification.@params.textDocument.uri, didChangeTextDocumentNotification.@params.contentChanges);
         return request;
     }
 
@@ -494,11 +494,11 @@ internal static class LspDispatcher
 
         if (_javaScriptWorkspace is null)
         {
-            File.AppendAllText(Program.myPath, $"\n====_javaScriptWorkspace is null====\n");
+            Console.Out.WriteLine($"\n====_javaScriptWorkspace is null====\n");
             return request;
         }
 
-        _javaScriptWorkspace.DidCloseTextDocumentNotification(Program.myPath, didCloseTextDocumentNotification.@params.textDocument.uri);
+        _javaScriptWorkspace.DidCloseTextDocumentNotification(didCloseTextDocumentNotification.@params.textDocument.uri);
         return request;
     }
 
@@ -519,12 +519,11 @@ internal static class LspDispatcher
             
         if (_javaScriptWorkspace is null)
         {
-            File.AppendAllText(Program.myPath, $"\n====_javaScriptWorkspace is null====\n");
+            Console.Out.WriteLine($"\n====_javaScriptWorkspace is null====\n");
             return didOpenTextDocumentNotification;
         }
         
         _javaScriptWorkspace.DidOpenTextDocumentNotification(
-            Program.myPath,
             didOpenTextDocumentNotification.@params.textDocument.uri,
             didOpenTextDocumentNotification.@params.textDocument.text);
         return didOpenTextDocumentNotification;
@@ -549,15 +548,15 @@ internal static class LspDispatcher
         }
         else if (initializeRequest.@params.workspaceFolders is null)
         {
-            File.AppendAllText(Program.myPath, $"\n====initializeRequest?.Params?.workspaceFolders:null====\n");
+            Console.Out.WriteLine($"\n====initializeRequest?.Params?.workspaceFolders:null====\n");
         }
         else
         {
             _javaScriptWorkspace = new JavaScriptWorkspace(initializeRequest.@params.workspaceFolders);
-            File.AppendAllText(Program.myPath, $"\n====initializeRequest?.Params?.workspaceFolders...====\n");
+            Console.Out.WriteLine($"\n====initializeRequest?.Params?.workspaceFolders...====\n");
             foreach (var workspaceFolder in initializeRequest.@params.workspaceFolders)
             {
-                File.AppendAllText(Program.myPath, $"\n====workspaceFolder: name->{workspaceFolder.name} | uri->{workspaceFolder.uri}====\n");
+                Console.Out.WriteLine($"\n====workspaceFolder: name->{workspaceFolder.name} | uri->{workspaceFolder.uri}====\n");
             }
         }
 

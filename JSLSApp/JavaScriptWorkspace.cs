@@ -57,30 +57,30 @@ public class JavaScriptWorkspace
         }
     }
 
-    public void DidOpenTextDocumentNotification(string myPath, string sourceFileAbsolutePath, string text)
+    public void DidOpenTextDocumentNotification(string sourceFileAbsolutePath, string text)
     {
         var localPath = new Uri(sourceFileAbsolutePath).LocalPath;
         OpenedSourceFileAbsolutePathToInMemoryContentMap.Add(sourceFileAbsolutePath, new JavaScriptDocument(localPath, text.ToList()));
     }
     
-    public void DidCloseTextDocumentNotification(string myPath, string sourceFileAbsolutePath)
+    public void DidCloseTextDocumentNotification(string sourceFileAbsolutePath)
     {
         var localPath = new Uri(sourceFileAbsolutePath).LocalPath;
         var wasRemoved = OpenedSourceFileAbsolutePathToInMemoryContentMap.Remove(localPath);
     }
 
-    public void DidChangeTextDocumentNotification(string myPath, string sourceFileAbsolutePath, TextDocumentContentChangeEvent[] contentChanges)
+    public void DidChangeTextDocumentNotification(string sourceFileAbsolutePath, TextDocumentContentChangeEvent[] contentChanges)
     {
         var found = OpenedSourceFileAbsolutePathToInMemoryContentMap.TryGetValue(sourceFileAbsolutePath, out var doc);
         if (!found)
         {
-            File.AppendAllText(myPath, $"\n====ERROR DidChangeTextDocumentNotification did not find file====\n");
+            Console.Out.WriteLine($"\n====ERROR DidChangeTextDocumentNotification did not find file====\n");
             return;
         }
 
         if (contentChanges.Length == 0)
         {
-            File.AppendAllText(myPath, $"\n====DidChangeTextDocumentNotification; {nameof(contentChanges)} length was 0====\n");
+            Console.Out.WriteLine($"\n====DidChangeTextDocumentNotification; {nameof(contentChanges)} length was 0====\n");
             return;
         }
 
@@ -88,7 +88,7 @@ public class JavaScriptWorkspace
         {
             if (change.range is null)
             {
-                File.AppendAllText(myPath, $"\n====DidChangeTextDocumentNotification; TODO: support 'if (change.range is null)'====\n");
+                Console.Out.WriteLine($"\n====DidChangeTextDocumentNotification; TODO: support 'if (change.range is null)'====\n");
                 continue;
             }
 
@@ -97,26 +97,26 @@ public class JavaScriptWorkspace
                 if (change.text is not null && change.text.Length > 0)
                 {
                     // TODO: You're allowed to provide text to insert here as well, so this needs to be supported.
-                    File.AppendAllText(myPath, $"\n====change.text is not null====\n");
+                    Console.Out.WriteLine($"\n====change.text is not null====\n");
                     continue;
                 }
 
-                var startIndexPosition = FindPositionFromLineAndCharacter(myPath, doc.Chars, change.range.start.line, change.range.start.character);
-                var endIndexPosition = FindPositionFromLineAndCharacter(myPath, doc.Chars, change.range.end.line, change.range.end.character);
+                var startIndexPosition = FindPositionFromLineAndCharacter(doc.Chars, change.range.start.line, change.range.start.character);
+                var endIndexPosition = FindPositionFromLineAndCharacter(doc.Chars, change.range.end.line, change.range.end.character);
                 doc.Chars.RemoveRange(startIndexPosition, endIndexPosition - startIndexPosition);
             }
             else
             {
                 if (change.text is null)
                 {
-                    File.AppendAllText(myPath, $"\n====DidChangeTextDocumentNotification; change.text is null====\n");
+                    Console.Out.WriteLine($"\n====DidChangeTextDocumentNotification; change.text is null====\n");
                     continue;
                 }
 
-                var indexPosition = FindPositionFromLineAndCharacter(myPath, doc.Chars, change.range.start.line, change.range.start.character);
+                var indexPosition = FindPositionFromLineAndCharacter(doc.Chars, change.range.start.line, change.range.start.character);
                 if (indexPosition == -1)
                 {
-                    File.AppendAllText(myPath, $"\n====DidChangeTextDocumentNotification; if (indexPosition == -1)====\n");
+                    Console.Out.WriteLine($"\n====DidChangeTextDocumentNotification; if (indexPosition == -1)====\n");
                     continue;
                 }
                 
@@ -171,7 +171,7 @@ public class JavaScriptWorkspace
     /// <summary>
     /// Returns the positionIndex if found, otherwise -1.
     /// </summary>
-    public int FindPositionFromLineAndCharacter(string myPath, List<char> chars, int indexLine, int indexCharacter)
+    public int FindPositionFromLineAndCharacter(List<char> chars, int indexLine, int indexCharacter)
     {
         // current line index
         var line = 0;
