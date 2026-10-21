@@ -939,7 +939,7 @@ public class JavaScriptParser
         {
             SyntaxHighlightByteList.SetSyntaxHighlighting(_pos - length, length, TrackedSyntaxKind.Member);
         }
-        else if (_pos > 0 && _doc.Chars[_pos - 1] == '.')
+        else if (_pos > (length + 1) && _doc.Chars[_pos - (length + 1)] == '.')
         {
             SyntaxHighlightByteList.SetSyntaxHighlighting(_pos - length, length, TrackedSyntaxKind.Member);
         }
