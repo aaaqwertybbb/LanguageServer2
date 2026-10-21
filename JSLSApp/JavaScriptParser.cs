@@ -139,7 +139,6 @@ public class JavaScriptParser
                 case SyntaxKind.StringToken:
                     if (_seenLineEnd_flagForStringsAndComments)
                     {
-                        SyntaxHighlightByteList.SetSyntaxHighlighting(token.Start, token.Length, TrackedSyntaxKind.String);
                     }
                     break;
                 case SyntaxKind.MultiLineCommentToken:
@@ -819,6 +818,7 @@ public class JavaScriptParser
         }
 
         functionEnding:
+        SyntaxHighlightByteList.SetSyntaxHighlighting(_pos - length, length, TrackedSyntaxKind.String);
         return new SyntaxToken(SyntaxKind.StringToken, startPosition, length, _pos - length);
     }
 
