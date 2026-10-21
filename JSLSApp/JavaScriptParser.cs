@@ -919,6 +919,14 @@ public class JavaScriptParser
                 break;
         }
 
+        if (syntaxKind == SyntaxKind.IdentifierToken)
+        {
+            SyntaxHighlightByteList.SetSyntaxHighlighting(_pos - length, length, TrackedSyntaxKind.Identifier);
+        }
+        else
+        {
+            SyntaxHighlightByteList.SetSyntaxHighlighting(_pos - length, length, TrackedSyntaxKind.Keyword);
+        }
         return new SyntaxToken(syntaxKind, startPosition, length);
     }
 
