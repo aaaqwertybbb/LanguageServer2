@@ -935,6 +935,14 @@ public class JavaScriptParser
         {
             SyntaxHighlightByteList.SetSyntaxHighlighting(_pos - length, length, TrackedSyntaxKind.Function);
         }
+        else if (_doc.Chars[_pos] == ':')
+        {
+            SyntaxHighlightByteList.SetSyntaxHighlighting(_pos - length, length, TrackedSyntaxKind.Member);
+        }
+        else if (_pos > 0 && _doc.Chars[_pos - 1] == '.')
+        {
+            SyntaxHighlightByteList.SetSyntaxHighlighting(_pos - length, length, TrackedSyntaxKind.Member);
+        }
         else
         {
             if (syntaxKind == SyntaxKind.IdentifierToken)
