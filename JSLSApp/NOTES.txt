@@ -95,3 +95,27 @@ Would you like to look at a concrete layout for your Token structure to see how 
 or should we write a test for handling syntax errors?
 
 - [ ] Remove all my stuff that makes me uncomfortable with other people running this so I can remove 'ThrowIfAnyoneElseTriesToRunThisProgram();'
+    - [ ] Program.cs
+        - [ ] myPath
+        - [ ] path_customEditorVerifyLspTextAgainstEditorTextRequest
+        - [ ] MyDebuggingFunction
+        - [ ] File.WriteAllText invocations
+        - [ ] File.AppendAllText invocations
+        - [ ] Environment.GetFolderPath
+        - [ ] 
+    - [ ] JavaScriptParser.cs
+        - [ ] Check whether this one is completely safe it generates a file path string but only as an id (I think): ParseImportNode
+    - [ ] JavaScriptWorkspace.cs
+        - [ ] suspect: Recursive_FileDiscovery
+    - [ ] LspDispatcher.cs
+        - [ ] suspect: EnsureLocalPath (is just an id?)
+        - [ ] File.AppendAllText invocations
+        - [ ] Look for 'File.' too when done just to be sure
+    - [ ] 
+    
+
+
+
+    - [ ] lower priority for this main-goal cause you'd need to validate every single case that it actually shouldn't be returning null but instead throwing an exception etc...
+        - [ ] probably silent exceptions where I just 'return null' should be made actual thrown exceptions
+        - [ ] Editor settings to point to the exe and have in appdata rather than in the code.
