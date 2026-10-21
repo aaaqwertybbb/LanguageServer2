@@ -564,6 +564,7 @@ public class JavaScriptParser
         }
 
         var syntaxKind = SyntaxKind.IdentifierToken;
+        var flagControlKeyword = false;
 
         switch (charIntSum)
         {
@@ -611,6 +612,7 @@ public class JavaScriptParser
                     _doc.Chars[_pos - 1] == 'f')
                 {
                     syntaxKind = SyntaxKind.IfKeywordToken;
+                    flagControlKeyword = true;
                     break;
                 }
                 break;
@@ -631,6 +633,7 @@ public class JavaScriptParser
                     _doc.Chars[_pos - 1] == 'r')
                 {
                     syntaxKind = SyntaxKind.ForKeywordToken;
+                    flagControlKeyword = true;
                     break;
                 }
                 break;
@@ -666,6 +669,7 @@ public class JavaScriptParser
                     _doc.Chars[_pos - 1] == 'n')
                 {
                     syntaxKind = SyntaxKind.ReturnKeywordToken;
+                    flagControlKeyword = true;
                     break;
                 }
                 break;
@@ -679,6 +683,7 @@ public class JavaScriptParser
                     _doc.Chars[_pos - 1] == 'h')
                 {
                     syntaxKind = SyntaxKind.SwitchKeywordToken;
+                    flagControlKeyword = true;
                     break;
                 }
                 break;
@@ -690,6 +695,7 @@ public class JavaScriptParser
                     _doc.Chars[_pos - 1] == 'e')
                 {
                     syntaxKind = SyntaxKind.CaseKeywordToken;
+                    flagControlKeyword = true;
                     break;
                 }
                 break;
@@ -713,6 +719,7 @@ public class JavaScriptParser
                     _doc.Chars[_pos - 1] == 'e')
                 {
                     syntaxKind = SyntaxKind.ElseKeywordToken;
+                    flagControlKeyword = true;
                     break;
                 }
                 break;
@@ -804,6 +811,7 @@ public class JavaScriptParser
                     _doc.Chars[_pos - 1] == 't')
                 {
                     syntaxKind = SyntaxKind.ImportKeywordToken;
+                    flagControlKeyword = true;
                     break;
                 }
                 break;
@@ -815,6 +823,7 @@ public class JavaScriptParser
                     _doc.Chars[_pos - 1] == 'm')
                 {
                     syntaxKind = SyntaxKind.FromKeywordToken;
+                    flagControlKeyword = true;
                     break;
                 }
                 break;
@@ -851,6 +860,7 @@ public class JavaScriptParser
                     _doc.Chars[_pos - 1] == 'e')
                 {
                     syntaxKind = SyntaxKind.WhileKeywordToken;
+                    flagControlKeyword = true;
                     break;
                 }
                 break;
@@ -863,6 +873,7 @@ public class JavaScriptParser
                     _doc.Chars[_pos - 1] == 'k')
                 {
                     syntaxKind = SyntaxKind.BreakKeywordToken;
+                    flagControlKeyword = true;
                     break;
                 }
                 break;
@@ -878,6 +889,7 @@ public class JavaScriptParser
                     _doc.Chars[_pos - 1] == 'e')
                 {
                     syntaxKind = SyntaxKind.ContinueKeywordToken;
+                    flagControlKeyword = true;
                     break;
                 }
                 break;
@@ -922,6 +934,10 @@ public class JavaScriptParser
         if (syntaxKind == SyntaxKind.IdentifierToken)
         {
             SyntaxHighlightByteList.SetSyntaxHighlighting(_pos - length, length, TrackedSyntaxKind.Identifier);
+        }
+        else if (flagControlKeyword)
+        {
+            SyntaxHighlightByteList.SetSyntaxHighlighting(_pos - length, length, TrackedSyntaxKind.KeywordControl);
         }
         else
         {
