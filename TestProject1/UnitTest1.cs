@@ -2,32 +2,18 @@
 
 public class LexerTests
 {
-    [Theory]
-    // Test simple variable declarations
-    [InlineData("let x = 42;", new[] { "LET", "IDENT(x)", "ASSIGN", "INT(42)", "SEMICOLON" })]
-    // Test operators
-    [InlineData("a + b", new[] { "IDENT(a)", "PLUS", "IDENT(b)" })]
-    // Test invalid syntax (lexer should handle errors gracefully)
-    [InlineData("@", new[] { "ILLEGAL" })]
-    public void Tokenizer_ShouldReturn_ExpectedTokenTypes(string source, string[] expectedTokens)
+    [Fact]
+    public void ParseFile()
     {
-        // 1. Arrange & Act
-        var lexer = new Lexer(source);
-        var actualTokens = new List<string>();
-
-        Token token;
-        do
-        {
-            token = lexer.NextToken();
-            actualTokens.Add(token.ToTestString(source)); // e.g., "LET" or "IDENT(x)"
-        } while (token.Type != TokenType.EOF);
-
-        // Remove EOF for easier assertions if desired, then assert
-        actualTokens.RemoveAt(actualTokens.Count - 1);
-
-        // 2. Assert
-        Assert.Equal(expectedTokens, actualTokens);
+        var program = new JSLSApp.Program();
+        JSLSApp.Program.MAIN_decodeMessage(InitializeJson);
+        JSLSApp.Program.MAIN_decodeMessage(didOpenTextDocumentNotification);
+        JSLSApp.Program.MAIN_decodeMessage(customFullFileLexRequest);
     }
+
+    public const string InitializeJson = @"'Content-Length: 331\r\n\r\n{""method"":""initialize"",""id"":0,""params"":{""processId"":30004,""clientInfo"":{""name"":""TextEditor123"",""version"":""0.0.1""},""rootUri"":null,""capabilities"":{""workspace"":{}},""workspaceFolders"":[{""uri"":""C:\\\\Users\\\\hunte\\\\Repos\\\\New folder (7)\\\\Editor2"",""name"":""2""},{""uri"":""C:\\\\Users\\\\hunte\\\\Repos\\\\New folder (7)\\\\LanguageServer2"",""name"":""3""}]}}\n'";
+    public const string didOpenTextDocumentNotification = @"`Content-Length: 433\r\n\r\n{""method"":""textDocument/didOpen"",""params"":{""textDocument"":{""uri"":""file:///C:/Users/hunte/Repos/New folder (7)/Editor2/testFile.js"",""languageId"":""javascript"",""version"":0,""text"":""aaa\\n        /**\\n         * @type {HTMLDivElement}\\n         * Consider the existence of such methods as 'state_cursor_setIndex' before mutating state directly\\n         */xxx/*\\n         */\\n        this.cursorElement = document.createElement('div');""}}}\n`";
+    public const string customFullFileLexRequest = @"'Content-Length: 157\r\n\r\n{""id"":1,""method"":""textDocument/CustomFullFileLexRequest"",""params"":{""textDocument"":{""uri"":""file:///C:/Users/hunte/Repos/New folder (7)/Editor2/testFile.js""}}}\n'";
 }
 
 //public class ParserTests

@@ -7,7 +7,9 @@ using JSLSApp.LspTypes;
 using System.Text;
 using System.Text.Json;
 
-internal class Program
+namespace JSLSApp;
+
+public class Program
 {
     internal static JsonSerializerOptions _jsonSerializerOptions = new JsonSerializerOptions { PropertyNameCaseInsensitive = true };
     internal static List<StdoutChunkObject> stdoutChunkObjects = new();
@@ -30,11 +32,10 @@ internal class Program
         }
     }
 
-    private static object? MAIN_decodeMessage(string json)
+    public static object? MAIN_decodeMessage(string json)
     {
         try
         {
-            //throw new Exception("apple");
             // TODO: send a 'server crashed notification' to the editor.
             //throw new Exception("aaa");
             if (stdoutChunkObjects.Count == 0)
