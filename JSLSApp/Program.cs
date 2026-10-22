@@ -33,6 +33,7 @@ internal class Program
     {
         try
         {
+            //throw new Exception("apple");
             // TODO: send a 'server crashed notification' to the editor.
             //throw new Exception("aaa");
             if (stdoutChunkObjects.Count == 0)
@@ -47,7 +48,10 @@ internal class Program
         catch (Exception e)
         {
             //Console.WriteLine(e);
-            Console.Out.WriteLine(e.ToString() + '\n');
+            //Console.Out.WriteLine(e.ToString() + '\n');
+            var windowShowMessageNotification = new WindowShowMessageNotification(
+                new WindowShowMessageNotificationParams(2, e.ToString()));
+            Console.Out.WriteLine(MAIN_encodeMessageObject(windowShowMessageNotification));
             return null;
         }
     }
