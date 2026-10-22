@@ -21,6 +21,7 @@ public class JavaScriptParser
 
     public byte[] SyntaxHighlightByteList { get => _syntaxHighlightByteList; set => _syntaxHighlightByteList = value; }
 
+    public string DebugString => $"pos=>{_pos} | (line,char)=>({_indexLine},{_indexChar})\n";
     private List<FunctionDefinitionSyntax> _functionDefinitionStartPositionList = new();
     private List<SyntaxNode> _bodyList = new();
     private byte[] _syntaxHighlightByteList = new byte[0];
@@ -100,6 +101,8 @@ public class JavaScriptParser
 
     public JavaScriptCompilationUnit Parse()
     {
+        Program._activeParser = this;
+
         var stringBuilder = new StringBuilder(capacity: 64);
         _syntaxHighlightByteList = new byte[_doc.Chars.Count];
 
@@ -178,6 +181,7 @@ public class JavaScriptParser
         }
 
         exitOuterWhileLoop:
+        Program._activeParser = null;
         return new JavaScriptCompilationUnit(_functionDefinitionStartPositionList, _bodyList, _globalScope.LexicalScope);
     }
 

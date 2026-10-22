@@ -14,6 +14,7 @@ internal class Program
     internal static int stdoutChunkFirstEntryMetadataSubstringIndexStart = 0;
     internal static int stdoutChunkFirstEntryMetadataContentLengthNumber = 0;
     private static StringBuilder _stringBuilder = new();
+    internal static JavaScriptParser? _activeParser = null;
 
     private static void Main(string[] args)
     {
@@ -51,6 +52,12 @@ internal class Program
             //Console.Out.WriteLine(e.ToString() + '\n');
             var windowShowMessageNotification = new WindowShowMessageNotification(
                 new WindowShowMessageNotificationParams(2, e.ToString()));
+            if (_activeParser is not null)
+            {
+                var localActiveParser = _activeParser;
+                _activeParser = null;
+                windowShowMessageNotification.@params.message = localActiveParser.DebugString + windowShowMessageNotification.@params.message;
+            }
             Console.Out.WriteLine(MAIN_encodeMessageObject(windowShowMessageNotification));
             return null;
         }
