@@ -117,6 +117,7 @@ public class Program
         // Payload
         if (substringIndexStart + contentLengthNumber <= json.Length)
         {
+            // TODO: You need to handle the remaining text that you didn't take you didn't take all the text.
             var content = json.Substring(substringIndexStart, substringIndexStart + contentLengthNumber - substringIndexStart);
             return DeserializeContent(content);
         }
