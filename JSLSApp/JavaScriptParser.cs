@@ -129,6 +129,9 @@ public class JavaScriptParser
                 case SyntaxKind.ClassKeywordToken:
                     ParseClassDefinitionNode(stringBuilder);
                     break;
+                case SyntaxKind.ConstructorKeywordToken:
+                    ParseConstructorDefinitionNode(stringBuilder, token);
+                    break;
                 case SyntaxKind.ImportKeywordToken:
                     ParseImportNode(stringBuilder);
                     break;
@@ -397,6 +400,17 @@ public class JavaScriptParser
         //classDeclarationNode.Body.SetEnd(closeBraceToken.Position);
 
         _currentScope = classDeclarationNode.Body.Scope;
+    }
+
+    public void ParseConstructorDefinitionNode(StringBuilder stringBuilder, SyntaxToken constructorToken)
+    {
+        var functionDeclarationNode = new FunctionDeclarationNode("constructor", constructorToken.Position.line, constructorToken.Position.character, _indexLine, _indexChar);
+        _currentScope.GetBodyList(_bodyList).Add(functionDeclarationNode);
+
+        _currentScope.LexicalScope.Add(functionDeclarationNode.Id_name, functionDeclarationNode);
+
+        ParseFunctionArguments();
+        ParseFunctionBody(functionDeclarationNode);
     }
 
     public SyntaxToken Lex()
