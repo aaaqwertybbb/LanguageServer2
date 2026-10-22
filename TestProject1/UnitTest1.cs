@@ -2,12 +2,18 @@
 
 public class LexerTests
 {
+    /// <summary>
+    /// Everything in this file is extremely inaccurate I messed with the numbers and the text and the json length so it all kinda works for at least a single case.
+    /// It'll hit the Parse function if it doesn't throw an exception.
+    /// </summary>
     [Fact]
     public void ParseFile()
     {
         var program = new JSLSApp.Program();
         JSLSApp.Program.MAIN_decodeMessage(InitializeJson);
-        JSLSApp.Program.MAIN_decodeMessage(didOpenTextDocumentNotification);
+        var aaa = Format_didOpenTextDocumentNotification(FileText);
+        var bbb = Format_didOpenTextDocumentNotification("");
+        JSLSApp.Program.MAIN_decodeMessage(aaa);
         JSLSApp.Program.MAIN_decodeMessage(customFullFileLexRequest);
     }
 
@@ -15,6 +21,13 @@ public class LexerTests
     // I'm gonna put "      " at the end of this string cuz the length is wrong and it won't read it
     public const string didOpenTextDocumentNotification = "Content-Length: 433\r\n\r\n{\"method\":\"textDocument/didOpen\",\"params\":{\"textDocument\":{\"uri\":\"file:///C:/Users/hunte/Repos/New folder (7)/Editor2/testFile.js\",\"languageId\":\"javascript\",\"version\":0,\"text\":\"aaa\\n        /**\\n         * @type {HTMLDivElement}\\n         * Consider the existence of such methods as 'state_cursor_setIndex' before mutating state directly\\n         */xxx/*\\n         */\\n        this.cursorElement = document.createElement('div');\"}}}\\n      ";
     public const string customFullFileLexRequest = "Content-Length: 157\r\n\r\n{\"id\":1,\"method\":\"textDocument/CustomFullFileLexRequest\",\"params\":{\"textDocument\":{\"uri\":\"file:///C:/Users/hunte/Repos/New folder (7)/Editor2/testFile.js\"}}}\\n";
+
+    public const string FileText = "aaa\\n        /**\\n         * @type {HTMLDivElement}\\n         * Consider the existence of such methods as 'state_cursor_setIndex' before mutating state directly\\n         */xxx/*\\n         */\\n        this.cursorElement = document.createElement('div');";
+
+    public string Format_didOpenTextDocumentNotification(string fileText)
+    {
+        return "Content-Length: " + (181 + fileText.Length) + "\r\n\r\n{\"method\":\"textDocument/didOpen\",\"params\":{\"textDocument\":{\"uri\":\"file:///C:/Users/hunte/Repos/New folder (7)/Editor2/testFile.js\",\"languageId\":\"javascript\",\"version\":0,\"text\":\"" + fileText + "\"}}}\\n      ";
+    }
 }
 
 //public class ParserTests

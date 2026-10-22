@@ -2,7 +2,6 @@
  Do not forget to re-publish when applicable
  */
 
-using JSLSApp;
 using JSLSApp.LspTypes;
 using System.Text;
 using System.Text.Json;
