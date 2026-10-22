@@ -128,3 +128,148 @@ or should we write a test for handling syntax errors?
                 - [ ] verify that they're sensible to have, i.e.: just delete them?
                 - [ ] does writing to Console.Out.WriteLine bug out of the editor reading the server responses/etc...?
                 - [ ] // TODO: CustomEditorVerifyLspTextAgainstEditorTextRequest responds with the string so you can copy it to clipboard from the editor without having to modify code for Windows only or adding libraries.
+
+====
+
+>
+I tried making sense of what "Lexical Scope" means. I think what I interpreted it to mean though was wrong at the time. I had put a "Lexical Scope" per Scope object.
+|
+I'm thinking of rewriting the code so that there is only 1 "Lexical Scope" at the topmost level of the parser. And that as you enter and exit scopes you'd update this single "Lexical Scope" and do any variable shadowing by overwriting existing Dictionary entries.
+|
+In order to restore the shadow'd variables when I exit a scope that caused a shadow, I think I can use a stack and push any overwritten nodes to the stack.
+|
+The C# is:
+|
+/// <summary>
+/// Is strictly text comparison within a single scope
+/// 
+/// TODO: Are you certain this tends to be the local scope specifically?...
+/// ...I'm thinking based on some text you can match to some locally defined/declared node...
+/// ...but maybe this would more-so imply every available defined/declared node i.e.: the ones in parent scopes?
+/// 
+/// TODO: probably just have 1 dictionary active ever as you go for the instant lookups rather than per scope. (i.e.: you'd prob just update this as you move through the scopes and overwrite older scopes with the???
+/// maybe if shadow you move shadow'd to a list of shadow'd nodes or maybe a stack? and then you can resotre the shadow'd node when you out of the scope that did the shadow.
+/// </summary>
+public Dictionary<string, SyntaxNode> LexicalScope { get; } = new();
+
+<
+Your updated intuition is actually much closer to how production-grade interpreters and compilers handle scopes.
+What you are designing is a classic Scope Stack using a single Symbol Table (or environment map) with an Undo Log.
+|
+However, your original approach (one LexicalScope Dictionary per Scope object) wasn't actually wrong—it is known as an Environment Chain.
+Let's break down why your new approach is highly efficient, how to implement the stack, and clarify the term "Lexical Scope."
+|
+# What "Lexical Scope" Actually Means
+|
+Lexical Scope (or static scope) simply means that scope resolution is determined entirely by where a variable is written in the source code,
+not when or how the functions are called at runtime.
+|
+Your original approach mapped perfectly to the structure of the source code (nested scopes looking up to their parents).
+Your new approach achieves the exact same lexical resolution, but flattens the runtime memory footprint into a single active lookup dictionary.
+|
+# Refactoring to a Single Dictionary + Undo Stack
+|
+Your idea to use a stack to push overwritten nodes when entering a scope, and restoring them when exiting, is an excellent optimization technique.
+It gives you O(1) constant time lookups for any variable name, regardless of how deep the scope nesting is.
+|
+Here is how you can cleanly implement this in C#:
+```csharp
+public class ScopeManager
+{
+    // The single, active lookup table for the current position in the AST
+    public Dictionary<string, SyntaxNode> LexicalScope { get; } = new();
+
+    // The Undo Stack. It tracks what needs to be restored when a scope exits.
+    // We store a list of actions (or previous states) for each scope level.
+    private readonly Stack<List<ScopeUndoEntry>> _undoStack = new();
+
+    private struct ScopeUndoEntry
+    {
+        public string Name;
+        public bool ExistedBefore;
+        public SyntaxNode PreviousNode; // Null if ExistedBefore is false
+    }
+
+    public void EnterScope()
+    {
+        // Push a new bucket to track changes for this specific scope level
+        _undoStack.Push(new List<ScopeUndoEntry>());
+    }
+
+    public void DeclareVariable(string name, SyntaxNode node)
+    {
+        // 1. Record the current state before we overwrite/shadow anything
+        var entry = new ScopeUndoEntry { Name = name };
+        
+        if (LexicalScope.TryGetValue(name, out var oldNode))
+        {
+            entry.ExistedBefore = true;
+            entry.PreviousNode = oldNode; // Capture the shadowed node
+        }
+        else
+        {
+            entry.ExistedBefore = false;
+        }
+
+        // Log this change to the current scope's undo list
+        if (_undoStack.Count > 0)
+        {
+            _undoStack.Peek().Add(entry);
+        }
+
+        // 2. Perform the actual declaration/shadowing
+        LexicalScope[name] = node;
+    }
+
+    public void ExitScope()
+    {
+        if (_undoStack.Count == 0) return;
+
+        // Pop the undo log for the scope we are leaving
+        var undoList = _undoStack.Pop();
+
+        // Roll back the changes in reverse order
+        for (int i = undoList.Count - 1; i >= 0; i--)
+        {
+            var entry = undoList[i];
+            if (entry.ExistedBefore)
+            {
+                // Restore the shadowed variable from the parent scope
+                LexicalScope[entry.Name] = entry.PreviousNode;
+            }
+            else
+            {
+                // It was a brand new variable local to this scope; remove it entirely
+                LexicalScope.Remove(entry.Name);
+            }
+        }
+    }
+}
+```
+|
+# Direct Comparison: Environment Chain vs. Single Dictionary
+|
+Feature           | Old Way (Dictionary per Scope)                                                       | New Way (Single Dictionary + Stack)
+-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+Lookup Speed      | O(N) where N is scope depth (must loop through parent scopes)                        | O(1) constant time (direct hash map lookup)
+Memory Allocation | High (allocates a new Dictionary object per block/scope)                             | Low (one persistent Dictionary, tiny struct stack allocations)
+Shadowing         | Natural (implicit by stopping at the first match going up)                           | Explicit (handled by pushing to the stack and overwriting)
+Persistence       | Good if you need to cache scope state for later analysis (like inside an LSP server) | Destructive (mutates state as you traverse; only reflects the current cursor position)
+
+A Note for LSP (Language Server Protocol) Use
+
+Since your previous message showed you are working on an LSP client/server implementation, keep this one trade-off in mind:
+
+A single mutating LexicalScope dictionary is perfect for a single-pass linear compilation or execution.
+However, an LSP server often needs to answer hover or auto-complete queries at any arbitrary random position in the file.
+If you mutate a single dictionary as you walk the tree, the dictionary will only represent the state at the very end of the file once the parser completes
+
+If this is for an LSP features analyzer, let me know:
+- Do you need to keep a snapshot of the scopes attached to the AST nodes for things like "Go to Definition" later?
+- Or is this single dictionary strictly for a local semantic validation pass?
+
+I can help adapt the architecture based on how you need to query these nodes later!
+
+
+
+
