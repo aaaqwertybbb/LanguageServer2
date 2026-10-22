@@ -12,7 +12,6 @@ public class LexerTests
         var program = new JSLSApp.Program();
         JSLSApp.Program.MAIN_decodeMessage(InitializeJson);
         var aaa = Format_didOpenTextDocumentNotification(FileText);
-        var bbb = Format_didOpenTextDocumentNotification("");
         JSLSApp.Program.MAIN_decodeMessage(aaa);
         JSLSApp.Program.MAIN_decodeMessage(customFullFileLexRequest);
     }
