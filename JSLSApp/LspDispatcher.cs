@@ -191,20 +191,24 @@ internal static class LspDispatcher
         SyntaxNode? result_node = null;
 
         var totalChecks = 0;
-        var nodeCount = 0; // the defined/declared nodes
+        var nodeCountMaxAmountToTake = 0; // the defined/declared nodes
 
-        result_node = SyntaxHelper.RecursiveSearch_BodyOnly(javaScriptDocument.CompilationUnit.GlobalScope, completionRequest.@params.position.line, ref totalChecks, ref nodeCount);
+        // Step A: Get the closest node to the cursor position that has a scope.
+        //         - This is done by starting at the GlobalScope and then recursively checking each child node in the targetScope's "BodyList".
+        // Step B: Get the closest node to the cursor position that has a scope.
+        //         - This is done by creating a menu option for every definition that exists within the targetNode's "BodyList".
+        //         - Each time you do this, you change the targetNode to be the targetNode.Parent
+        //         - This gets you the entries of the closest scope to start as the 0th menu option and onward they're the first options you can pick.
+        // Caching: If the result of "Step A" is the same node as the previous invocation, just re-use that list of menu options again.
 
-        // TODO: This misses the count of the global scope if only the global scope is checked...
-        // ...I'm gonna add it as a line immediately following this invocation as a hack for now. (2 of 2)
-        if (nodeCount == 0)
+        // Step A: Get the closest node to the cursor position that has a scope.
+        result_node = SyntaxHelper.RecursiveSearch_BodyOnly(javaScriptDocument.CompilationUnit.GlobalScope, completionRequest.@params.position.line, ref totalChecks, ref nodeCountMaxAmountToTake);
+        result_node ??= javaScriptDocument.CompilationUnit.GlobalNode;
+        // TODO: ^ this is bad, node and scope is murky here it feels awkard todo fix it (cuz of the GlobalNode stuff)
+
+        if (nodeCountMaxAmountToTake > 25)
         {
-            nodeCount += javaScriptDocument.CompilationUnit.LexicalScope.Count;
-        }
-
-        if (nodeCount > 25)
-        {
-            nodeCount = 25;
+            nodeCountMaxAmountToTake = 25;
         }
 
         /*
@@ -230,97 +234,62 @@ internal static class LspDispatcher
         }
         else
         {
-            string nodeString;
-            if (result_node is not null)
-            {
-                nodeString = $"{result_node.SyntaxKind}~{result_node.Id_name}";
-            }
-            else
-            {
-                nodeString = "result_node~was_null";
-            }
+            _completionItemArray_nodeBasedOn = result_node;
 
-            int childNodeLength;
-            List<SyntaxNode> bodyList;
-            if (result_node?.Scope?.BodyList is not null)
-            {
-                childNodeLength = result_node.Scope.BodyList.Count;
-                bodyList = result_node.Scope.BodyList;
-                _completionItemArray_nodeBasedOn = result_node;
-            }
-            else
-            {
-                childNodeLength = javaScriptDocument.CompilationUnit.GlobalScope.BodyList.Count;
-                bodyList = javaScriptDocument.CompilationUnit.GlobalScope.BodyList;
-                _completionItemArray_nodeBasedOn = null;
-            }
+            var completionItemArray = new TextDocumentCompletionItem[nodeCountMaxAmountToTake];
 
-            var completionItemArray = new TextDocumentCompletionItem[nodeCount];
+            int totalTaken = 0;
 
-            if (bodyList is not null)
+            var targetScope = result_node.Scope;
+
+            for (; totalTaken < nodeCountMaxAmountToTake;)
             {
-                var target_bodyList = bodyList;
-                Scope? target_scope = null;
-                if (target_bodyList != javaScriptDocument.CompilationUnit.GlobalScope.BodyList)
+                for (int i = 0; i < targetScope.BodyList.Count; i++)
                 {
-                    target_scope = result_node!.Scope;
-                }
-
-                int total = 0;
-
-                for (; total < nodeCount;)
-                {
-                    for (int i = 0; i < target_bodyList.Count; i++)
-                    {
-                        var node = target_bodyList[i];
+                    var node = targetScope.BodyList[i];
                         
-                        if (total < nodeCount)
-                        {
-                            if (node.Scope is not null)
-                            {
-                                completionItemArray[total++] = new TextDocumentCompletionItem()
-                                {
-                                    label = $"{node.Scope.Type} {node.Id_name}",
-                                    kind = (int)CompletionItemKind.Text
-                                };
-                            }
-                            else
-                            {
-                                // I need to figure out why this is an index out of range error then I can be done
-                                // as I typed it I think I saw it?
-                                completionItemArray[total++] = new TextDocumentCompletionItem()
-                                {
-                                    label = $"{node.Id_type} {node.Id_name}",
-                                    kind = (int)CompletionItemKind.Text
-                                };
-                            }
-                        }
-                    }
-
-                    if (total < nodeCount)
+                    if (totalTaken < nodeCountMaxAmountToTake)
                     {
-                        if (target_scope?.Parent?.BodyList is not null)
+                        TextDocumentCompletionItem textDocumentCompletionItem;
+                        if (node.SyntaxKind == SyntaxKind.ClassDeclarationNode)
                         {
-                            target_bodyList = target_scope.Parent.BodyList;
-                            target_scope = target_scope.Parent;
+                            textDocumentCompletionItem = new TextDocumentCompletionItem
+                            {
+                                label = $"(class) {node.Id_name}",
+                                kind = (int)CompletionItemKind.Text
+                            };
+                        }
+                        else if (node.SyntaxKind == SyntaxKind.FunctionDeclarationNode)
+                        {
+                            textDocumentCompletionItem = new TextDocumentCompletionItem
+                            {
+                                label = $"{node.Id_name}(?)...",
+                                kind = (int)CompletionItemKind.Text
+                            };
+                        }
+                        else if (node.SyntaxKind == SyntaxKind.VariableDeclarationNode)
+                        {
+                            textDocumentCompletionItem = new TextDocumentCompletionItem
+                            {
+                                label = $"(id) {node.Id_name}",
+                                kind = (int)CompletionItemKind.Text
+                            };
                         }
                         else
                         {
-                            if (target_bodyList == javaScriptDocument.CompilationUnit.GlobalScope.BodyList)
-                            {
-                                break;
-                            }
-                            else
-                            {
-                                target_bodyList = javaScriptDocument.CompilationUnit.GlobalScope.BodyList;
-                                target_scope = null;
-                            }
+                            continue;
                         }
+                        completionItemArray[totalTaken++] = textDocumentCompletionItem;
                     }
-                    else
-                    {
-                        break;
-                    }
+                }
+
+                if (totalTaken < nodeCountMaxAmountToTake && targetScope.Parent is not null)
+                {
+                    targetScope = targetScope.Parent;
+                }
+                else
+                {
+                    break;
                 }
             }
 

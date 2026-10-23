@@ -4,8 +4,13 @@ internal static class SyntaxHelper
 {
     public static SyntaxNode? RecursiveSearch_BodyOnly(Scope scope, int indexLine, ref int totalChecks, ref int nodeCount)
     {
-        // TODO: This misses the count of the global scope if only the global scope is checked...
-        // ...I'm gonna add it as a line immediately following this invocation as a hack for now. (1 of 2)
+        nodeCount += scope.CountOfChildrenThatAreDefinitions;
+
+        if (scope.CountOfChildrenThatAreDefinitions == 0)
+        {
+            return null;
+        }
+
         foreach (var child_node in scope.BodyList)
         {
             if (child_node.Scope is null ||
@@ -18,7 +23,7 @@ internal static class SyntaxHelper
             totalChecks++;
             if (child_node.Start.line == indexLine)
             {
-                nodeCount += scope.CountOfChildrenThatAreDefinitions; // awkward but believed necessary (1 of 2)
+                nodeCount += child_node.Scope.CountOfChildrenThatAreDefinitions;
                 return child_node;
             }
             // super arbitrary 1,000 limit until I sleep on the logic.
@@ -27,7 +32,6 @@ internal static class SyntaxHelper
             {
                 return null;
             }
-            nodeCount += scope.CountOfChildrenThatAreDefinitions; // awkward but believed necessary (2 of 2)
 
             var nodeThatWasCloser = RecursiveSearch_BodyOnly(child_node.Scope, indexLine, ref totalChecks, ref nodeCount);
             if (nodeThatWasCloser is null)

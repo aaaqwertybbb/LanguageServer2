@@ -9,6 +9,7 @@ public class JavaScriptCompilationUnit
     {
         FunctionDefinitionStartPositionList = functionDefinitionStartPositionList;
         GlobalScope = globalScope;
+        GlobalNode = new GlobalNode(globalScope);
         LexicalScope = lexicalScope;
     }
 
@@ -17,6 +18,7 @@ public class JavaScriptCompilationUnit
     public List<FunctionDefinitionSyntax> FunctionDefinitionStartPositionList { get; set; }
 
     public Scope GlobalScope { get; set; }
+    public GlobalNode GlobalNode { get; set; }
 
     /// <summary>
     /// TODO: Are you certain this tends to be the local scope specifically?...

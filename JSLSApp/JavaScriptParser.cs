@@ -206,7 +206,7 @@ public class JavaScriptParser
                 case SyntaxKind.OpenBraceToken:
                     _unknownOpenBracesThatNeedMatched++;
                     break;
-                case SyntaxKind.LetKeywordContextualToken:
+                case SyntaxKind.LetKeywordToken:
                 case SyntaxKind.ConstKeywordToken:
                 case SyntaxKind.VarKeywordToken:
                     ParseVariableDeclaration(token, stringBuilder);
@@ -289,6 +289,8 @@ public class JavaScriptParser
 
         // 2. Perform the actual declaration/shadowing
         _lexicalScope[name] = node;
+
+        _currentScope.CountOfChildrenThatAreDefinitions++;
     }
 
     private void ParseAssumedReference(StringBuilder stringBuilder, SyntaxToken token)
