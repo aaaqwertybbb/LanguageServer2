@@ -278,3 +278,7 @@ I can help adapt the architecture based on how you need to query these nodes lat
 I decided you don't need per scope dictionaries even in a language server
 cause I'm gonna just as the cursor moves cache the "environment variables or what the naming is for this I'll see later just typing notes".
 
+8:33
+
+I have my phone still awaiting call
+
