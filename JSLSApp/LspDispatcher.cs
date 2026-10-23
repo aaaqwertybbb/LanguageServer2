@@ -13,6 +13,8 @@ internal static class LspDispatcher
     /// TODO: awkward and...
     /// I don't think 'slice' is in LSP specification but I need to start like this cause it is only way I'll get something "initially working".
     /// </summary>
+    internal static string _completionItemArray_sliceFiltered_previousFilter = string.Empty;
+    internal static TextDocumentCompletionItem[]? _completionItemArray_sliceFiltered;
     internal static TextDocumentCompletionItem[]? _completionItemArray;
     internal static SyntaxNode? _completionItemArray_nodeBasedOn;
 
@@ -90,13 +92,50 @@ internal static class LspDispatcher
             return request;
         }
 
+        if (string.IsNullOrWhiteSpace(completionRequestSlice.@params.filter))
+        {
+            completionRequestSlice.@params.filter = string.Empty;
+        }
+
+        var filterChanged = false;
+
+        if (_completionItemArray_sliceFiltered_previousFilter != completionRequestSlice.@params.filter)
+        {
+            if (completionRequestSlice.@params.filter.StartsWith(_completionItemArray_sliceFiltered_previousFilter) || completionRequestSlice.@params.filter.EndsWith(_completionItemArray_sliceFiltered_previousFilter))
+            {
+                filterChanged = true;
+                _completionItemArray_sliceFiltered_previousFilter = completionRequestSlice.@params.filter;
+                _completionItemArray_sliceFiltered = _completionItemArray_sliceFiltered.Where(x => x.label.Contains(_completionItemArray_sliceFiltered_previousFilter)).ToArray();
+            }
+            else
+            {
+                filterChanged = true;
+                _completionItemArray_sliceFiltered_previousFilter = completionRequestSlice.@params.filter;
+                _completionItemArray_sliceFiltered = _completionItemArray.Where(x => x.label.Contains(_completionItemArray_sliceFiltered_previousFilter)).ToArray();
+            }
+        }
+
+        var lengthSlice = completionRequestSlice.@params.indexEnd - completionRequestSlice.@params.indexStart;
+        if (_completionItemArray_sliceFiltered.Length - completionRequestSlice.@params.indexStart < lengthSlice)
+        {
+            if (filterChanged)
+            {
+                completionRequestSlice.@params.indexStart -= (lengthSlice - (_completionItemArray_sliceFiltered.Length - completionRequestSlice.@params.indexStart));
+                if (completionRequestSlice.@params.indexStart < 0)
+                {
+                    completionRequestSlice.@params.indexStart = 0;
+                }
+            }
+        }
+        var sliceItems = _completionItemArray_sliceFiltered.Skip(completionRequestSlice.@params.indexStart).Take(lengthSlice).ToArray();
+
         var textDocumentCompletionResponseResult = new TextDocumentCompletionResponseResult()
         {
             isIncomplete = false,
-            items = _completionItemArray.Skip(completionRequestSlice.@params.indexStart).Take(completionRequestSlice.@params.indexEnd - completionRequestSlice.@params.indexStart).ToArray(),
+            items = sliceItems,
             itemsStart = completionRequestSlice.@params.indexStart,
             itemsEnd = completionRequestSlice.@params.indexEnd,
-            totalLength = _completionItemArray.Length,
+            totalLength = _completionItemArray_sliceFiltered.Length,
         };
 
         var textDocumentCompletionResponse = new TextDocumentCompletionResponse(completionRequestSlice.id, textDocumentCompletionResponseResult);
@@ -305,6 +344,7 @@ internal static class LspDispatcher
             }
 
             _completionItemArray = completionItemArray;
+            _completionItemArray_sliceFiltered = _completionItemArray;
         }
 
         var textDocumentCompletionResponseResult = new TextDocumentCompletionResponseResult()
@@ -521,6 +561,7 @@ internal static class LspDispatcher
         // TODO: what is specified for when you receive an initialize request after you've already initialized.
         _javaScriptWorkspace = JavaScriptWorkspace.Empty;
         _completionItemArray = null;
+        _completionItemArray_sliceFiltered = null;
         _completionItemArray_nodeBasedOn = null;
 
         if (!string.IsNullOrWhiteSpace(initializeRequest.@params.rootUri))

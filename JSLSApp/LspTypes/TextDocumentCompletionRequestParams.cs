@@ -11,4 +11,5 @@ public class TextDocumentCompletionRequestParams_slice
     public required TextDocumentIdentifier textDocument { get; set; }
     public int indexStart { get; set; }
     public int indexEnd { get; set; }
+    public string filter { get; set; }
 }
