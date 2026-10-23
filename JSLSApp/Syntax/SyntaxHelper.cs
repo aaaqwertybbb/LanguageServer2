@@ -2,11 +2,11 @@
 
 internal static class SyntaxHelper
 {
-    public static SyntaxNode? RecursiveSearch_BodyOnly(List<SyntaxNode> bodyList, Dictionary<string, SyntaxNode> lexicalScope, int indexLine, ref int totalChecks, ref int nodeCount)
+    public static SyntaxNode? RecursiveSearch_BodyOnly(Scope scope, int indexLine, ref int totalChecks, ref int nodeCount)
     {
         // TODO: This misses the count of the global scope if only the global scope is checked...
         // ...I'm gonna add it as a line immediately following this invocation as a hack for now. (1 of 2)
-        foreach (var child_node in bodyList)
+        foreach (var child_node in scope.BodyList)
         {
             if (child_node.Scope is null ||
                 child_node.Scope.Type == BodyKind.EXTERNAL_FunctionBody ||
@@ -18,7 +18,7 @@ internal static class SyntaxHelper
             totalChecks++;
             if (child_node.Start.line == indexLine)
             {
-                nodeCount += lexicalScope.Count; // awkward but believed necessary (1 of 2)
+                nodeCount += scope.CountOfChildrenThatAreDefinitions; // awkward but believed necessary (1 of 2)
                 return child_node;
             }
             // super arbitrary 1,000 limit until I sleep on the logic.
@@ -27,9 +27,9 @@ internal static class SyntaxHelper
             {
                 return null;
             }
-            nodeCount += lexicalScope.Count; // awkward but believed necessary (2 of 2)
+            nodeCount += scope.CountOfChildrenThatAreDefinitions; // awkward but believed necessary (2 of 2)
 
-            var nodeThatWasCloser = RecursiveSearch_BodyOnly(child_node.Scope.BodyList, child_node.Scope.LexicalScope, indexLine, ref totalChecks, ref nodeCount);
+            var nodeThatWasCloser = RecursiveSearch_BodyOnly(child_node.Scope, indexLine, ref totalChecks, ref nodeCount);
             if (nodeThatWasCloser is null)
             {
                 return child_node;
@@ -42,9 +42,9 @@ internal static class SyntaxHelper
         return null;
     }
 
-    public static SyntaxNode? RecursiveSearch(List<SyntaxNode> bodyList, int indexLine, ref int totalChecks)
+    public static SyntaxNode? RecursiveSearch(Scope scope, int indexLine, ref int totalChecks)
     {
-        foreach (var child_node in bodyList)
+        foreach (var child_node in scope.BodyList)
         {
             if (child_node.Scope is not null && child_node.Scope.Type == BodyKind.EXTERNAL_FunctionBody)
             {
@@ -65,7 +65,7 @@ internal static class SyntaxHelper
             {
                 if (child_node.Scope.BodyList.Count > 0)
                 {
-                    var node = RecursiveSearch(child_node.Scope.BodyList, indexLine, ref totalChecks);
+                    var node = RecursiveSearch(child_node.Scope, indexLine, ref totalChecks);
                     if (node is not null)
                     {
                         return node;

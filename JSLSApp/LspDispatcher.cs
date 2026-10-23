@@ -141,7 +141,7 @@ internal static class LspDispatcher
 
         var totalChecks = 0;
 
-        result_node = SyntaxHelper.RecursiveSearch(javaScriptDocument.CompilationUnit.BodyList, definitionRequest.@params.position.line, ref totalChecks);
+        result_node = SyntaxHelper.RecursiveSearch(javaScriptDocument.CompilationUnit.GlobalScope, definitionRequest.@params.position.line, ref totalChecks);
 
         if (result_node is not null && result_node.SyntaxKind == SyntaxKind.VariableReferenceNode)
         {
@@ -193,7 +193,7 @@ internal static class LspDispatcher
         var totalChecks = 0;
         var nodeCount = 0; // the defined/declared nodes
 
-        result_node = SyntaxHelper.RecursiveSearch_BodyOnly(javaScriptDocument.CompilationUnit.BodyList, javaScriptDocument.CompilationUnit.LexicalScope, completionRequest.@params.position.line, ref totalChecks, ref nodeCount);
+        result_node = SyntaxHelper.RecursiveSearch_BodyOnly(javaScriptDocument.CompilationUnit.GlobalScope, completionRequest.@params.position.line, ref totalChecks, ref nodeCount);
 
         // TODO: This misses the count of the global scope if only the global scope is checked...
         // ...I'm gonna add it as a line immediately following this invocation as a hack for now. (2 of 2)
@@ -250,8 +250,8 @@ internal static class LspDispatcher
             }
             else
             {
-                childNodeLength = javaScriptDocument.CompilationUnit.BodyList.Count;
-                bodyList = javaScriptDocument.CompilationUnit.BodyList;
+                childNodeLength = javaScriptDocument.CompilationUnit.GlobalScope.BodyList.Count;
+                bodyList = javaScriptDocument.CompilationUnit.GlobalScope.BodyList;
                 _completionItemArray_nodeBasedOn = null;
             }
 
@@ -261,7 +261,7 @@ internal static class LspDispatcher
             {
                 var target_bodyList = bodyList;
                 Scope? target_scope = null;
-                if (target_bodyList != javaScriptDocument.CompilationUnit.BodyList)
+                if (target_bodyList != javaScriptDocument.CompilationUnit.GlobalScope.BodyList)
                 {
                     target_scope = result_node!.Scope;
                 }
@@ -306,13 +306,13 @@ internal static class LspDispatcher
                         }
                         else
                         {
-                            if (target_bodyList == javaScriptDocument.CompilationUnit.BodyList)
+                            if (target_bodyList == javaScriptDocument.CompilationUnit.GlobalScope.BodyList)
                             {
                                 break;
                             }
                             else
                             {
-                                target_bodyList = javaScriptDocument.CompilationUnit.BodyList;
+                                target_bodyList = javaScriptDocument.CompilationUnit.GlobalScope.BodyList;
                                 target_scope = null;
                             }
                         }
@@ -379,7 +379,7 @@ internal static class LspDispatcher
 
         var totalChecks = 0;
 
-        result_node = SyntaxHelper.RecursiveSearch(javaScriptDocument.CompilationUnit.BodyList, hoverRequest.@params.position.line, ref totalChecks);
+        result_node = SyntaxHelper.RecursiveSearch(javaScriptDocument.CompilationUnit.GlobalScope, hoverRequest.@params.position.line, ref totalChecks);
 
         string nodeString;
         if (result_node is not null)

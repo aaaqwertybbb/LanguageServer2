@@ -6,10 +6,13 @@ public class JavaScriptDocument
     {
         UriPath = uriPath;
         Chars = chars;
+        // This is just a hack for now otherwise if statements and other not handled scopes would close the scope of the parent.
+        int _unknownOpenBracesThatNeedMatched = 0;
+        CompilationUnit = new JavaScriptCompilationUnit(new(), new(null, Syntax.BodyKind.GlobalBody, ref _unknownOpenBracesThatNeedMatched), new());
     }
 
     public string UriPath { get; }
     public List<char> Chars { get; }
     public bool HasBeenParsedAtLeastOnce { get; set; }
-    public JavaScriptCompilationUnit CompilationUnit { get; set; } = new JavaScriptCompilationUnit(new(), new(), new());
+    public JavaScriptCompilationUnit CompilationUnit { get; set; }
 }

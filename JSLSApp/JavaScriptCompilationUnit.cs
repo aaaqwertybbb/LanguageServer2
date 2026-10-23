@@ -5,10 +5,10 @@ namespace JSLSApp;
 
 public class JavaScriptCompilationUnit
 {
-    public JavaScriptCompilationUnit(List<FunctionDefinitionSyntax> functionDefinitionStartPositionList, List<SyntaxNode> bodyList, Dictionary<string, SyntaxNode> lexicalScope)
+    public JavaScriptCompilationUnit(List<FunctionDefinitionSyntax> functionDefinitionStartPositionList, Scope globalScope, Dictionary<string, SyntaxNode> lexicalScope)
     {
         FunctionDefinitionStartPositionList = functionDefinitionStartPositionList;
-        BodyList = bodyList;
+        GlobalScope = globalScope;
         LexicalScope = lexicalScope;
     }
 
@@ -16,7 +16,7 @@ public class JavaScriptCompilationUnit
     // ...by getting a list of all the functions and then goto definition-ing one or something like this.
     public List<FunctionDefinitionSyntax> FunctionDefinitionStartPositionList { get; set; }
 
-    public List<SyntaxNode> BodyList { get; set; }
+    public Scope GlobalScope { get; set; }
 
     /// <summary>
     /// TODO: Are you certain this tends to be the local scope specifically?...
@@ -46,7 +46,7 @@ public class JavaScriptCompilationUnit
         sb.Append(indentationString); sb.Append("\"body\": "); sb.Append("[\n");
         indentationCount++;
         indentationString = new string(' ', indentationCount);
-        foreach (var node in BodyList)
+        foreach (var node in GlobalScope.BodyList)
         {
             node.AppendString(sb, ref indentationCount, ref indentationString);
         }

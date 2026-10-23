@@ -22,9 +22,23 @@ public class JavaScriptParser
 
     public byte[] SyntaxHighlightByteList { get => _syntaxHighlightByteList; set => _syntaxHighlightByteList = value; }
 
+    /// <summary>
+    /// null! => the parse function is immediately constructed.
+    /// 
+    /// ====
+    /// 
+    /// TODO: Are you certain this tends to be the local scope specifically?...
+    /// ...I'm thinking based on some text you can match to some locally defined/declared node...
+    /// ...but maybe this would more-so imply every available defined/declared node i.e.: the ones in parent scopes?
+    /// 
+    /// TODO: probably just have 1 dictionary active ever as you go for the instant lookups rather than per scope. (i.e.: you'd prob just update this as you move through the scopes and overwrite older scopes with the???
+    /// maybe if shadow you move shadow'd to a list of shadow'd nodes or maybe a stack? and then you can resotre the shadow'd node when you out of the scope that did the shadow.
+    /// </summary>
+    public Dictionary<string, SyntaxNode> _lexicalScope = null!;
+
     public string DebugString => $"pos=>{_pos} | (line,char)=>({_indexLine},{_indexChar})\n";
     private List<FunctionDefinitionSyntax> _functionDefinitionStartPositionList = new();
-    private List<SyntaxNode> _bodyList = new();
+    
     private byte[] _syntaxHighlightByteList = new byte[0];
     /// <summary>
     /// TODO: Perhaps storing the _indexLine prior to invoking Lex and then checking if it changed is equivalent functionality with less overhead.
@@ -42,7 +56,10 @@ public class JavaScriptParser
     private SyntaxToken _previousPreviousToken;
     private bool _peekTokenExists;
 
-    private Scope _globalScope;
+    /// <summary>
+    /// null! => the parse function is immediately constructed.
+    /// </summary>
+    private Scope _globalScope = null!;
 
     /// <summary>
     /// null! => the parse function is immediately constructed.
@@ -107,6 +124,7 @@ public class JavaScriptParser
 
         _currentScope = new(parent: null, BodyKind.GlobalBody, ref _unknownOpenBracesThatNeedMatched);
         _globalScope = _currentScope;
+        _lexicalScope = new();
 
         var stringBuilder = new StringBuilder(capacity: 64);
         _syntaxHighlightByteList = new byte[_doc.Chars.Count];
@@ -190,7 +208,7 @@ public class JavaScriptParser
 
         exitOuterWhileLoop:
         Program._activeParser = null;
-        return new JavaScriptCompilationUnit(_functionDefinitionStartPositionList, _bodyList, _globalScope.LexicalScope);
+        return new JavaScriptCompilationUnit(_functionDefinitionStartPositionList, _globalScope, _lexicalScope);
     }
 
     private void ParseAssumedReference(StringBuilder stringBuilder, SyntaxToken token)
@@ -214,10 +232,10 @@ public class JavaScriptParser
 
         while (true)
         {
-            if (scope.LexicalScope.TryGetValue(identifierText, out var definition))
+            if (_lexicalScope.TryGetValue(identifierText, out var definition))
             {
                 var variableReferenceNode = new VariableReferenceNode(identifierText, token.Position.line, token.Position.character, _indexLine, _indexChar, definition.Start.line);
-                _currentScope.GetBodyList(_bodyList).Add(variableReferenceNode);
+                _currentScope.BodyList.Add(variableReferenceNode);
                 break;
             }
 
@@ -261,8 +279,8 @@ public class JavaScriptParser
             var ccc = 2;
             var variableDeclarationNode = new VariableDeclarationNode(bbb, identifierToken.Position.line, identifierToken.Position.character, _indexLine, _indexChar);
 
-            _currentScope.GetBodyList(_bodyList).Add(variableDeclarationNode);
-            _currentScope.LexicalScope.TryAdd(variableDeclarationNode.Id_name, variableDeclarationNode);
+            _currentScope.BodyList.Add(variableDeclarationNode);
+            _lexicalScope.TryAdd(variableDeclarationNode.Id_name, variableDeclarationNode);
         }
 
         // in editorGlobal.js
@@ -322,9 +340,9 @@ public class JavaScriptParser
         }
         
         var functionDeclarationNode = new FunctionDeclarationNode(str, identifierToken.Position.line, identifierToken.Position.character, _indexLine, _indexChar);
-        _currentScope.GetBodyList(_bodyList).Add(functionDeclarationNode);
+        _currentScope.BodyList.Add(functionDeclarationNode);
 
-        _currentScope.LexicalScope.Add(functionDeclarationNode.Id_name, functionDeclarationNode);
+        _lexicalScope.TryAdd(functionDeclarationNode.Id_name, functionDeclarationNode);
 
         ParseFunctionArguments();
         ParseFunctionBody(functionDeclarationNode);
@@ -373,9 +391,9 @@ public class JavaScriptParser
             stringBuilder.Append(_doc.Chars[(_pos - token.Length) + k]);
         }
         var classDeclarationNode = new ClassDeclarationNode(stringBuilder.ToString(), token.Position.line, token.Position.character, _indexLine, _indexChar);
-        _currentScope.GetBodyList(_bodyList).Add(classDeclarationNode);
+        _currentScope.BodyList.Add(classDeclarationNode);
 
-        _currentScope.LexicalScope.Add(classDeclarationNode.Id_name, classDeclarationNode);
+        _lexicalScope.TryAdd(classDeclarationNode.Id_name, classDeclarationNode);
 
         ParseClassBody(classDeclarationNode);
     }
@@ -396,9 +414,9 @@ public class JavaScriptParser
     public void ParseConstructorDefinitionNode(StringBuilder stringBuilder, SyntaxToken constructorToken)
     {
         var functionDeclarationNode = new FunctionDeclarationNode("constructor", constructorToken.Position.line, constructorToken.Position.character, _indexLine, _indexChar);
-        _currentScope.GetBodyList(_bodyList).Add(functionDeclarationNode);
+        _currentScope.BodyList.Add(functionDeclarationNode);
 
-        _currentScope.LexicalScope.Add(functionDeclarationNode.Id_name, functionDeclarationNode);
+        _lexicalScope.TryAdd(functionDeclarationNode.Id_name, functionDeclarationNode);
 
         ParseFunctionArguments();
         ParseFunctionBody(functionDeclarationNode);
