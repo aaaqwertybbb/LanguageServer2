@@ -282,11 +282,11 @@ cause I'm gonna just as the cursor moves cache the "environment variables or wha
 
 I have my phone still awaiting call
 
-- [ ] Combine scope and body classes
-- [ ] A remove dictionaries from scopes, no shadow
-- [ ] B with shadow
-- [ ] C with shadow restore
-- [ ] D with ...
+- [x] Combine scope and body classes
+- [x] A remove dictionaries from scopes, no shadow
+- [ ] B when you leave a scope that added a definition, remove the definition.
+- [ ] C with shadow
+- [ ] D when you leave a scope that added a definition, if that definition shadow'd a parent scope's definition with the same name restore the shadow'd definition.
 - [ ] E many other scope creating syntax need to be added such as if statements and etc...
 
 - [ ] Declaration/Definition naming could be fixed.

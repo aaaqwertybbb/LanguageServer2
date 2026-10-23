@@ -4,6 +4,13 @@ using System.Text;
 
 namespace JSLSApp;
 
+internal struct ScopeUndoEntry
+{
+    public string Name;
+    public bool ExistedBefore;
+    public SyntaxNode PreviousNode; // Null if ExistedBefore is false
+}
+
 /// <summary>
 /// Current intention is 1 parser instance per document.
 /// This is possibly GC heavy design.
@@ -19,6 +26,10 @@ public class JavaScriptParser
     private int _pos = 0;
     private int _indexLine = 0;
     private int _indexChar = 0;
+
+    // The Undo Stack. It tracks what needs to be restored when a scope exits.
+    // We store a list of actions (or previous states) for each scope level.
+    private readonly Stack<List<ScopeUndoEntry>> _undoStack = new();
 
     public byte[] SyntaxHighlightByteList { get => _syntaxHighlightByteList; set => _syntaxHighlightByteList = value; }
 
@@ -122,8 +133,10 @@ public class JavaScriptParser
     {
         Program._activeParser = this;
 
-        _currentScope = new(parent: null, BodyKind.GlobalBody, ref _unknownOpenBracesThatNeedMatched);
-        _globalScope = _currentScope;
+
+
+        _globalScope = new(parent: null, BodyKind.GlobalBody, ref _unknownOpenBracesThatNeedMatched);
+        OpenScope(_globalScope);
         _lexicalScope = new();
 
         var stringBuilder = new StringBuilder(capacity: 64);
@@ -159,7 +172,7 @@ public class JavaScriptParser
                     ParseImportNode(stringBuilder);
                     break;
                 case SyntaxKind.IdentifierToken:
-                    if (_currentScope.GetBodyKind() == BodyKind.ClassBody &&
+                    if (_currentScope.Type == BodyKind.ClassBody &&
                         PeekToken().SyntaxKind == SyntaxKind.OpenParenthesisToken)
                     {
                         ParseFunctionDefinitionNode(stringBuilder, token, true);
@@ -188,7 +201,7 @@ public class JavaScriptParser
                     }
                     else if (_currentScope.AttemptEndScope(token.Position, token.SyntaxKind) && _currentScope.Parent is not null)
                     {
-                        _currentScope = _currentScope.Parent;
+                        CloseScope();
                     }
                     break;
                 case SyntaxKind.OpenBraceToken:
@@ -211,6 +224,49 @@ public class JavaScriptParser
         return new JavaScriptCompilationUnit(_functionDefinitionStartPositionList, _globalScope, _lexicalScope);
     }
 
+    private void OpenScope(Scope scope)
+    {
+        _currentScope = scope;
+        // Push a new bucket to track changes for this specific scope level
+        // TODO: This new list per scope isn't as bad as the dictionary was most importantly because the list is only a temporary object that isn't tied to the scope reference...
+        // ...but I would still probably want to get rid of this allocation long term...
+        // ...(i.e.: they both had an allocation but this new list won't clog up GC for the entire length of the Scope object's existence)...
+        // ...and I intend to keep the scope objects around so this is good.
+        if (_currentScope != _globalScope)
+        {
+            _undoStack.Push(new List<ScopeUndoEntry>());
+        }
+    }
+
+    private void CloseScope()
+    {
+        if (_undoStack.Count == 0) return; // GlobalScope doesn't make a ScopeUndoEntry
+
+        if (_currentScope.Parent is not null) // GlobalScope has a null Parent
+        {
+            _currentScope = _currentScope.Parent;
+        }
+
+        // Pop the undo log for the scope we are leaving
+        var undoList = _undoStack.Pop();
+
+        // Roll back the changes in reverse order
+        for (int i = undoList.Count - 1; i >= 0; i--)
+        {
+            var entry = undoList[i];
+            if (entry.ExistedBefore)
+            {
+                // Restore the shadowed variable from the parent scope
+                _lexicalScope[entry.Name] = entry.PreviousNode;
+            }
+            else
+            {
+                // It was a brand new variable local to this scope; remove it entirely
+                _lexicalScope.Remove(entry.Name);
+            }
+        }
+    }
+
     private void ParseAssumedReference(StringBuilder stringBuilder, SyntaxToken token)
     {
         // TODO: Constructing a string here is likely to be extremely GC expensive
@@ -230,25 +286,12 @@ public class JavaScriptParser
 
         var scope = _currentScope;
 
-        while (true)
+        if (_lexicalScope.TryGetValue(identifierText, out var definition))
         {
-            if (_lexicalScope.TryGetValue(identifierText, out var definition))
-            {
-                var variableReferenceNode = new VariableReferenceNode(identifierText, token.Position.line, token.Position.character, _indexLine, _indexChar, definition.Start.line);
-                _currentScope.BodyList.Add(variableReferenceNode);
-                break;
-            }
-
-            if (scope.Parent is null)
-            {
-                break;
-            }
-            else
-            {
-                scope = scope.Parent;
-            }
+            var variableReferenceNode = new VariableReferenceNode(identifierText, token.Position.line, token.Position.character, _indexLine, _indexChar, definition.Start.line);
+            _currentScope.BodyList.Add(variableReferenceNode);
         }
-        
+
 
         // in editorGlobal.js
         // if I hover the first variable I see in the global scope it doesn't work.
@@ -370,7 +413,7 @@ public class JavaScriptParser
 
         functionDeclarationNode.Scope = new Scope(_currentScope, BodyKind.FunctionBody, ref _unknownOpenBracesThatNeedMatched);
         functionDeclarationNode.Scope.SetStart(openBraceToken.Position);
-        _currentScope = functionDeclarationNode.Scope;
+        OpenScope(functionDeclarationNode.Scope);
     }
 
 
@@ -408,7 +451,7 @@ public class JavaScriptParser
 
         classDeclarationNode.Scope = new Scope(_currentScope, BodyKind.ClassBody, ref _unknownOpenBracesThatNeedMatched);
         classDeclarationNode.Scope.SetStart(openBraceToken.Position);
-        _currentScope = classDeclarationNode.Scope;
+        OpenScope(classDeclarationNode.Scope);
     }
 
     public void ParseConstructorDefinitionNode(StringBuilder stringBuilder, SyntaxToken constructorToken)
