@@ -270,6 +270,9 @@ If this is for an LSP features analyzer, let me know:
 
 I can help adapt the architecture based on how you need to query these nodes later!
 
+====
 
+- [ ] Remove per scope dictionaries
+- [ ] implement remaining 99% of scopes (if statements, etc...)
 
 
