@@ -1,6 +1,7 @@
 ﻿using JSLSApp.LspTypes;
 using JSLSApp.Syntax;
 using System.Text;
+using System.Xml.Linq;
 
 namespace JSLSApp;
 
@@ -132,8 +133,6 @@ public class JavaScriptParser
     public JavaScriptCompilationUnit Parse()
     {
         Program._activeParser = this;
-
-
 
         _globalScope = new(parent: null, BodyKind.GlobalBody, ref _unknownOpenBracesThatNeedMatched);
         OpenScope(_globalScope);
@@ -267,6 +266,31 @@ public class JavaScriptParser
         }
     }
 
+    public void DeclareVariable(string name, SyntaxNode node)
+    {
+        // 1. Record the current state before we overwrite/shadow anything
+        var entry = new ScopeUndoEntry { Name = name };
+
+        if (_lexicalScope.TryGetValue(name, out var oldNode))
+        {
+            entry.ExistedBefore = true;
+            entry.PreviousNode = oldNode; // Capture the shadowed node
+        }
+        else
+        {
+            entry.ExistedBefore = false;
+        }
+
+        // Log this change to the current scope's undo list
+        if (_undoStack.Count > 0)
+        {
+            _undoStack.Peek().Add(entry);
+        }
+
+        // 2. Perform the actual declaration/shadowing
+        _lexicalScope[name] = node;
+    }
+
     private void ParseAssumedReference(StringBuilder stringBuilder, SyntaxToken token)
     {
         // TODO: Constructing a string here is likely to be extremely GC expensive
@@ -323,7 +347,7 @@ public class JavaScriptParser
             var variableDeclarationNode = new VariableDeclarationNode(bbb, identifierToken.Position.line, identifierToken.Position.character, _indexLine, _indexChar);
 
             _currentScope.BodyList.Add(variableDeclarationNode);
-            _lexicalScope.TryAdd(variableDeclarationNode.Id_name, variableDeclarationNode);
+            DeclareVariable(variableDeclarationNode.Id_name, variableDeclarationNode);
         }
 
         // in editorGlobal.js
@@ -385,7 +409,7 @@ public class JavaScriptParser
         var functionDeclarationNode = new FunctionDeclarationNode(str, identifierToken.Position.line, identifierToken.Position.character, _indexLine, _indexChar);
         _currentScope.BodyList.Add(functionDeclarationNode);
 
-        _lexicalScope.TryAdd(functionDeclarationNode.Id_name, functionDeclarationNode);
+        DeclareVariable(functionDeclarationNode.Id_name, functionDeclarationNode);
 
         ParseFunctionArguments();
         ParseFunctionBody(functionDeclarationNode);
@@ -436,7 +460,7 @@ public class JavaScriptParser
         var classDeclarationNode = new ClassDeclarationNode(stringBuilder.ToString(), token.Position.line, token.Position.character, _indexLine, _indexChar);
         _currentScope.BodyList.Add(classDeclarationNode);
 
-        _lexicalScope.TryAdd(classDeclarationNode.Id_name, classDeclarationNode);
+        DeclareVariable(classDeclarationNode.Id_name, classDeclarationNode);
 
         ParseClassBody(classDeclarationNode);
     }
@@ -459,7 +483,7 @@ public class JavaScriptParser
         var functionDeclarationNode = new FunctionDeclarationNode("constructor", constructorToken.Position.line, constructorToken.Position.character, _indexLine, _indexChar);
         _currentScope.BodyList.Add(functionDeclarationNode);
 
-        _lexicalScope.TryAdd(functionDeclarationNode.Id_name, functionDeclarationNode);
+        DeclareVariable(functionDeclarationNode.Id_name, functionDeclarationNode);
 
         ParseFunctionArguments();
         ParseFunctionBody(functionDeclarationNode);
