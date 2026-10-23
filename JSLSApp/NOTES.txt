@@ -291,3 +291,5 @@ I have my phone still awaiting call
 
 - [ ] Declaration/Definition naming could be fixed.
 
+I think it is actually the goto definition that is broken I'm not sure I gotta look into it gonna eat these bagels while I do
+
