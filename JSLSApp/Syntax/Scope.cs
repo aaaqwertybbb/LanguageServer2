@@ -4,15 +4,21 @@ namespace JSLSApp.Syntax;
 
 public class Scope
 {
-    public Scope(Scope? parent, Body? body)
+    public Scope(Scope? parent, BodyKind bodyKind, ref int _unknownOpenBracesThatNeedMatched)
     {
+        _unknownOpenBracesThatNeedMatched = 0;
         Parent = parent;
-        Body = body;
+        Type = bodyKind;
     }
 
-    public Scope? Parent { get; set; }
+    public BodyKind Type { get; set; }
+    public List<SyntaxNode> BodyList { get; } = new();
+    public Position Start { get; private set; }
+    public Position End { get; private set; }
+    public bool IsStarted { get; set; }
+    public bool IsEnded { get; set; }
 
-    public Body? Body { get; set; }
+    public Scope? Parent { get; set; }
 
     /// <summary>
     /// Is strictly text comparison within a single scope
@@ -26,46 +32,47 @@ public class Scope
     /// </summary>
     public Dictionary<string, SyntaxNode> LexicalScope { get; } = new();
 
-    public BodyKind GetBodyKind()
+    public void SetStart(Position start)
     {
-        if (Body is null)
-        {
-            return BodyKind.GlobalBody;
-        }
-
-        return Body.Type;
+        Start = start;
+        IsStarted = true;
     }
 
+    public void SetEnd(Position end)
+    {
+        End = end;
+        IsEnded = true;
+    }
+
+    [Obsolete]
+    public BodyKind GetBodyKind()
+    {
+        return Type;
+    }
+
+    [Obsolete]
     public List<SyntaxNode> GetBodyList(List<SyntaxNode> globalBodyList)
     {
-        if (Body is null)
-        {
-            return globalBodyList;
-        }
-
-        return Body.BodyList;
+        return BodyList;
     }
 
     public bool AttemptEndScope(Position position, SyntaxKind syntaxKind)
     {
-        if (Body is null)
-            return false;
-
-        if (!Body.IsEnded)
+        if (!IsEnded)
         {
-            switch (Body.Type)
+            switch (Type)
             {
                 case BodyKind.ClassBody:
                     if (syntaxKind == SyntaxKind.CloseBraceToken)
                     {
-                        Body.SetEnd(position);
+                        SetEnd(position);
                         return true;
                     }
                     break;
                 case BodyKind.FunctionBody:
                     if (syntaxKind == SyntaxKind.CloseBraceToken)
                     {
-                        Body.SetEnd(position);
+                        SetEnd(position);
                         return true;
                     }
                     break;

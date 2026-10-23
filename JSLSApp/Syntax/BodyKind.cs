@@ -2,10 +2,9 @@
 
 public enum BodyKind
 {
-    //GlobalBody,
+    GlobalBody,
     ClassBody,
     FunctionBody,
-    GlobalBody,
 
     EXTERNAL_FunctionBody,
 }

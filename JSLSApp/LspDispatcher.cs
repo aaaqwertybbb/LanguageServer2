@@ -242,10 +242,10 @@ internal static class LspDispatcher
 
             int childNodeLength;
             List<SyntaxNode> bodyList;
-            if (result_node?.Body?.BodyList is not null)
+            if (result_node?.Scope?.BodyList is not null)
             {
-                childNodeLength = result_node.Body.BodyList.Count;
-                bodyList = result_node.Body.BodyList;
+                childNodeLength = result_node.Scope.BodyList.Count;
+                bodyList = result_node.Scope.BodyList;
                 _completionItemArray_nodeBasedOn = result_node;
             }
             else
@@ -260,10 +260,10 @@ internal static class LspDispatcher
             if (bodyList is not null)
             {
                 var target_bodyList = bodyList;
-                Body? target_body = null;
+                Scope? target_scope = null;
                 if (target_bodyList != javaScriptDocument.CompilationUnit.BodyList)
                 {
-                    target_body = result_node!.Body;
+                    target_scope = result_node!.Scope;
                 }
 
                 int total = 0;
@@ -276,11 +276,11 @@ internal static class LspDispatcher
                         
                         if (total < nodeCount)
                         {
-                            if (node.Body is not null)
+                            if (node.Scope is not null)
                             {
                                 completionItemArray[total++] = new TextDocumentCompletionItem()
                                 {
-                                    label = $"{node.Body.Type} {node.Id_name}",
+                                    label = $"{node.Scope.Type} {node.Id_name}",
                                     kind = (int)CompletionItemKind.Text
                                 };
                             }
@@ -299,10 +299,10 @@ internal static class LspDispatcher
 
                     if (total < nodeCount)
                     {
-                        if (target_body?.Scope?.Parent?.Body?.BodyList is not null)
+                        if (target_scope?.Parent?.BodyList is not null)
                         {
-                            target_bodyList = target_body.Scope.Parent.Body.BodyList;
-                            target_body = target_body.Scope.Parent.Body;
+                            target_bodyList = target_scope.Parent.BodyList;
+                            target_scope = target_scope.Parent;
                         }
                         else
                         {
@@ -313,7 +313,7 @@ internal static class LspDispatcher
                             else
                             {
                                 target_bodyList = javaScriptDocument.CompilationUnit.BodyList;
-                                target_body = null;
+                                target_scope = null;
                             }
                         }
                     }

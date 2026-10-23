@@ -4,32 +4,7 @@ namespace JSLSApp.Syntax;
 
 public class Body
 {
-    public Body(Scope parent, BodyKind bodyKind, ref int _unknownOpenBracesThatNeedMatched)
-    {
-        Scope = new(parent, this);
-        _unknownOpenBracesThatNeedMatched = 0;
-        Type = bodyKind;
-    }
-
-    public BodyKind Type { get; set; }
-    public List<SyntaxNode> BodyList { get; } = new();
-    public Scope Scope { get; set; }
-    public Position Start { get; private set; }
-    public Position End { get; private set; }
-    public bool IsStarted { get; set; }
-    public bool IsEnded { get; set; }
-
-    public void SetStart(Position start)
-    {
-        Start = start;
-        IsStarted = true;
-    }
     
-    public void SetEnd(Position end)
-    {
-        End = end;
-        IsEnded = true;
-    }
 }
 
 /// <summary>

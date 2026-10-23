@@ -44,7 +44,10 @@ public class JavaScriptParser
 
     private Scope _globalScope;
 
-    public Scope _currentScope = new(parent:null, body:null);
+    /// <summary>
+    /// null! => the parse function is immediately constructed.
+    /// </summary>
+    public Scope _currentScope = null!;
 
     /// <summary>
     /// Resets the count when a new known scope is open,
@@ -59,8 +62,6 @@ public class JavaScriptParser
     {
         _doc = doc;
         _javaScriptWorkspace = javaScriptWorkspace;
-        _currentScope = new(parent: null, body: null);
-        _globalScope = _currentScope;
     }
 
     public SyntaxToken PeekToken()
@@ -103,6 +104,9 @@ public class JavaScriptParser
     public JavaScriptCompilationUnit Parse()
     {
         Program._activeParser = this;
+
+        _currentScope = new(parent: null, BodyKind.GlobalBody, ref _unknownOpenBracesThatNeedMatched);
+        _globalScope = _currentScope;
 
         var stringBuilder = new StringBuilder(capacity: 64);
         _syntaxHighlightByteList = new byte[_doc.Chars.Count];
@@ -345,17 +349,10 @@ public class JavaScriptParser
             return;
         _ = ConsumePeekToken();
         var openBraceToken = token;
-        // ----
-        //token = Defensive_SkipUntil_LexFor_OrEof(SyntaxKind.CloseBraceToken);
-        //if (token.SyntaxKind != SyntaxKind.CloseBraceToken)
-        //    return;
-        //var closeBraceToken = token;
 
-        functionDeclarationNode.Body = new Body(_currentScope, BodyKind.FunctionBody, ref _unknownOpenBracesThatNeedMatched);
-        functionDeclarationNode.Body.SetStart(openBraceToken.Position);
-        //functionDeclarationNode.Body.SetEnd(closeBraceToken.Position);
-
-        _currentScope = functionDeclarationNode.Body.Scope;
+        functionDeclarationNode.Scope = new Scope(_currentScope, BodyKind.FunctionBody, ref _unknownOpenBracesThatNeedMatched);
+        functionDeclarationNode.Scope.SetStart(openBraceToken.Position);
+        _currentScope = functionDeclarationNode.Scope;
     }
 
 
@@ -390,17 +387,10 @@ public class JavaScriptParser
             return;
         _ = ConsumePeekToken();
         var openBraceToken = token;
-        //// ----
-        //token = Defensive_SkipUntil_LexFor_OrEof(SyntaxKind.CloseBraceToken);
-        //if (token.SyntaxKind != SyntaxKind.CloseBraceToken)
-        //    return;
-        //var closeBraceToken = token;
 
-        classDeclarationNode.Body = new Body(_currentScope, BodyKind.ClassBody, ref _unknownOpenBracesThatNeedMatched);
-        classDeclarationNode.Body.SetStart(openBraceToken.Position);
-        //classDeclarationNode.Body.SetEnd(closeBraceToken.Position);
-
-        _currentScope = classDeclarationNode.Body.Scope;
+        classDeclarationNode.Scope = new Scope(_currentScope, BodyKind.ClassBody, ref _unknownOpenBracesThatNeedMatched);
+        classDeclarationNode.Scope.SetStart(openBraceToken.Position);
+        _currentScope = classDeclarationNode.Scope;
     }
 
     public void ParseConstructorDefinitionNode(StringBuilder stringBuilder, SyntaxToken constructorToken)

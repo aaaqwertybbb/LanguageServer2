@@ -21,7 +21,7 @@ public abstract class SyntaxNode
     /// </summary>
     public abstract IdKind Id_type { get; }
     public abstract string Id_name { get; }
-    public Body? Body { get; set; }
+    public Scope? Scope { get; set; }
     /*
     < {
 <   "type": "ClassDeclaration",

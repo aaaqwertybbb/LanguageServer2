@@ -282,9 +282,12 @@ cause I'm gonna just as the cursor moves cache the "environment variables or wha
 
 I have my phone still awaiting call
 
+- [ ] Combine scope and body classes
 - [ ] A remove dictionaries from scopes, no shadow
 - [ ] B with shadow
 - [ ] C with shadow restore
 - [ ] D with ...
 - [ ] E many other scope creating syntax need to be added such as if statements and etc...
+
+- [ ] Declaration/Definition naming could be fixed.
 

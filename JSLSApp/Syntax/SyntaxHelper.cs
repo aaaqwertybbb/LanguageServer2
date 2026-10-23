@@ -8,9 +8,9 @@ internal static class SyntaxHelper
         // ...I'm gonna add it as a line immediately following this invocation as a hack for now. (1 of 2)
         foreach (var child_node in bodyList)
         {
-            if (child_node.Body is null ||
-                child_node.Body.Type == BodyKind.EXTERNAL_FunctionBody ||
-                (child_node.Body.Start.line > indexLine || child_node.Body.End.line < indexLine))
+            if (child_node.Scope is null ||
+                child_node.Scope.Type == BodyKind.EXTERNAL_FunctionBody ||
+                (child_node.Scope.Start.line > indexLine || child_node.Scope.End.line < indexLine))
             {
                 continue;
             }
@@ -29,7 +29,7 @@ internal static class SyntaxHelper
             }
             nodeCount += lexicalScope.Count; // awkward but believed necessary (2 of 2)
 
-            var nodeThatWasCloser = RecursiveSearch_BodyOnly(child_node.Body.BodyList, child_node.Body.Scope.LexicalScope, indexLine, ref totalChecks, ref nodeCount);
+            var nodeThatWasCloser = RecursiveSearch_BodyOnly(child_node.Scope.BodyList, child_node.Scope.LexicalScope, indexLine, ref totalChecks, ref nodeCount);
             if (nodeThatWasCloser is null)
             {
                 return child_node;
@@ -46,7 +46,7 @@ internal static class SyntaxHelper
     {
         foreach (var child_node in bodyList)
         {
-            if (child_node.Body is not null && child_node.Body.Type == BodyKind.EXTERNAL_FunctionBody)
+            if (child_node.Scope is not null && child_node.Scope.Type == BodyKind.EXTERNAL_FunctionBody)
             {
                 continue;
             }
@@ -61,11 +61,11 @@ internal static class SyntaxHelper
             {
                 return null;
             }
-            if (child_node.Body is not null && child_node.Body.End.line > indexLine)
+            if (child_node.Scope is not null && child_node.Scope.End.line > indexLine)
             {
-                if (child_node.Body.BodyList.Count > 0)
+                if (child_node.Scope.BodyList.Count > 0)
                 {
-                    var node = RecursiveSearch(child_node.Body.BodyList, indexLine, ref totalChecks);
+                    var node = RecursiveSearch(child_node.Scope.BodyList, indexLine, ref totalChecks);
                     if (node is not null)
                     {
                         return node;
