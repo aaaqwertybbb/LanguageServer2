@@ -283,7 +283,7 @@ internal static class LspDispatcher
             var completionItemArray = new TextDocumentCompletionItem[nodeCountMaxAmountToTake + 1];
             completionItemArray[0] = new TextDocumentCompletionItem
             {
-                label = $"{nodeCountMaxAmountToTake} of {definitionNodeCount}",
+                label = $"('ctrl+r' to refresh) {nodeCountMaxAmountToTake} of {definitionNodeCount}",
                 kind = (int)CompletionItemKind.Text
             };
 
