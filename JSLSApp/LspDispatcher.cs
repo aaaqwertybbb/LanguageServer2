@@ -1,6 +1,7 @@
 ﻿using JSLSApp.LspTypes;
 using JSLSApp.Syntax;
 using System.Text.Json;
+using System.Xml.Linq;
 using Range = JSLSApp.LspTypes.Range;
 
 namespace JSLSApp;
@@ -191,7 +192,8 @@ internal static class LspDispatcher
         SyntaxNode? result_node = null;
 
         var totalChecks = 0;
-        var nodeCountMaxAmountToTake = 0; // the defined/declared nodes
+        var definitionNodeCount = 0;
+        
 
         // Step A: Get the closest node to the cursor position that has a scope.
         //         - This is done by starting at the GlobalScope and then recursively checking each child node in the targetScope's "BodyList".
@@ -202,13 +204,15 @@ internal static class LspDispatcher
         // Caching: If the result of "Step A" is the same node as the previous invocation, just re-use that list of menu options again.
 
         // Step A: Get the closest node to the cursor position that has a scope.
-        result_node = SyntaxHelper.RecursiveSearch_BodyOnly(javaScriptDocument.CompilationUnit.GlobalScope, completionRequest.@params.position.line, ref totalChecks, ref nodeCountMaxAmountToTake);
+        result_node = SyntaxHelper.RecursiveSearch_BodyOnly(javaScriptDocument.CompilationUnit.GlobalScope, completionRequest.@params.position.line, ref totalChecks, ref definitionNodeCount);
         result_node ??= javaScriptDocument.CompilationUnit.GlobalNode;
         // TODO: ^ this is bad, node and scope is murky here it feels awkard todo fix it (cuz of the GlobalNode stuff)
 
-        if (nodeCountMaxAmountToTake > 25)
+        var nodeCountMaxAmountToTake = definitionNodeCount; // the defined/declared nodes
+
+        if (nodeCountMaxAmountToTake > 250)
         {
-            nodeCountMaxAmountToTake = 25;
+            nodeCountMaxAmountToTake = 250;
         }
 
         /*
@@ -236,7 +240,13 @@ internal static class LspDispatcher
         {
             _completionItemArray_nodeBasedOn = result_node;
 
-            var completionItemArray = new TextDocumentCompletionItem[nodeCountMaxAmountToTake];
+            // +1 so I can put a message at the 0th menu option
+            var completionItemArray = new TextDocumentCompletionItem[nodeCountMaxAmountToTake + 1];
+            completionItemArray[0] = new TextDocumentCompletionItem
+            {
+                label = $"{nodeCountMaxAmountToTake} of {definitionNodeCount}",
+                kind = (int)CompletionItemKind.Text
+            };
 
             int totalTaken = 0;
 
@@ -279,7 +289,8 @@ internal static class LspDispatcher
                         {
                             continue;
                         }
-                        completionItemArray[totalTaken++] = textDocumentCompletionItem;
+                        // +1 so I can put a message at the 0th menu option
+                        completionItemArray[((totalTaken++) + 1)] = textDocumentCompletionItem;
                     }
                 }
 
