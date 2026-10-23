@@ -1,4 +1,5 @@
 ﻿using JSLSApp.LspTypes;
+using JSLSApp.Syntax;
 using System.Text.Json;
 using Range = JSLSApp.LspTypes.Range;
 

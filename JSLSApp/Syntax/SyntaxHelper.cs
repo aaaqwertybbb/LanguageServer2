@@ -1,4 +1,4 @@
-﻿namespace JSLSApp;
+﻿namespace JSLSApp.Syntax;
 
 internal static class SyntaxHelper
 {

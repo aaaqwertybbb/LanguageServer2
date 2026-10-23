@@ -1,4 +1,5 @@
-﻿using System.Text;
+﻿using JSLSApp.Syntax;
+using System.Text;
 
 namespace JSLSApp;
 

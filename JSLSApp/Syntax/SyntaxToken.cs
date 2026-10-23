@@ -1,6 +1,6 @@
 ﻿using JSLSApp.LspTypes;
 
-namespace JSLSApp;
+namespace JSLSApp.Syntax;
 
 public struct SyntaxToken(SyntaxKind syntaxKind, Position position, int length)
 {
