@@ -31,8 +31,10 @@ public abstract class SyntaxNode
     /// If <see cref="IsScopeProvider"/> is false, this will throw an exception.
     /// </summary>
     public virtual ref Scope GetScope() => throw new InvalidOperationException("Not a scope provider");
-    
+
     /// <summary>
+    /// TODO: hash collisions amongst identifiers (not a keyword)?
+    /// 
     /// If <see cref="IsScopeProvider"/> is false, this will throw an exception.
     /// </summary>
     public virtual ref int GetIdentifierHash() => throw new InvalidOperationException("Not identifiable");

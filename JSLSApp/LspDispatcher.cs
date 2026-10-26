@@ -160,23 +160,6 @@ internal static class LspDispatcher
             return request;
         }
 
-        var documentSymbolArray = new DocumentSymbol[javaScriptDocument.CompilationUnit.FunctionDefinitionStartPositionList.Count];
-        for (int i = 0; i < javaScriptDocument.CompilationUnit.FunctionDefinitionStartPositionList.Count; i++)
-        {
-            var functionDefinition = javaScriptDocument.CompilationUnit.FunctionDefinitionStartPositionList[i];
-            documentSymbolArray[i] = new DocumentSymbol
-            {
-                //name
-                kind = SymbolKind.Function,
-                name = functionDefinition.Name,
-                range = new Range
-                {
-                    start = functionDefinition.StartPosition,
-                    end = functionDefinition.StartPosition
-                }
-            };
-        }
-
         SyntaxNode? result_node = null;
 
         var totalChecks = 0;

@@ -156,6 +156,8 @@ public class JavaScriptParser
 
     public JavaScriptCompilationUnit Parse()
     {
+        // TODO: Lexical scope might need to be set to null after the parse idk. It's gonna hold the global definitions.
+
         Program._activeParser = this;
 
         _globalNode = new GlobalNode();
@@ -603,9 +605,7 @@ public class JavaScriptParser
     /// </summary>
     public SyntaxToken Lex_IdentifierOrKeyword()
     {
-        // 'charIntSum' is a heuristic to detect possible keywords.
-        // This is the only way I've thought to make this work and I'm not overly focused on optimizing this heuristic at the moment so I'm gonna continue using it.
-        // You sum every character in the word, and enter a switch statement to compare that sum against hardcoded sums of every keyword that exists in the language.
+        // TODO: hash collisions amongst identifiers (not a keyword)?
         //
         var charIntSum = 0; // TODO: Google AI "a starting seed" // A standard starting seed for DJB2 is 5381"
         var startPosition = new Position(_indexLine, _indexChar);

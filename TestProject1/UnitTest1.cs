@@ -16,7 +16,7 @@ public class LexerTests
         var aaa = Format_didOpenTextDocumentNotification(FileText);
         JSLSApp.Program.MAIN_decodeMessage(aaa);
         JSLSApp.Program.MAIN_decodeMessage(customFullFileLexRequest);
-        JSLSApp.Program.MAIN_decodeMessage(CompletionRequest);
+        JSLSApp.Program.MAIN_decodeMessage(DefinitionRequest);
     }
 
     public const string InitializeJson = "Content-Length: 331\r\n\r\n{\"method\":\"initialize\",\"id\":0,\"params\":{\"processId\":18260,\"clientInfo\":{\"name\":\"TextEditor123\",\"version\":\"0.0.1\"},\"rootUri\":null,\"capabilities\":{\"workspace\":{}},\"workspaceFolders\":[{\"uri\":\"C:\\\\Users\\\\hunte\\\\Repos\\\\New folder (7)\\\\Editor2\",\"name\":\"2\"},{\"uri\":\"C:\\\\Users\\\\hunte\\\\Repos\\\\New folder (7)\\\\LanguageServer2\",\"name\":\"3\"}]}}\\n";
@@ -24,8 +24,10 @@ public class LexerTests
     public const string didOpenTextDocumentNotification = "Content-Length: 433\r\n\r\n{\"method\":\"textDocument/didOpen\",\"params\":{\"textDocument\":{\"uri\":\"file:///C:/Users/hunte/Repos/New folder (7)/Editor2/testFile.js\",\"languageId\":\"javascript\",\"version\":0,\"text\":\"aaa\\n        /**\\n         * @type {HTMLDivElement}\\n         * Consider the existence of such methods as 'state_cursor_setIndex' before mutating state directly\\n         */xxx/*\\n         */\\n        this.cursorElement = document.createElement('div');\"}}}\\n      ";
     public const string customFullFileLexRequest = "Content-Length: 157\r\n\r\n{\"id\":1,\"method\":\"textDocument/CustomFullFileLexRequest\",\"params\":{\"textDocument\":{\"uri\":\"file:///C:/Users/hunte/Repos/New folder (7)/Editor2/testFile.js\"}}}\\n";
 
-    public const string FileText = "//__#__\\r\\n// preprocessor.cjs\\r\\nimport \\\"./fieldBuffer\\\"\\r\\nimport \\\"./javascriptFeatures\\\"\\r\\n//__#__\\r\\n\\r\\nlet EDI_trackingUint32MaxHeap = new TrackingUint32MaxHeap();";
+    public const string FileText = "let x = 2;\\nx = 1;";
     public const string CompletionRequest = "Content-Length: 179\r\n\r\n{\"id\":2,\"method\":\"textDocument/completion\",\"params\":{\"textDocument\":{\"uri\":\"file:///C:/Users/hunte/Repos/New folder (7)/Editor2/testFile.js\"},\"position\":{\"line\":0,\"character\":0}}}\\n";
+
+    public const string DefinitionRequest = "Content-Length: 179\r\n\r\n{\"id\":3,\"method\":\"textDocument/definition\",\"params\":{\"textDocument\":{\"uri\":\"file:///C:/Users/hunte/Repos/New folder (7)/Editor2/testFile.js\"},\"position\":{\"line\":0,\"character\":0}}}\\n";
 
     public string Format_didOpenTextDocumentNotification(string fileText)
     {
