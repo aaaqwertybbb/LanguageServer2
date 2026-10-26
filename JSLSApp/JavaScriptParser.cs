@@ -228,6 +228,9 @@ public class JavaScriptParser
                         CloseScope();
                     }
                     break;
+                case SyntaxKind.IfKeywordToken:
+                    ParseIfStatement();
+                    break;
                 case SyntaxKind.OpenBraceToken:
                     _unknownOpenBracesThatNeedMatched++;
                     break;
@@ -358,6 +361,29 @@ public class JavaScriptParser
     private void ParseImportNode()
     {
         return;
+    }
+
+    public void ParseIfStatement()
+    {
+        var token = PeekToken();
+        if (token.SyntaxKind != SyntaxKind.OpenParenthesisToken)
+            return;
+        _ = ConsumePeekToken();
+        // ----
+        token = Defensive_SkipUntil_LexFor_OrEof(SyntaxKind.CloseParenthesisToken);
+        if (token.SyntaxKind != SyntaxKind.CloseParenthesisToken)
+            return;
+
+
+
+        token = PeekToken();
+        if (token.SyntaxKind != SyntaxKind.OpenBraceToken)
+            return;
+        _ = ConsumePeekToken();
+        var openBraceToken = token;
+        var ifStatementNode = new IfStatementNode(token.Position.line, token.Position.character, _indexLine, _indexChar);
+        _currentScope.BodyList.Add(ifStatementNode);
+        OpenScope(ifStatementNode, openBraceToken.Position);
     }
 
     public void ParseFunctionDefinitionNode(SyntaxToken identifierToken, bool identifierTokenExists)
