@@ -694,6 +694,13 @@ public class JavaScriptParser
                         _indexChar++;
                         return new SyntaxToken(SyntaxKind.CommaToken, startPosition, 1);
                     }
+                case ';':
+                    {
+                        _pos++;
+                        var startPosition = new Position(_indexLine, _indexChar);
+                        _indexChar++;
+                        return new SyntaxToken(SyntaxKind.SemicolonToken, startPosition, 1);
+                    }
                 default:
                     break;
             }

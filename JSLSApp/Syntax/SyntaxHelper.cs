@@ -54,12 +54,14 @@ internal static class SyntaxHelper
         return null;
     }
 
-    public static SyntaxNode? RecursiveSearch(SyntaxNode scopeProvider, int indexLine, ref int totalChecks)
+    public static SyntaxNode? RecursiveSearch(SyntaxNode scopeProvider, int indexLine, int indexCharacter, ref int totalChecks)
     {
         ref var scope = ref scopeProvider.GetScope();
 
-        foreach (var child_node in scope.BodyList)
+        for (int i = 0; i < scope.BodyList.Count; i++)
         {
+            SyntaxNode? child_node = scope.BodyList[i];
+
             if (child_node.IsScopeProvider && child_node.GetScope().Type == BodyKind.EXTERNAL_FunctionBody)
             {
                 continue;
@@ -67,7 +69,11 @@ internal static class SyntaxHelper
             totalChecks++;
             if (child_node.Start.line == indexLine)
             {
-                return child_node;
+                // TODO: This might be inaccurate for a function definition (or etc...) that spans a single line; if you tried to target an identifier in the code block it might target the function definition I'm not sure.
+                if (child_node.Start.character <= indexCharacter && child_node.End.character >= indexCharacter)
+                {
+                    return child_node;
+                }
             }
             // super arbitrary 1,000 limit until I sleep on the logic.
             // it should do a tree walking -ish algorithm so 1k isn't too bad?
@@ -86,7 +92,7 @@ internal static class SyntaxHelper
             {
                 if (childScope.BodyList.Count > 0)
                 {
-                    var node = RecursiveSearch(child_node, indexLine, ref totalChecks);
+                    var node = RecursiveSearch(child_node, indexLine, indexCharacter, ref totalChecks);
                     if (node is not null)
                     {
                         return node;

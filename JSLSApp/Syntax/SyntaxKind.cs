@@ -53,4 +53,5 @@ public enum SyntaxKind
     ForStatementNode,
     BlockNode,
     CommaToken,
+    SemicolonToken,
 }

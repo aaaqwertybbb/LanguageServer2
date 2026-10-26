@@ -164,7 +164,7 @@ internal static class LspDispatcher
 
         var totalChecks = 0;
 
-        result_node = SyntaxHelper.RecursiveSearch(javaScriptDocument.CompilationUnit.GlobalNode, definitionRequest.@params.position.line, ref totalChecks);
+        result_node = SyntaxHelper.RecursiveSearch(javaScriptDocument.CompilationUnit.GlobalNode, definitionRequest.@params.position.line, definitionRequest.@params.position.character, ref totalChecks);
 
         if (result_node is not null && result_node.SyntaxKind == SyntaxKind.VariableReferenceNode)
         {
@@ -382,7 +382,7 @@ internal static class LspDispatcher
 
         var totalChecks = 0;
 
-        result_node = SyntaxHelper.RecursiveSearch(javaScriptDocument.CompilationUnit.GlobalNode, hoverRequest.@params.position.line, ref totalChecks);
+        result_node = SyntaxHelper.RecursiveSearch(javaScriptDocument.CompilationUnit.GlobalNode, hoverRequest.@params.position.line, hoverRequest.@params.position.character, ref totalChecks);
 
         string nodeString;
         if (result_node is not null && result_node.IsIdentifiable)
