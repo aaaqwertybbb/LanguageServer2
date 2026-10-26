@@ -231,6 +231,18 @@ public class JavaScriptParser
                 case SyntaxKind.IfKeywordToken:
                     ParseIfStatement();
                     break;
+                case SyntaxKind.ElseKeywordToken:
+                    // TODO: Don't just eat these without connecting the entire flow of the if/elseif/else
+                    if (PeekToken().SyntaxKind == SyntaxKind.IfKeywordToken)
+                    {
+                        // 'else if'
+                        ConsumePeekToken();
+                        ParseIfStatement();
+                        break;
+                    }
+                    // 'else' hit this
+                    ParseElseStatement();
+                    break;
                 case SyntaxKind.OpenBraceToken:
                     _unknownOpenBracesThatNeedMatched++;
                     break;
@@ -377,6 +389,18 @@ public class JavaScriptParser
 
 
         token = PeekToken();
+        if (token.SyntaxKind != SyntaxKind.OpenBraceToken)
+            return;
+        _ = ConsumePeekToken();
+        var openBraceToken = token;
+        var ifStatementNode = new IfStatementNode(token.Position.line, token.Position.character, _indexLine, _indexChar);
+        _currentScope.BodyList.Add(ifStatementNode);
+        OpenScope(ifStatementNode, openBraceToken.Position);
+    }
+
+    public void ParseElseStatement()
+    {
+        var token = PeekToken();
         if (token.SyntaxKind != SyntaxKind.OpenBraceToken)
             return;
         _ = ConsumePeekToken();
