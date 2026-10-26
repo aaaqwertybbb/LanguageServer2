@@ -1,0 +1,8 @@
+{
+  "profiles": {
+    "JavaScriptTranspiler": {
+      "commandName": "Project",
+      "commandLineArgs": "\"C:\\Users\\hunte\\Repos\\New folder (7)\\Editor2\\src\\RendererFiles\""
+    }
+  }
+}
