@@ -2,7 +2,7 @@
   "profiles": {
     "JavaScriptTranspiler": {
       "commandName": "Project",
-      "commandLineArgs": "\"C:\\Users\\hunte\\Repos\\New folder (7)\\Editor2\\src\\RendererFiles\""
+      "commandLineArgs": "\"C:\\Users\\hunte\\Repos\\New folder (7)\\Editor2\\src\\RendererFiles\"\r\n\"C:\\Users\\hunte\\Repos\\New folder (7)\\Editor2\\preprocessor\""
     }
   }
 }
