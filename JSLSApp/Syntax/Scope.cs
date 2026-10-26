@@ -72,6 +72,13 @@ public struct Scope
                         return true;
                     }
                     break;
+                case BodyKind.BlockBody:
+                    if (syntaxKind == SyntaxKind.CloseBraceToken)
+                    {
+                        SetEnd(position);
+                        return true;
+                    }
+                    break;
             }
             
         }

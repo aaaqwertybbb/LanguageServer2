@@ -247,7 +247,7 @@ public class JavaScriptParser
                     ParseForStatement();
                     break;
                 case SyntaxKind.OpenBraceToken:
-                    _unknownOpenBracesThatNeedMatched++;
+                    ParseBlockNode(token);
                     break;
                 case SyntaxKind.LetKeywordToken:
                 case SyntaxKind.ConstKeywordToken:
@@ -434,6 +434,13 @@ public class JavaScriptParser
         var forStatementNode = new ForStatementNode(token.Position.line, token.Position.character, _indexLine, _indexChar);
         _currentScope.BodyList.Add(forStatementNode);
         OpenScope(forStatementNode, openBraceToken.Position);
+    }
+
+    public void ParseBlockNode(SyntaxToken openBraceToken)
+    {
+        var blockNode = new BlockNode(openBraceToken.Position.line, openBraceToken.Position.character, _indexLine, _indexChar);
+        _currentScope.BodyList.Add(blockNode);
+        OpenScope(blockNode, openBraceToken.Position);
     }
 
     public void ParseFunctionDefinitionNode(SyntaxToken identifierToken, bool identifierTokenExists)

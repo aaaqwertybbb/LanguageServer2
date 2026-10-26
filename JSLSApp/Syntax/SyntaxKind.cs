@@ -51,4 +51,5 @@ public enum SyntaxKind
     NullKeywordToken,
     IfStatementNode,
     ForStatementNode,
+    BlockNode,
 }

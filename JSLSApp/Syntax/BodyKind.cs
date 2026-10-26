@@ -9,6 +9,7 @@ public enum BodyKind
 
     EXTERNAL_FunctionBody,
     ForStatementBody,
+    BlockBody,
 }
 
 /// <summary>
