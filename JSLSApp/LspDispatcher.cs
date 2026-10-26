@@ -174,7 +174,7 @@ internal static class LspDispatcher
                 start = new Position
                 {
                     line = variableReferenceNode.DefinitionLine,
-                    character = 0
+                    character = variableReferenceNode.DefinitionCharacter
                 },
                 end = result_node.End,
             };
@@ -385,7 +385,7 @@ internal static class LspDispatcher
         result_node = SyntaxHelper.RecursiveSearch(javaScriptDocument.CompilationUnit.GlobalNode, hoverRequest.@params.position.line, ref totalChecks);
 
         string nodeString;
-        if (result_node is not null)
+        if (result_node is not null && result_node.IsIdentifiable)
         {
             nodeString = $"{result_node.SyntaxKind}~{result_node.GetIdentifierHash()}";
         }

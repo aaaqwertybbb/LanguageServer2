@@ -325,7 +325,7 @@ public class JavaScriptParser
         var identifierHash = _identifierHash;
         if (_lexicalScope.TryGetValue(identifierHash, out var definition))
         {
-            var variableReferenceNode = new VariableReferenceNode(token.Position.line, token.Position.character, _indexLine, _indexChar, definition.Start.line);
+            var variableReferenceNode = new VariableReferenceNode(token.Position.line, token.Position.character, _indexLine, _indexChar, definition.Start.line, definition.Start.character);
             variableReferenceNode.GetIdentifierHash() = identifierHash;
             _currentScope.BodyList.Add(variableReferenceNode);
         }
