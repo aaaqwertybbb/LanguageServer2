@@ -4,9 +4,8 @@ namespace JSLSApp.Syntax;
 
 public class VariableDeclarationNode : SyntaxNode
 {
-    public VariableDeclarationNode(string id_name, int startLine, int startCharacter, int endLine, int endCharacter)
+    public VariableDeclarationNode(int startLine, int startCharacter, int endLine, int endCharacter)
     {
-        Id_name = id_name;
         Start = new Position(startLine, startCharacter);
         End = new Position(endLine, endCharacter);
     }
@@ -16,9 +15,13 @@ public class VariableDeclarationNode : SyntaxNode
     public override Position Start { get; set; }
     public override Position End { get; set; }
     public override IdKind Id_type => IdKind.Identifier;
-    public override string Id_name { get; }
 
     public override bool IsScopeProvider => false;
+    public override bool IsIdentifiable => true;
+
+    private int _identifierHash;
+
+    public override ref int GetIdentifierHash() => ref _identifierHash;
 }
 
 /// <summary>

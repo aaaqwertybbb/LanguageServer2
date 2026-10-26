@@ -4,9 +4,8 @@ namespace JSLSApp.Syntax;
 
 public class VariableReferenceNode : SyntaxNode
 {
-    public VariableReferenceNode(string id_name, int startLine, int startCharacter, int endLine, int endCharacter, int definitionLine)
+    public VariableReferenceNode(int startLine, int startCharacter, int endLine, int endCharacter, int definitionLine)
     {
-        Id_name = id_name;
         Start = new Position(startLine, startCharacter);
         End = new Position(endLine, endCharacter);
         DefinitionLine = definitionLine;
@@ -17,10 +16,14 @@ public class VariableReferenceNode : SyntaxNode
     public override Position Start { get; set; }
     public override Position End { get; set; }
     public override IdKind Id_type => IdKind.Identifier;
-    public override string Id_name { get; }
     public int DefinitionLine { get; set; }
 
     public override bool IsScopeProvider => false;
+    public override bool IsIdentifiable => true;
+
+    private int _identifierHash;
+
+    public override ref int GetIdentifierHash() => ref _identifierHash;
 }
 
 /// <summary>

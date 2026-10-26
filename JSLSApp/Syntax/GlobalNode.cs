@@ -24,9 +24,8 @@ public class GlobalNode : SyntaxNode
 
     public override IdKind Id_type => IdKind.Identifier;
 
-    public override string Id_name => nameof(GlobalNode);
-
     public override bool IsScopeProvider => true;
+    public override bool IsIdentifiable => false;
 
     private Scope _scope;
 

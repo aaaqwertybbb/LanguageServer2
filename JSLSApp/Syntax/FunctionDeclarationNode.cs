@@ -4,9 +4,8 @@ namespace JSLSApp.Syntax;
 
 public class FunctionDeclarationNode : SyntaxNode
 {
-    public FunctionDeclarationNode(string id_name, int startLine, int startCharacter, int endLine, int endCharacter)
+    public FunctionDeclarationNode(int startLine, int startCharacter, int endLine, int endCharacter)
     {
-        Id_name = id_name;
         Start = new Position(startLine, startCharacter);
         End = new Position(endLine, endCharacter);
 
@@ -18,13 +17,17 @@ public class FunctionDeclarationNode : SyntaxNode
     public override Position Start { get; set; }
     public override Position End { get; set; }
     public override IdKind Id_type => IdKind.Identifier;
-    public override string Id_name { get; }
+    
+    
 
     public override bool IsScopeProvider => true;
+    public override bool IsIdentifiable => true;
 
     private Scope _scope;
+    private int _identifierHash;
 
     public override ref Scope GetScope() => ref _scope;
+    public override ref int GetIdentifierHash() => ref _identifierHash;
 }
 
 /// <summary>

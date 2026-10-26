@@ -7,7 +7,7 @@ namespace JSLSApp;
 
 internal struct ScopeUndoEntry
 {
-    public string Name;
+    public int IdentifierHash;
     public bool ExistedBefore;
     public SyntaxNode PreviousNode; // Null if ExistedBefore is false
 }
@@ -46,7 +46,7 @@ public class JavaScriptParser
     /// TODO: probably just have 1 dictionary active ever as you go for the instant lookups rather than per scope. (i.e.: you'd prob just update this as you move through the scopes and overwrite older scopes with the???
     /// maybe if shadow you move shadow'd to a list of shadow'd nodes or maybe a stack? and then you can resotre the shadow'd node when you out of the scope that did the shadow.
     /// </summary>
-    public Dictionary<string, SyntaxNode> _lexicalScope = null!;
+    public Dictionary<int, SyntaxNode> _lexicalScope = null!;
 
     public string DebugString => $"pos=>{_pos} | (line,char)=>({_indexLine},{_indexChar})\n";
     private List<FunctionDefinitionSyntax> _functionDefinitionStartPositionList = new();
@@ -67,7 +67,25 @@ public class JavaScriptParser
     /// </summary>
     private SyntaxToken _previousPreviousToken;
     private bool _peekTokenExists;
-    
+
+    /// <summary>
+    /// These are not cleared between lex invocations, if you lex an identifier token then a number token you'll still have the hash of the identifier token in here.
+    /// 
+    /// Additionally if you lex a keyword you'll get the keyword's hash in this variable.
+    /// Since you already have to track whether it was your Lex invocation that wrote to this the idea that a keyword writes to it
+    /// feels sensible because blind reading of this is already known to be unreliable.
+    /// </summary>
+    private int _identifierHash;
+    /// <summary>
+    /// These are not cleared between lex invocations, if you lex an identifier token then a number token you'll still have the hash of the identifier token in here.
+    /// 
+    /// Additionally if you lex a keyword you'll get the keyword's hash in this variable.
+    /// Since you already have to track whether it was your Lex invocation that wrote to this the idea that a keyword writes to it
+    /// feels sensible because blind reading of this is already known to be unreliable.
+    /// </summary>
+    private int _peekIdentifierHash;
+
+
     public ref Scope _globalScope => ref _globalNode.GetScope();
 
     /// <summary>
@@ -104,14 +122,15 @@ public class JavaScriptParser
         {
             return _peekToken;
         }
+        _peekTokenExists = true; // This comes first so the Lexer knows to set the _peekIdentifierHash;
         while ((_peekToken = Lex()).SyntaxKind == SyntaxKind.WhitespaceToken);
-        _peekTokenExists = true;
         return _peekToken;
     }
 
     public SyntaxToken ConsumePeekToken()
     {
         _peekTokenExists = false;
+        _identifierHash = _peekIdentifierHash;
         return _peekToken;
     }
 
@@ -143,7 +162,6 @@ public class JavaScriptParser
         OpenScope(_globalNode, new Position(0, 0));
         _lexicalScope = new();
 
-        var stringBuilder = new StringBuilder(capacity: 64);
         _syntaxHighlightByteList = new byte[_doc.Chars.Count];
 
         _doc.HasBeenParsedAtLeastOnce = true;
@@ -164,26 +182,26 @@ public class JavaScriptParser
                 case SyntaxKind.EndOfFileToken:
                     goto exitOuterWhileLoop;
                 case SyntaxKind.FunctionKeywordToken:
-                    ParseFunctionDefinitionNode(stringBuilder, default, false);
+                    ParseFunctionDefinitionNode(default, false);
                     break;
                 case SyntaxKind.ClassKeywordToken:
-                    ParseClassDefinitionNode(stringBuilder);
+                    ParseClassDefinitionNode();
                     break;
                 case SyntaxKind.ConstructorKeywordToken:
-                    ParseConstructorDefinitionNode(stringBuilder, token);
+                    ParseConstructorDefinitionNode(token);
                     break;
                 case SyntaxKind.ImportKeywordToken:
-                    ParseImportNode(stringBuilder);
+                    ParseImportNode();
                     break;
                 case SyntaxKind.IdentifierToken:
                     if (_currentScope.Type == BodyKind.ClassBody &&
                         PeekToken().SyntaxKind == SyntaxKind.OpenParenthesisToken)
                     {
-                        ParseFunctionDefinitionNode(stringBuilder, token, true);
+                        ParseFunctionDefinitionNode(token, true);
                     }
                     else
                     {
-                        ParseAssumedReference(stringBuilder, token);
+                        ParseAssumedReference(token);
                     }
                     // TODO: 'this' keyword.
                     break;
@@ -214,7 +232,7 @@ public class JavaScriptParser
                 case SyntaxKind.LetKeywordToken:
                 case SyntaxKind.ConstKeywordToken:
                 case SyntaxKind.VarKeywordToken:
-                    ParseVariableDeclaration(token, stringBuilder);
+                    ParseVariableDeclaration(token);
                     break;
                 case SyntaxKind.WhitespaceToken:
                     break;
@@ -269,22 +287,22 @@ public class JavaScriptParser
             if (entry.ExistedBefore)
             {
                 // Restore the shadowed variable from the parent scope
-                _lexicalScope[entry.Name] = entry.PreviousNode;
+                _lexicalScope[entry.IdentifierHash] = entry.PreviousNode;
             }
             else
             {
                 // It was a brand new variable local to this scope; remove it entirely
-                _lexicalScope.Remove(entry.Name);
+                _lexicalScope.Remove(entry.IdentifierHash);
             }
         }
     }
 
-    public void DeclareVariable(string name, SyntaxNode node)
+    public void DeclareVariable(int identifierHash, SyntaxNode node)
     {
         // 1. Record the current state before we overwrite/shadow anything
-        var entry = new ScopeUndoEntry { Name = name };
+        var entry = new ScopeUndoEntry { IdentifierHash = identifierHash };
 
-        if (_lexicalScope.TryGetValue(name, out var oldNode))
+        if (_lexicalScope.TryGetValue(identifierHash, out var oldNode))
         {
             entry.ExistedBefore = true;
             entry.PreviousNode = oldNode; // Capture the shadowed node
@@ -301,89 +319,55 @@ public class JavaScriptParser
         }
 
         // 2. Perform the actual declaration/shadowing
-        _lexicalScope[name] = node;
+        _lexicalScope[identifierHash] = node;
 
         _currentScope.CountOfChildrenThatAreDefinitions++;
     }
 
-    private void ParseAssumedReference(StringBuilder stringBuilder, SyntaxToken token)
+    private void ParseAssumedReference(SyntaxToken token)
     {
-        // TODO: Constructing a string here is likely to be extremely GC expensive
-        // TODO: Presuming that the entry was added then just taking the most recent function definition perhaps is a bit hacky; I'm not sure
-        stringBuilder.Clear();
-        for (int k = 0; k < token.Length; k++)
+        var identifierHash = _identifierHash;
+        if (_lexicalScope.TryGetValue(identifierHash, out var definition))
         {
-            stringBuilder.Append(_doc.Chars[(_pos - token.Length) + k]);
-        }
-
-        var identifierText = stringBuilder.ToString();
-
-        var ccc = 2;
-
-        // I'm not lexing every keyword so this has a lot of keywords showing up.
-        // As well yes this probably is gonna be a massive GC spike, but I'm thinking one thing at a time for the moment.
-
-        var scope = _currentScope;
-
-        if (_lexicalScope.TryGetValue(identifierText, out var definition))
-        {
-            var variableReferenceNode = new VariableReferenceNode(identifierText, token.Position.line, token.Position.character, _indexLine, _indexChar, definition.Start.line);
+            var variableReferenceNode = new VariableReferenceNode(token.Position.line, token.Position.character, _indexLine, _indexChar, definition.Start.line);
+            variableReferenceNode.GetIdentifierHash() = identifierHash;
             _currentScope.BodyList.Add(variableReferenceNode);
         }
-
-
-        // in editorGlobal.js
-        // if I hover the first variable I see in the global scope it doesn't work.
-        // etc...
-        //
-        // but then at the end of the file. I can start hovering some within a function and it does work...
     }
 
-    private void ParseVariableDeclaration(SyntaxToken token, StringBuilder stringBuilder)
+    private void ParseVariableDeclaration(SyntaxToken token)
     {
         /*
         TODO: How do you say it... "implicit global variable declaration"? Lacking let,var,const when defining a variable that isn't defined.
         */
-        var aaa = 2;
         var identifierToken = PeekToken();
         if (identifierToken.SyntaxKind == SyntaxKind.IdentifierToken)
         {
             ConsumePeekToken();
-            // TODO: Constructing a string here is likely to be extremely GC expensive
-            // TODO: Presuming that the entry was added then just taking the most recent function definition perhaps is a bit hacky; I'm not sure
-            stringBuilder.Clear();
-            for (int k = 0; k < identifierToken.Length; k++)
-            {
-                stringBuilder.Append(_doc.Chars[(_pos - identifierToken.Length) + k]);
-            }
-
-            var bbb = stringBuilder.ToString();
-            var ccc = 2;
-            var variableDeclarationNode = new VariableDeclarationNode(bbb, identifierToken.Position.line, identifierToken.Position.character, _indexLine, _indexChar);
+            var variableDeclarationNode = new VariableDeclarationNode(identifierToken.Position.line, identifierToken.Position.character, _indexLine, _indexChar);
+            var identifierHash = _identifierHash;
+            variableDeclarationNode.GetIdentifierHash() = identifierHash;
 
             _currentScope.BodyList.Add(variableDeclarationNode);
-            DeclareVariable(variableDeclarationNode.Id_name, variableDeclarationNode);
+            DeclareVariable(identifierHash, variableDeclarationNode);
         }
-
-        // in editorGlobal.js
-        // if I hover the first variable I see in the global scope it doesn't work.
-        // etc...
-        //
-        // but then at the end of the file. I can start hovering some within a function and it does work...
-        
     }
 
-    private void ParseImportNode(StringBuilder stringBuilder)
+    private void ParseImportNode()
     {
         return;
     }
 
-    public void ParseFunctionDefinitionNode(StringBuilder stringBuilder, SyntaxToken identifierToken, bool identifierTokenExists)
+    public void ParseFunctionDefinitionNode(SyntaxToken identifierToken, bool identifierTokenExists)
     {
         // TODO: if (!identifierTokenExists) then you have a 'function' keyword defined function...
         // ...otherwise you have a function defined within a class that doesn't have the 'function' keyword...
         // ...TODO: Why is the function defined within a class logic 1 character off (the ' - 1' whereas the 'function' keyword defined function doesn't need this?
         // TODO: You probably lex'd the braces and parentheses wrong.
+
+        // TODO: idk this is wrong the identifierTokenExists thing ???
+
+        var identifierHash = 0;
 
         if (!identifierTokenExists)
         {
@@ -391,40 +375,28 @@ public class JavaScriptParser
             if (identifierToken.SyntaxKind != SyntaxKind.IdentifierToken)
                 return;
             _ = ConsumePeekToken();
+            identifierHash = _identifierHash;
         }
 
         if (!identifierTokenExists)
         {
-            // TODO: Constructing a string here is likely to be extremely GC expensive
-            // TODO: Presuming that the entry was added then just taking the most recent function definition perhaps is a bit hacky; I'm not sure
-            stringBuilder.Clear();
-            for (int k = 0; k < identifierToken.Length; k++)
-            {
-                stringBuilder.Append(_doc.Chars[(_pos - identifierToken.Length) + k]);
-            }
+            
         }
         else
         {
-            // TODO: Constructing a string here is likely to be extremely GC expensive
-            // TODO: Presuming that the entry was added then just taking the most recent function definition perhaps is a bit hacky; I'm not sure
-            stringBuilder.Clear();
-            for (int k = 0; k < identifierToken.Length; k++)
-            {
-                stringBuilder.Append(_doc.Chars[(_pos - identifierToken.Length - 1) + k]);
-            }
+            identifierHash = _identifierHash;
         }
-        
-        var str = stringBuilder.ToString();
 
-        if (!identifierTokenExists)
-        {
-            _functionDefinitionStartPositionList[^1].Name = str;
-        }
+        //if (!identifierTokenExists)
+        //{
+        //    _functionDefinitionStartPositionList[^1].Name = str;
+        //}
         
-        var functionDeclarationNode = new FunctionDeclarationNode(str, identifierToken.Position.line, identifierToken.Position.character, _indexLine, _indexChar);
+        var functionDeclarationNode = new FunctionDeclarationNode(identifierToken.Position.line, identifierToken.Position.character, _indexLine, _indexChar);
         _currentScope.BodyList.Add(functionDeclarationNode);
 
-        DeclareVariable(functionDeclarationNode.Id_name, functionDeclarationNode);
+        functionDeclarationNode.GetIdentifierHash() = identifierHash;
+        DeclareVariable(identifierHash, functionDeclarationNode);
 
         ParseFunctionArguments();
         ParseFunctionBody(functionDeclarationNode);
@@ -453,26 +425,21 @@ public class JavaScriptParser
     }
 
 
-    public void ParseClassDefinitionNode(StringBuilder stringBuilder)
+    public void ParseClassDefinitionNode()
     {
         var token = PeekToken();
         if (token.SyntaxKind != SyntaxKind.IdentifierToken)
             return;
         _ = ConsumePeekToken();
+        var identifierHash = _identifierHash;
 
         SyntaxHighlightByteList.SetSyntaxHighlighting(_pos - token.Length, token.Length, TrackedSyntaxKind.Type);
 
-        // TODO: Constructing a string here is likely to be extremely GC expensive
-        // TODO: Presuming that the entry was added then just taking the most recent function definition perhaps is a bit hacky; I'm not sure
-        stringBuilder.Clear();
-        for (int k = 0; k < token.Length; k++)
-        {
-            stringBuilder.Append(_doc.Chars[(_pos - token.Length) + k]);
-        }
-        var classDeclarationNode = new ClassDeclarationNode(stringBuilder.ToString(), token.Position.line, token.Position.character, _indexLine, _indexChar);
+        var classDeclarationNode = new ClassDeclarationNode(token.Position.line, token.Position.character, _indexLine, _indexChar);
         _currentScope.BodyList.Add(classDeclarationNode);
 
-        DeclareVariable(classDeclarationNode.Id_name, classDeclarationNode);
+        classDeclarationNode.GetIdentifierHash() = identifierHash;
+        DeclareVariable(identifierHash, classDeclarationNode);
 
         ParseClassBody(classDeclarationNode);
     }
@@ -487,12 +454,12 @@ public class JavaScriptParser
         OpenScope(classDeclarationNode, openBraceToken.Position);
     }
 
-    public void ParseConstructorDefinitionNode(StringBuilder stringBuilder, SyntaxToken constructorToken)
+    public void ParseConstructorDefinitionNode(SyntaxToken constructorToken)
     {
-        var functionDeclarationNode = new FunctionDeclarationNode("constructor", constructorToken.Position.line, constructorToken.Position.character, _indexLine, _indexChar);
+        var functionDeclarationNode = new FunctionDeclarationNode(constructorToken.Position.line, constructorToken.Position.character, _indexLine, _indexChar);
         _currentScope.BodyList.Add(functionDeclarationNode);
 
-        DeclareVariable(functionDeclarationNode.Id_name, functionDeclarationNode);
+        DeclareVariable(functionDeclarationNode.GetIdentifierHash(), functionDeclarationNode);
 
         ParseFunctionArguments();
         ParseFunctionBody(functionDeclarationNode);
@@ -1084,6 +1051,15 @@ public class JavaScriptParser
             {
                 SyntaxHighlightByteList.SetSyntaxHighlighting(_pos - length, length, TrackedSyntaxKind.Keyword);
             }
+        }
+
+        if (_peekTokenExists)
+        {
+            _peekIdentifierHash = charIntSum;
+        }
+        else
+        {
+            _identifierHash = charIntSum;
         }
         return new SyntaxToken(syntaxKind, startPosition, length);
     }

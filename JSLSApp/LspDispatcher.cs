@@ -304,7 +304,7 @@ internal static class LspDispatcher
                         {
                             textDocumentCompletionItem = new TextDocumentCompletionItem
                             {
-                                label = $"(class) {node.Id_name}",
+                                label = $"(class) {node.GetIdentifierHash()}",
                                 kind = (int)CompletionItemKind.Text
                             };
                         }
@@ -312,7 +312,7 @@ internal static class LspDispatcher
                         {
                             textDocumentCompletionItem = new TextDocumentCompletionItem
                             {
-                                label = $"{node.Id_name}(?)...",
+                                label = $"{node.GetIdentifierHash()}(?)...",
                                 kind = (int)CompletionItemKind.Text
                             };
                         }
@@ -320,7 +320,7 @@ internal static class LspDispatcher
                         {
                             textDocumentCompletionItem = new TextDocumentCompletionItem
                             {
-                                label = $"(id) {node.Id_name}",
+                                label = $"(id) {node.GetIdentifierHash()}",
                                 kind = (int)CompletionItemKind.Text
                             };
                         }
@@ -404,7 +404,7 @@ internal static class LspDispatcher
         string nodeString;
         if (result_node is not null)
         {
-            nodeString = $"{result_node.SyntaxKind}~{result_node.Id_name}";
+            nodeString = $"{result_node.SyntaxKind}~{result_node.GetIdentifierHash()}";
         }
         else
         {

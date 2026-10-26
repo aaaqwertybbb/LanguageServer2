@@ -18,56 +18,24 @@ public abstract class SyntaxNode
     /// But maybe this is all a shared list or etc... I have no idea.
     /// </summary>
     public abstract IdKind Id_type { get; }
-    public abstract string Id_name { get; }
     /// <summary>
     /// <see cref="GetScope"/>
     /// </summary>
     public abstract bool IsScopeProvider { get; }
-
-    /*
-    < {
-<   "type": "ClassDeclaration",
-<   "id": { "type": "Identifier", "name": "Foo" },
-<   "body": {
-<     "type": "ClassBody",
-<     "body": [
-<       {
-<         "type": "UnregisteredNode",
-<         "tokens": ['Bar', '(', ')', '{', 'console', '.', 'log', ...],
-<         "start": { "line": 2, "column": 1 },
-<         "end": { "line": 4, "column": 2 }
-<       }
-<     ]
-<   }
-< }*/
+    /// <summary>
+    /// <see cref="GetIdentifierHash"/>
+    /// </summary>
+    public abstract bool IsIdentifiable { get; }
 
     /// <summary>
     /// If <see cref="IsScopeProvider"/> is false, this will throw an exception.
     /// </summary>
     public virtual ref Scope GetScope() => throw new InvalidOperationException("Not a scope provider");
-
-    public virtual void AppendString(StringBuilder sb, ref int indentationCount, ref string indentationString)
-    {
-        /*
-         * anxiety/procrastination: I need to just start doing something I REALLY do NOT like how this reads it is just terrible lol
-         */
-
-        sb.Append(indentationString); sb.Append("{\n");
-        indentationCount++;
-        indentationString = new string(' ', indentationCount);
-
-        sb.Append(indentationString); sb.Append("\"type\": "); sb.Append($"{SyntaxKind},\n");
-        sb.Append(indentationString); sb.Append("\"id\": { "); sb.Append("\"type\": "); sb.Append($"\"{Id_type}\", "); sb.Append("\"name\": "); sb.Append($"\"{Id_name}\" }},\n");
-        
-        
-        sb.Append(indentationString); sb.Append("\"start\": { "); sb.Append("\"line\": "); sb.Append($"{Start.line}, "); sb.Append("\"column\": "); sb.Append($"{Start.character} }},\n");
-        sb.Append(indentationString); sb.Append("\"end\": { "); sb.Append("\"line\": "); sb.Append($"{End.line}, "); sb.Append("\"column\": "); sb.Append($"{End.character} }},\n");
-
-
-        indentationCount--;
-        indentationString = new string(' ', indentationCount);
-        sb.Append(indentationString); sb.Append("},\n");
-    }
+    
+    /// <summary>
+    /// If <see cref="IsScopeProvider"/> is false, this will throw an exception.
+    /// </summary>
+    public virtual ref int GetIdentifierHash() => throw new InvalidOperationException("Not identifiable");
 }
 
 /// <summary>

@@ -5,7 +5,7 @@ namespace JSLSApp;
 
 public class JavaScriptCompilationUnit
 {
-    public JavaScriptCompilationUnit(List<FunctionDefinitionSyntax> functionDefinitionStartPositionList, GlobalNode globalNode, Dictionary<string, SyntaxNode> lexicalScope)
+    public JavaScriptCompilationUnit(List<FunctionDefinitionSyntax> functionDefinitionStartPositionList, GlobalNode globalNode, Dictionary<int, SyntaxNode> lexicalScope)
     {
         FunctionDefinitionStartPositionList = functionDefinitionStartPositionList;
         GlobalNode = globalNode;
@@ -26,39 +26,5 @@ public class JavaScriptCompilationUnit
     /// TODO: probably just have 1 dictionary active ever as you go for the instant lookups rather than per scope. (i.e.: you'd prob just update this as you move through the scopes and overwrite older scopes with the???
     /// maybe if shadow you move shadow'd to a list of shadow'd nodes or maybe a stack? and then you can resotre the shadow'd node when you out of the scope that did the shadow.
     /// </summary>
-    public Dictionary<string, SyntaxNode> LexicalScope { get; set; }
-
-    public string GetString()
-    {
-        // to string makes me anxious and there's too many decisions to be made right now
-
-        // json serialization...?
-
-        var sb = new StringBuilder();
-        var indentationCount = 0;
-        var indentationString = new string(' ', 0);
-
-        sb.Append(indentationString); sb.Append("{\n");
-        indentationCount++;
-        indentationString = new string(' ', indentationCount);
-
-        sb.Append(indentationString); sb.Append("\"type\": "); sb.Append("\"Program\",\n");
-        sb.Append(indentationString); sb.Append("\"body\": "); sb.Append("[\n");
-        indentationCount++;
-        indentationString = new string(' ', indentationCount);
-        ref var scope = ref GlobalNode.GetScope();
-        foreach (var node in scope.BodyList)
-        {
-            node.AppendString(sb, ref indentationCount, ref indentationString);
-        }
-        indentationCount--;
-        indentationString = new string(' ', indentationCount);
-        sb.Append(indentationString); sb.Append("],\n");
-
-        indentationCount--;
-        indentationString = new string(' ', indentationCount);
-        sb.Append(indentationString); sb.Append("}");
-
-        return sb.ToString();
-    }
+    public Dictionary<int, SyntaxNode> LexicalScope { get; set; }
 }
