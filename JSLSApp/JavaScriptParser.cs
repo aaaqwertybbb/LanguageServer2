@@ -112,7 +112,7 @@ public class JavaScriptParser
             return _peekToken;
         }
         _peekTokenExists = true; // This comes first so the Lexer knows to set the _peekIdentifierHash;
-        while ((_peekToken = Lex()).SyntaxKind == SyntaxKind.WhitespaceToken);
+        while ((_peekToken = Lex()).SyntaxKind == SyntaxKind.WhitespaceToken || _peekToken.SyntaxKind == SyntaxKind.MultiLineCommentToken || _peekToken.SyntaxKind == SyntaxKind.SingleLineCommentToken);
         return _peekToken;
     }
 
@@ -127,7 +127,7 @@ public class JavaScriptParser
     {
         _peekTokenExists = false;
         // Using _peekToken for temporary storage, the boolean '_peekTokenExists' is still false.
-        while ((_peekToken = Lex()).SyntaxKind == SyntaxKind.WhitespaceToken);
+        while ((_peekToken = Lex()).SyntaxKind == SyntaxKind.WhitespaceToken || _peekToken.SyntaxKind == SyntaxKind.MultiLineCommentToken || _peekToken.SyntaxKind == SyntaxKind.SingleLineCommentToken) ;
         return _peekToken;
     }
 
