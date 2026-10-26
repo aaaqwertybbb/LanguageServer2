@@ -99,6 +99,8 @@ public class JavaScriptParser
     public SyntaxNode _currentScopeProvider = null!;
     public ref Scope _currentScope => ref _currentScopeProvider.GetScope();
 
+    public List<VariableDeclarationNode> _pendingVariableDeclarationNodeList = new();
+
     public JavaScriptParser(JavaScriptDocument doc, JavaScriptWorkspace javaScriptWorkspace)
     {
         _doc = doc;
@@ -461,6 +463,8 @@ public class JavaScriptParser
 
         ParseFunctionArguments();
         ParseFunctionBody(functionDeclarationNode);
+
+        _pendingVariableDeclarationNodeList.Clear();
     }
 
     public void ParseFunctionArguments()
@@ -470,9 +474,36 @@ public class JavaScriptParser
             return;
         _ = ConsumePeekToken();
         // ----
-        token = Defensive_SkipUntil_LexFor_OrEof(SyntaxKind.CloseParenthesisToken);
-        if (token.SyntaxKind != SyntaxKind.CloseParenthesisToken)
+
+        while (true)
+        {
+            var peekToken = PeekToken();
+            switch (peekToken.SyntaxKind)
+            {
+                case SyntaxKind.IdentifierToken:
+                    var identifierToken = ConsumePeekToken();
+                    var variableDeclarationNode = new VariableDeclarationNode(identifierToken.Position.line, identifierToken.Position.character, _indexLine, _indexChar);
+                    var identifierHash = _identifierHash;
+                    variableDeclarationNode.GetIdentifierHash() = identifierHash;
+                    _pendingVariableDeclarationNodeList.Add(variableDeclarationNode);
+                    break;
+                default:
+                    goto exitWhileLoop;
+            }
+        }
+
+        exitWhileLoop:
+
+        while ((token = PeekToken()).SyntaxKind != SyntaxKind.CloseParenthesisToken)
+        {
+            if (token.SyntaxKind == SyntaxKind.EndOfFileToken)
+                break;
+        }
+        if (token.SyntaxKind == SyntaxKind.CloseParenthesisToken)
+        {
+            ConsumePeekToken();
             return;
+        }
     }
 
     public void ParseFunctionBody(FunctionDeclarationNode functionDeclarationNode)
@@ -483,6 +514,11 @@ public class JavaScriptParser
         _ = ConsumePeekToken();
         var openBraceToken = token;
         OpenScope(functionDeclarationNode, openBraceToken.Position);
+        foreach (var variableDeclarationNode in _pendingVariableDeclarationNodeList)
+        {
+            _currentScope.BodyList.Add(variableDeclarationNode);
+            DeclareVariable(variableDeclarationNode.GetIdentifierHash(), variableDeclarationNode);
+        }
     }
 
 
