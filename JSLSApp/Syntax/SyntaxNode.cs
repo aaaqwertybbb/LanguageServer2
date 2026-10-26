@@ -37,6 +37,7 @@ public abstract class SyntaxNode
 
     /// <summary>
     /// TODO: hash collisions amongst identifiers (not a keyword)?
+    /// TODO: hash collisions by storing a special node that contains a list for the collisions and then you know it was a collision because you read the syntax kind? but then how do you determine the initial collision?
     /// 
     /// If <see cref="IsScopeProvider"/> is false, this will throw an exception.
     /// </summary>
