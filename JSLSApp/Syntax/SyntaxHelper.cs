@@ -15,6 +15,11 @@ internal static class SyntaxHelper
 
         foreach (var child_node in scope.BodyList)
         {
+            if (!child_node.IsScopeProvider)
+            {
+                continue;
+            }
+
             ref var childScope = ref child_node.GetScope();
 
             if (childScope.Type == BodyKind.EXTERNAL_FunctionBody ||
