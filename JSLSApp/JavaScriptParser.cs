@@ -494,15 +494,14 @@ public class JavaScriptParser
 
         exitWhileLoop:
 
-        while ((token = PeekToken()).SyntaxKind != SyntaxKind.CloseParenthesisToken)
+        if (_peekToken.SyntaxKind != SyntaxKind.CloseParenthesisToken)
         {
-            if (token.SyntaxKind == SyntaxKind.EndOfFileToken)
-                break;
+            Defensive_SkipUntil_LexFor_OrEof(SyntaxKind.CloseParenthesisToken);
         }
-        if (token.SyntaxKind == SyntaxKind.CloseParenthesisToken)
+
+        if (_peekToken.SyntaxKind == SyntaxKind.CloseParenthesisToken)
         {
             ConsumePeekToken();
-            return;
         }
     }
 
