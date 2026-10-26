@@ -1,8 +1,14 @@
-﻿// In terminal I can run:
+﻿/*
+// In terminal I can run:
 // dotnet "C:\Users\hunte\Repos\New folder (7)\LanguageServer2\JavaScriptTranspiler\bin\Release\net10.0\publish\JavaScriptTranspiler.dll"
 
 
 // Ensure an argument was actually passed to avoid an IndexOutOfRangeException
+using JSLSApp;
+using System.Reflection.Metadata;
+using System.Runtime.InteropServices;
+using static System.Net.Mime.MediaTypeNames;
+
 if (args.Length != 2)
 {
     Console.WriteLine($"2 command line arguments are expected (first is the path to the JS source code, second is the path to where the transpiled output goes) (of the 2 required there were '{args.Length}' arguments provided).");
@@ -26,21 +32,21 @@ if (!Path.Exists(outputFolderPath))
 
 // 1. Define your hardcoded array of files (adjust filenames to match your exact project structure)
 string[] prioritizedFilenames = [
-    "fieldBuffer.js",
-    "header_editorGlobal_header.js",
+    //"fieldBuffer.js",
+    //"header_editorGlobal_header.js",
     "widgetGlobal.js",
-    "menuGlobal.js",
-    "dialogGlobal.js",
-    "trackedSyntaxTypes.js",
-    "treeViewComponent.js",
-    "dialogImplementationsGlobal.js",
-    "listComponent.js",
-    "listTypes.js",
-    "editorMaxHeap.js",
-    "editorGlobal.js",
-    "javascriptFeatures.js",
-    "explorerGlobal.js",
-    "applicationRendererRoot.js"
+    //"menuGlobal.js",
+    //"dialogGlobal.js",
+    //"trackedSyntaxTypes.js",
+    //"treeViewComponent.js",
+    //"dialogImplementationsGlobal.js",
+    //"listComponent.js",
+    //"listTypes.js",
+    //"editorMaxHeap.js",
+    //"editorGlobal.js",
+    //"javascriptFeatures.js",
+    //"explorerGlobal.js",
+    //"applicationRendererRoot.js"
 ];
 
 
@@ -60,43 +66,50 @@ try
     var processedFiles = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
 
     // 3. Build the final ordered execution queue
-    var executionQueue = new List<FileInfo>();
+    var executionQueue = new List<JavaScriptDocument>();
+
+    using var outputStream = new FileStream(combinedOutputPath, FileMode.Create, FileAccess.Write);
+    using var writer = new StreamWriter(outputStream);
 
     // Step A: Enqueue the prioritized files in their exact array order
     foreach (var name in prioritizedFilenames)
     {
         if (allJsFiles.TryGetValue(name, out var file))
         {
-            executionQueue.Add(file);
-            processedFiles.Add(name);
+            Console.WriteLine($"Appending: {name}");
+
+            writer.WriteLine();
+            writer.WriteLine($"// File: {name}");
+            writer.WriteLine();
+
+            var javascriptFormatter = new JavaScriptFormatter(File.ReadAllText(file.FullName).AsSpan(), outputStream, writer);
+            javascriptFormatter.Parse();
+
+            writer.Flush(); // Flush out headers to sync text and byte streams
+
+            //using var inputStream = new FileStream(file.FullName, FileMode.Open, FileAccess.Read);
+            //inputStream.CopyTo(outputStream);
         }
     }
 
     // Step B: Enqueue all remaining files, sorted alphabetically by filename
-    var remainingSortedFiles = allJsFiles.Keys
-        .Where(name => !processedFiles.Contains(name))
-        .OrderBy(name => name, StringComparer.OrdinalIgnoreCase);
+    //var remainingSortedFiles = allJsFiles.Keys
+    //    .Where(name => !processedFiles.Contains(name))
+    //    .OrderBy(name => name, StringComparer.OrdinalIgnoreCase);
+    //
+    //foreach (var name in remainingSortedFiles)
+    //{
+    //    executionQueue.Add(allJsFiles[name]);
+    //}
 
-    foreach (var name in remainingSortedFiles)
-    {
-        executionQueue.Add(allJsFiles[name]);
-    }
+    
+
+    
 
     // 4. Stream and concatenate the files sequentially
-    using var outputStream = new FileStream(combinedOutputPath, FileMode.Create, FileAccess.Write);
-    using var writer = new StreamWriter(outputStream);
-
-    foreach (var file in executionQueue)
+    foreach (var document in executionQueue)
     {
-        Console.WriteLine($"Appending: {file.Name}");
-
-        writer.WriteLine();
-        writer.WriteLine($"// File: {file.Name}");
-        writer.WriteLine();
-        writer.Flush(); // Flush out headers to sync text and byte streams
-
-        using var inputStream = new FileStream(file.FullName, FileMode.Open, FileAccess.Read);
-        inputStream.CopyTo(outputStream);
+        
     }
 
     Console.WriteLine($"Successfully concatenated all files into: {combinedOutputPath}");
@@ -109,3 +122,4 @@ catch (Exception ex)
 
 
 
+*/
