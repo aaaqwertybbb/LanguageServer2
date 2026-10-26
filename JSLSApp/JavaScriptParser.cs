@@ -487,6 +487,9 @@ public class JavaScriptParser
                     variableDeclarationNode.GetIdentifierHash() = identifierHash;
                     _pendingVariableDeclarationNodeList.Add(variableDeclarationNode);
                     break;
+                case SyntaxKind.CommaToken:
+                    _ = ConsumePeekToken();
+                    break;
                 default:
                     goto exitWhileLoop;
             }
@@ -683,6 +686,13 @@ public class JavaScriptParser
                         var startPosition = new Position(_indexLine, _indexChar);
                         _indexChar++;
                         return new SyntaxToken(SyntaxKind.CloseBraceToken, startPosition, 1);
+                    }
+                case ',':
+                    {
+                        _pos++;
+                        var startPosition = new Position(_indexLine, _indexChar);
+                        _indexChar++;
+                        return new SyntaxToken(SyntaxKind.CommaToken, startPosition, 1);
                     }
                 default:
                     break;

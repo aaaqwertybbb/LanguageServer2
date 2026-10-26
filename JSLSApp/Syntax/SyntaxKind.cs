@@ -52,4 +52,5 @@ public enum SyntaxKind
     IfStatementNode,
     ForStatementNode,
     BlockNode,
+    CommaToken,
 }
