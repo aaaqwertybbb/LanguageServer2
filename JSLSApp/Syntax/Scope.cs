@@ -2,24 +2,17 @@
 
 namespace JSLSApp.Syntax;
 
-public class Scope
+public struct Scope
 {
-    public Scope(Scope? parent, BodyKind bodyKind, ref int _unknownOpenBracesThatNeedMatched)
-    {
-        _unknownOpenBracesThatNeedMatched = 0;
-        Parent = parent;
-        Type = bodyKind;
-    }
-
     public BodyKind Type { get; set; }
-    public List<SyntaxNode> BodyList { get; } = new();
+    public List<SyntaxNode> BodyList { get; set; }
     public Position Start { get; private set; }
     public Position End { get; private set; }
     public bool IsStarted { get; set; }
     public bool IsEnded { get; set; }
     public int CountOfChildrenThatAreDefinitions { get; set; }
 
-    public Scope? Parent { get; set; }
+    public SyntaxNode? ParentScopeProvider { get; set; }
 
     public void SetStart(Position start)
     {

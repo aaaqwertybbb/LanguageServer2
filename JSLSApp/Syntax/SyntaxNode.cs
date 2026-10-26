@@ -1,6 +1,4 @@
 ﻿using JSLSApp.LspTypes;
-using System;
-using System.Collections.Generic;
 using System.Text;
 
 namespace JSLSApp.Syntax;
@@ -21,7 +19,10 @@ public abstract class SyntaxNode
     /// </summary>
     public abstract IdKind Id_type { get; }
     public abstract string Id_name { get; }
-    public Scope? Scope { get; set; }
+    /// <summary>
+    /// <see cref="GetScope"/>
+    /// </summary>
+    public abstract bool IsScopeProvider { get; }
 
     /*
     < {
@@ -39,6 +40,11 @@ public abstract class SyntaxNode
 <     ]
 <   }
 < }*/
+
+    /// <summary>
+    /// If <see cref="IsScopeProvider"/> is false, this will throw an exception.
+    /// </summary>
+    public virtual ref Scope GetScope() => throw new InvalidOperationException("Not a scope provider");
 
     public virtual void AppendString(StringBuilder sb, ref int indentationCount, ref string indentationString)
     {

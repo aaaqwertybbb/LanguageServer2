@@ -1,4 +1,6 @@
-﻿namespace JSLSApp;
+﻿using JSLSApp.Syntax;
+
+namespace JSLSApp;
 
 public class JavaScriptDocument
 {
@@ -8,7 +10,7 @@ public class JavaScriptDocument
         Chars = chars;
         // This is just a hack for now otherwise if statements and other not handled scopes would close the scope of the parent.
         int _unknownOpenBracesThatNeedMatched = 0;
-        CompilationUnit = new JavaScriptCompilationUnit(new(), new(null, Syntax.BodyKind.GlobalBody, ref _unknownOpenBracesThatNeedMatched), new());
+        CompilationUnit = new JavaScriptCompilationUnit(new(), new GlobalNode(), new());
     }
 
     public string UriPath { get; }

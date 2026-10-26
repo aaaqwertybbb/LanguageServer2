@@ -67,16 +67,19 @@ public class JavaScriptParser
     /// </summary>
     private SyntaxToken _previousPreviousToken;
     private bool _peekTokenExists;
+    
+    public ref Scope _globalScope => ref _globalNode.GetScope();
 
     /// <summary>
     /// null! => the parse function is immediately constructed.
     /// </summary>
-    private Scope _globalScope = null!;
+    private GlobalNode _globalNode = null!;
 
     /// <summary>
     /// null! => the parse function is immediately constructed.
     /// </summary>
-    public Scope _currentScope = null!;
+    public SyntaxNode _currentScopeProvider = null!;
+    public ref Scope _currentScope => ref _currentScopeProvider.GetScope();
 
     /// <summary>
     /// Resets the count when a new known scope is open,
@@ -86,6 +89,8 @@ public class JavaScriptParser
     /// As well, having to remember to reset this when you open a scope is very unfortunate...
     /// </summary>
     private int _unknownOpenBracesThatNeedMatched;
+
+    //private Stack<int> _unknownOpenBracesThatNeedMatchedStack = new Stack<int>();
 
     public JavaScriptParser(JavaScriptDocument doc, JavaScriptWorkspace javaScriptWorkspace)
     {
@@ -134,8 +139,8 @@ public class JavaScriptParser
     {
         Program._activeParser = this;
 
-        _globalScope = new(parent: null, BodyKind.GlobalBody, ref _unknownOpenBracesThatNeedMatched);
-        OpenScope(_globalScope);
+        _globalNode = new GlobalNode();
+        OpenScope(_globalNode, new Position(0, 0));
         _lexicalScope = new();
 
         var stringBuilder = new StringBuilder(capacity: 64);
@@ -198,7 +203,7 @@ public class JavaScriptParser
                     {
                         _unknownOpenBracesThatNeedMatched--;
                     }
-                    else if (_currentScope.AttemptEndScope(token.Position, token.SyntaxKind) && _currentScope.Parent is not null)
+                    else if (_currentScope.AttemptEndScope(token.Position, token.SyntaxKind) && _currentScope.ParentScopeProvider is not null)
                     {
                         CloseScope();
                     }
@@ -220,18 +225,26 @@ public class JavaScriptParser
 
         exitOuterWhileLoop:
         Program._activeParser = null;
-        return new JavaScriptCompilationUnit(_functionDefinitionStartPositionList, _globalScope, _lexicalScope);
+        return new JavaScriptCompilationUnit(_functionDefinitionStartPositionList, _globalNode, _lexicalScope);
     }
 
-    private void OpenScope(Scope scope)
+    private void OpenScope(SyntaxNode scopeProviderNode, Position position)
     {
-        _currentScope = scope;
+        ref var scope = ref scopeProviderNode.GetScope();
+        scope.SetStart(position);
+        scope.ParentScopeProvider = _currentScopeProvider;
+        scope.BodyList = new();
+        _currentScopeProvider = scopeProviderNode;
+
+        //_unknownOpenBracesThatNeedMatchedStack.Push(_unknownOpenBracesThatNeedMatched);
+        _unknownOpenBracesThatNeedMatched = 0;
+
         // Push a new bucket to track changes for this specific scope level
         // TODO: This new list per scope isn't as bad as the dictionary was most importantly because the list is only a temporary object that isn't tied to the scope reference...
         // ...but I would still probably want to get rid of this allocation long term...
         // ...(i.e.: they both had an allocation but this new list won't clog up GC for the entire length of the Scope object's existence)...
         // ...and I intend to keep the scope objects around so this is good.
-        if (_currentScope != _globalScope)
+        if (scopeProviderNode != _globalNode)
         {
             _undoStack.Push(new List<ScopeUndoEntry>());
         }
@@ -241,9 +254,9 @@ public class JavaScriptParser
     {
         if (_undoStack.Count == 0) return; // GlobalScope doesn't make a ScopeUndoEntry
 
-        if (_currentScope.Parent is not null) // GlobalScope has a null Parent
+        if (_currentScope.ParentScopeProvider is not null) // GlobalScope has a null Parent
         {
-            _currentScope = _currentScope.Parent;
+            _currentScopeProvider = _currentScope.ParentScopeProvider;
         }
 
         // Pop the undo log for the scope we are leaving
@@ -436,10 +449,7 @@ public class JavaScriptParser
             return;
         _ = ConsumePeekToken();
         var openBraceToken = token;
-
-        functionDeclarationNode.Scope = new Scope(_currentScope, BodyKind.FunctionBody, ref _unknownOpenBracesThatNeedMatched);
-        functionDeclarationNode.Scope.SetStart(openBraceToken.Position);
-        OpenScope(functionDeclarationNode.Scope);
+        OpenScope(functionDeclarationNode, openBraceToken.Position);
     }
 
 
@@ -474,10 +484,7 @@ public class JavaScriptParser
             return;
         _ = ConsumePeekToken();
         var openBraceToken = token;
-
-        classDeclarationNode.Scope = new Scope(_currentScope, BodyKind.ClassBody, ref _unknownOpenBracesThatNeedMatched);
-        classDeclarationNode.Scope.SetStart(openBraceToken.Position);
-        OpenScope(classDeclarationNode.Scope);
+        OpenScope(classDeclarationNode, openBraceToken.Position);
     }
 
     public void ParseConstructorDefinitionNode(StringBuilder stringBuilder, SyntaxToken constructorToken)

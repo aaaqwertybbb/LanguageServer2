@@ -181,7 +181,7 @@ internal static class LspDispatcher
 
         var totalChecks = 0;
 
-        result_node = SyntaxHelper.RecursiveSearch(javaScriptDocument.CompilationUnit.GlobalScope, definitionRequest.@params.position.line, ref totalChecks);
+        result_node = SyntaxHelper.RecursiveSearch(javaScriptDocument.CompilationUnit.GlobalNode, definitionRequest.@params.position.line, ref totalChecks);
 
         if (result_node is not null && result_node.SyntaxKind == SyntaxKind.VariableReferenceNode)
         {
@@ -243,7 +243,7 @@ internal static class LspDispatcher
         // Caching: If the result of "Step A" is the same node as the previous invocation, just re-use that list of menu options again.
 
         // Step A: Get the closest node to the cursor position that has a scope.
-        result_node = SyntaxHelper.RecursiveSearch_BodyOnly(javaScriptDocument.CompilationUnit.GlobalScope, completionRequest.@params.position.line, ref totalChecks, ref definitionNodeCount);
+        result_node = SyntaxHelper.RecursiveSearch_BodyOnly(javaScriptDocument.CompilationUnit.GlobalNode, completionRequest.@params.position.line, ref totalChecks, ref definitionNodeCount);
         result_node ??= javaScriptDocument.CompilationUnit.GlobalNode;
         // TODO: ^ this is bad, node and scope is murky here it feels awkard todo fix it (cuz of the GlobalNode stuff)
 
@@ -289,7 +289,7 @@ internal static class LspDispatcher
 
             int totalTaken = 0;
 
-            var targetScope = result_node.Scope;
+            ref var targetScope = ref result_node.GetScope();
 
             for (; totalTaken < nodeCountMaxAmountToTake;)
             {
@@ -333,9 +333,9 @@ internal static class LspDispatcher
                     }
                 }
 
-                if (totalTaken < nodeCountMaxAmountToTake && targetScope.Parent is not null)
+                if (totalTaken < nodeCountMaxAmountToTake && targetScope.ParentScopeProvider is not null)
                 {
-                    targetScope = targetScope.Parent;
+                    targetScope = ref targetScope.ParentScopeProvider.GetScope();
                 }
                 else
                 {
@@ -399,7 +399,7 @@ internal static class LspDispatcher
 
         var totalChecks = 0;
 
-        result_node = SyntaxHelper.RecursiveSearch(javaScriptDocument.CompilationUnit.GlobalScope, hoverRequest.@params.position.line, ref totalChecks);
+        result_node = SyntaxHelper.RecursiveSearch(javaScriptDocument.CompilationUnit.GlobalNode, hoverRequest.@params.position.line, ref totalChecks);
 
         string nodeString;
         if (result_node is not null)

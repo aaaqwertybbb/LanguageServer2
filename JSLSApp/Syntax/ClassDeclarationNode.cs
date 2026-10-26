@@ -9,6 +9,8 @@ public class ClassDeclarationNode : SyntaxNode
         Id_name = id_name;
         Start = new Position(startLine, startCharacter);
         End = new Position(endLine, endCharacter);
+
+        _scope.Type = BodyKind.ClassBody;
     }
 
     public override SyntaxKind SyntaxKind => SyntaxKind.ClassDeclarationNode;
@@ -17,6 +19,12 @@ public class ClassDeclarationNode : SyntaxNode
     public override Position End { get; set; }
     public override IdKind Id_type => IdKind.Identifier;
     public override string Id_name { get; }
+
+    public override bool IsScopeProvider => true;
+
+    private Scope _scope;
+
+    public override ref Scope GetScope() => ref _scope;
 }
 
 /// <summary>

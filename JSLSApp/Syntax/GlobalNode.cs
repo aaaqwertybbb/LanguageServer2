@@ -12,9 +12,9 @@ namespace JSLSApp.Syntax;
 public class GlobalNode : SyntaxNode
 {
     //public static readonly GlobalNode GLOBAL_NODE = new GlobalNode();
-    public GlobalNode(Scope scope)
+    public GlobalNode()
     {
-        Scope = scope;
+        _scope.Type = BodyKind.GlobalBody;
     }
 
     public override SyntaxKind SyntaxKind => SyntaxKind.GlobalNode;
@@ -25,6 +25,12 @@ public class GlobalNode : SyntaxNode
     public override IdKind Id_type => IdKind.Identifier;
 
     public override string Id_name => nameof(GlobalNode);
+
+    public override bool IsScopeProvider => true;
+
+    private Scope _scope;
+
+    public override ref Scope GetScope() => ref _scope;
 }
 
 /// <summary>

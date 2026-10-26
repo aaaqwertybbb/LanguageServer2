@@ -17,6 +17,8 @@ public class VariableDeclarationNode : SyntaxNode
     public override Position End { get; set; }
     public override IdKind Id_type => IdKind.Identifier;
     public override string Id_name { get; }
+
+    public override bool IsScopeProvider => false;
 }
 
 /// <summary>

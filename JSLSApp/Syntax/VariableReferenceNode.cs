@@ -19,6 +19,8 @@ public class VariableReferenceNode : SyntaxNode
     public override IdKind Id_type => IdKind.Identifier;
     public override string Id_name { get; }
     public int DefinitionLine { get; set; }
+
+    public override bool IsScopeProvider => false;
 }
 
 /// <summary>
