@@ -65,6 +65,13 @@ public struct Scope
                         return true;
                     }
                     break;
+                case BodyKind.ForStatementBody:
+                    if (syntaxKind == SyntaxKind.CloseBraceToken)
+                    {
+                        SetEnd(position);
+                        return true;
+                    }
+                    break;
             }
             
         }

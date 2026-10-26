@@ -8,6 +8,7 @@ public enum BodyKind
     IfStatementBody,
 
     EXTERNAL_FunctionBody,
+    ForStatementBody,
 }
 
 /// <summary>

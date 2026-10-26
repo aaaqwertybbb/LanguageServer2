@@ -243,6 +243,9 @@ public class JavaScriptParser
                     // 'else' hit this
                     ParseElseStatement();
                     break;
+                case SyntaxKind.ForKeywordToken:
+                    ParseForStatement();
+                    break;
                 case SyntaxKind.OpenBraceToken:
                     _unknownOpenBracesThatNeedMatched++;
                     break;
@@ -408,6 +411,29 @@ public class JavaScriptParser
         var ifStatementNode = new IfStatementNode(token.Position.line, token.Position.character, _indexLine, _indexChar);
         _currentScope.BodyList.Add(ifStatementNode);
         OpenScope(ifStatementNode, openBraceToken.Position);
+    }
+
+    public void ParseForStatement()
+    {
+        var token = PeekToken();
+        if (token.SyntaxKind != SyntaxKind.OpenParenthesisToken)
+            return;
+        _ = ConsumePeekToken();
+        // ----
+        token = Defensive_SkipUntil_LexFor_OrEof(SyntaxKind.CloseParenthesisToken);
+        if (token.SyntaxKind != SyntaxKind.CloseParenthesisToken)
+            return;
+
+
+
+        token = PeekToken();
+        if (token.SyntaxKind != SyntaxKind.OpenBraceToken)
+            return;
+        _ = ConsumePeekToken();
+        var openBraceToken = token;
+        var forStatementNode = new ForStatementNode(token.Position.line, token.Position.character, _indexLine, _indexChar);
+        _currentScope.BodyList.Add(forStatementNode);
+        OpenScope(forStatementNode, openBraceToken.Position);
     }
 
     public void ParseFunctionDefinitionNode(SyntaxToken identifierToken, bool identifierTokenExists)

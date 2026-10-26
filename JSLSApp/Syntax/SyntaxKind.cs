@@ -50,4 +50,5 @@ public enum SyntaxKind
     FalseKeywordToken,
     NullKeywordToken,
     IfStatementNode,
+    ForStatementNode,
 }
