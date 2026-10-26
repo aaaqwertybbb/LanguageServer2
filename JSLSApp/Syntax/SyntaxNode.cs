@@ -3,6 +3,9 @@ using System.Text;
 
 namespace JSLSApp.Syntax;
 
+/// <summary>
+/// TODO: Relative positions so you can modify the tree without "updating every position"?
+/// </summary>
 public abstract class SyntaxNode
 {
     public abstract SyntaxKind SyntaxKind { get; }
