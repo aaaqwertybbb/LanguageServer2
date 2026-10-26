@@ -9,7 +9,6 @@ public class JavaScriptDocument
         UriPath = uriPath;
         Chars = chars;
         // This is just a hack for now otherwise if statements and other not handled scopes would close the scope of the parent.
-        int _unknownOpenBracesThatNeedMatched = 0;
         CompilationUnit = new JavaScriptCompilationUnit(new(), new GlobalNode(), new());
     }
 

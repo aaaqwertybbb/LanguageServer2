@@ -99,17 +99,6 @@ public class JavaScriptParser
     public SyntaxNode _currentScopeProvider = null!;
     public ref Scope _currentScope => ref _currentScopeProvider.GetScope();
 
-    /// <summary>
-    /// Resets the count when a new known scope is open,
-    /// i.e.: this still doesn't fully solve the problem but it could delay corrupt state
-    /// when the file is 100% correct maybe?
-    /// 
-    /// As well, having to remember to reset this when you open a scope is very unfortunate...
-    /// </summary>
-    private int _unknownOpenBracesThatNeedMatched;
-
-    //private Stack<int> _unknownOpenBracesThatNeedMatchedStack = new Stack<int>();
-
     public JavaScriptParser(JavaScriptDocument doc, JavaScriptWorkspace javaScriptWorkspace)
     {
         _doc = doc;
@@ -219,11 +208,7 @@ public class JavaScriptParser
                     }
                     break;
                 case SyntaxKind.CloseBraceToken:
-                    if (_unknownOpenBracesThatNeedMatched > 0)
-                    {
-                        _unknownOpenBracesThatNeedMatched--;
-                    }
-                    else if (_currentScope.AttemptEndScope(token.Position, token.SyntaxKind) && _currentScope.ParentScopeProvider is not null)
+                    if (_currentScope.AttemptEndScope(token.Position, token.SyntaxKind) && _currentScope.ParentScopeProvider is not null)
                     {
                         CloseScope();
                     }
@@ -273,9 +258,6 @@ public class JavaScriptParser
         scope.ParentScopeProvider = _currentScopeProvider;
         scope.BodyList = new();
         _currentScopeProvider = scopeProviderNode;
-
-        //_unknownOpenBracesThatNeedMatchedStack.Push(_unknownOpenBracesThatNeedMatched);
-        _unknownOpenBracesThatNeedMatched = 0;
 
         // Push a new bucket to track changes for this specific scope level
         // TODO: This new list per scope isn't as bad as the dictionary was most importantly because the list is only a temporary object that isn't tied to the scope reference...
