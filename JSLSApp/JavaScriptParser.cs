@@ -201,12 +201,6 @@ public class JavaScriptParser
                     {
                     }
                     break;
-                case SyntaxKind.MultiLineCommentToken:
-                    SyntaxHighlightByteList.SetSyntaxHighlighting(token.Start, token.Length, TrackedSyntaxKind.Comment);
-                    if (_seenLineEnd_flagForStringsAndComments)
-                    {
-                    }
-                    break;
                 case SyntaxKind.CloseBraceToken:
                     if (_currentScope.AttemptEndScope(token.Position, token.SyntaxKind) && _currentScope.ParentScopeProvider is not null)
                     {
@@ -1420,6 +1414,7 @@ public class JavaScriptParser
         }
 
         functionEnding:
+        SyntaxHighlightByteList.SetSyntaxHighlighting(_pos - length, length, TrackedSyntaxKind.Comment);
         return new SyntaxToken(SyntaxKind.MultiLineCommentToken, startPosition, length, _pos - length);
     }
 }
