@@ -99,7 +99,7 @@ public class JavaScriptParser
     public SyntaxNode _currentScopeProvider = null!;
     public ref Scope _currentScope => ref _currentScopeProvider.GetScope();
 
-    public List<VariableDeclarationNode> _pendingVariableDeclarationNodeList = new();
+    public Dictionary<int, VariableDeclarationNode> _pendingVariableDeclarationNodeDictionary = new();
 
     public JavaScriptParser(JavaScriptDocument doc, JavaScriptWorkspace javaScriptWorkspace)
     {
@@ -322,10 +322,27 @@ public class JavaScriptParser
         _currentScope.CountOfChildrenThatAreDefinitions++;
     }
 
-    private void ParseAssumedReference(SyntaxToken token)
+    /// <summary>
+    /// Returns 'true' if successfully found the definition, otherwise false.
+    /// </summary>
+    private bool ParseAssumedReference(SyntaxToken token)
     {
         var identifierHash = _identifierHash;
         if (_lexicalScope.TryGetValue(identifierHash, out var definition))
+        {
+            var variableReferenceNode = new VariableReferenceNode(token.Position.line, token.Position.character, _indexLine, _indexChar, definition.Start.line, definition.Start.character);
+            variableReferenceNode.GetIdentifierHash() = identifierHash;
+            _currentScope.BodyList.Add(variableReferenceNode);
+            return true;
+        }
+
+        return false;
+    }
+    
+    private void ParseAssumedReference_PENDING(SyntaxToken token)
+    {
+        var identifierHash = _identifierHash;
+        if (_pendingVariableDeclarationNodeDictionary.TryGetValue(identifierHash, out var definition))
         {
             var variableReferenceNode = new VariableReferenceNode(token.Position.line, token.Position.character, _indexLine, _indexChar, definition.Start.line, definition.Start.character);
             variableReferenceNode.GetIdentifierHash() = identifierHash;
@@ -348,7 +365,7 @@ public class JavaScriptParser
 
             if (isPending)
             {
-                _pendingVariableDeclarationNodeList.Add(variableDeclarationNode);
+                _pendingVariableDeclarationNodeDictionary.TryAdd(identifierHash, variableDeclarationNode);
             }
             else
             {
@@ -428,7 +445,10 @@ public class JavaScriptParser
                     ParseVariableDeclaration(token, isPending: true);
                     break;
                 case SyntaxKind.IdentifierToken:
-                    ParseAssumedReference(token);
+                    if (!ParseAssumedReference(token))
+                    {
+                        ParseAssumedReference_PENDING(token);
+                    }
                     break;
                 case SyntaxKind.CloseParenthesisToken:
                 case SyntaxKind.EndOfFileToken:
@@ -447,12 +467,12 @@ public class JavaScriptParser
         var forStatementNode = new ForStatementNode(token.Position.line, token.Position.character, _indexLine, _indexChar);
         _currentScope.BodyList.Add(forStatementNode);
         OpenScope(forStatementNode, openBraceToken.Position);
-        foreach (var variableDeclarationNode in _pendingVariableDeclarationNodeList)
+        foreach (var variableDeclarationNodeKvp in _pendingVariableDeclarationNodeDictionary)
         {
-            _currentScope.BodyList.Add(variableDeclarationNode);
-            DeclareVariable(variableDeclarationNode.GetIdentifierHash(), variableDeclarationNode);
+            _currentScope.BodyList.Add(variableDeclarationNodeKvp.Value);
+            DeclareVariable(variableDeclarationNodeKvp.Key, variableDeclarationNodeKvp.Value);
         }
-        _pendingVariableDeclarationNodeList.Clear();
+        _pendingVariableDeclarationNodeDictionary.Clear();
     }
 
     public void ParseBlockNode(SyntaxToken openBraceToken)
@@ -505,7 +525,7 @@ public class JavaScriptParser
         ParseFunctionArguments();
         ParseFunctionBody(functionDeclarationNode);
 
-        _pendingVariableDeclarationNodeList.Clear();
+        _pendingVariableDeclarationNodeDictionary.Clear();
     }
 
     public void ParseFunctionArguments()
@@ -526,7 +546,7 @@ public class JavaScriptParser
                     var variableDeclarationNode = new VariableDeclarationNode(identifierToken.Position.line, identifierToken.Position.character, _indexLine, _indexChar);
                     var identifierHash = _identifierHash;
                     variableDeclarationNode.GetIdentifierHash() = identifierHash;
-                    _pendingVariableDeclarationNodeList.Add(variableDeclarationNode);
+                    _pendingVariableDeclarationNodeDictionary.TryAdd(identifierHash, variableDeclarationNode);
                     break;
                 case SyntaxKind.CommaToken:
                     _ = ConsumePeekToken();
@@ -557,10 +577,10 @@ public class JavaScriptParser
         _ = ConsumePeekToken();
         var openBraceToken = token;
         OpenScope(functionDeclarationNode, openBraceToken.Position);
-        foreach (var variableDeclarationNode in _pendingVariableDeclarationNodeList)
+        foreach (var variableDeclarationNodeKvp in _pendingVariableDeclarationNodeDictionary)
         {
-            _currentScope.BodyList.Add(variableDeclarationNode);
-            DeclareVariable(variableDeclarationNode.GetIdentifierHash(), variableDeclarationNode);
+            _currentScope.BodyList.Add(variableDeclarationNodeKvp.Value);
+            DeclareVariable(variableDeclarationNodeKvp.Key, variableDeclarationNodeKvp.Value);
         }
     }
 
