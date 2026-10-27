@@ -457,21 +457,17 @@ public class JavaScriptParser
         }
         exitWhileLoop:
 
-
-
         token = PeekToken();
-        if (token.SyntaxKind != SyntaxKind.OpenBraceToken)
-            return;
-        _ = ConsumePeekToken();
-        var openBraceToken = token;
-        var forStatementNode = new ForStatementNode(token.Position.line, token.Position.character, _indexLine, _indexChar);
-        _currentScope.BodyList.Add(forStatementNode);
-        OpenScope(forStatementNode, openBraceToken.Position);
-        foreach (var variableDeclarationNodeKvp in _pendingVariableDeclarationNodeDictionary)
+        if (token.SyntaxKind == SyntaxKind.OpenBraceToken)
         {
-            _currentScope.BodyList.Add(variableDeclarationNodeKvp.Value);
-            DeclareVariable(variableDeclarationNodeKvp.Key, variableDeclarationNodeKvp.Value);
+            _ = ConsumePeekToken();
+            var openBraceToken = token;
+            var forStatementNode = new ForStatementNode(token.Position.line, token.Position.character, _indexLine, _indexChar);
+            _currentScope.BodyList.Add(forStatementNode);
+            OpenScope(forStatementNode, openBraceToken.Position);
+            CopyPendingDefinitionsToCurrentScope_DOES_NOT_CLEAR_PENDING();
         }
+
         _pendingVariableDeclarationNodeDictionary.Clear();
     }
 
@@ -577,11 +573,7 @@ public class JavaScriptParser
         _ = ConsumePeekToken();
         var openBraceToken = token;
         OpenScope(functionDeclarationNode, openBraceToken.Position);
-        foreach (var variableDeclarationNodeKvp in _pendingVariableDeclarationNodeDictionary)
-        {
-            _currentScope.BodyList.Add(variableDeclarationNodeKvp.Value);
-            DeclareVariable(variableDeclarationNodeKvp.Key, variableDeclarationNodeKvp.Value);
-        }
+        CopyPendingDefinitionsToCurrentScope_DOES_NOT_CLEAR_PENDING();
     }
 
 
@@ -623,6 +615,25 @@ public class JavaScriptParser
 
         ParseFunctionArguments();
         ParseFunctionBody(functionDeclarationNode);
+    }
+
+    /// <summary>
+    /// DOES NOT CLEAR '_pendingVariableDeclarationNodeDictionary'
+    /// This is to ensure a habit of not just covering the happy path.
+    /// You need to clear whether you've used them or not.
+    /// So you really ought to just have the code converge to a single clear statement if the syntax might've populated the pending.
+    /// (or duplicate the clear yourself if the code cannot converge reasonably).
+    /// 
+    /// 
+    /// 'OpenScope(forStatementNode, openBraceToken.Position);' prior to invoking.
+    /// </summary>
+    public void CopyPendingDefinitionsToCurrentScope_DOES_NOT_CLEAR_PENDING()
+    {
+        foreach (var variableDeclarationNodeKvp in _pendingVariableDeclarationNodeDictionary)
+        {
+            _currentScope.BodyList.Add(variableDeclarationNodeKvp.Value);
+            DeclareVariable(variableDeclarationNodeKvp.Key, variableDeclarationNodeKvp.Value);
+        }
     }
 
     public SyntaxToken Lex()
