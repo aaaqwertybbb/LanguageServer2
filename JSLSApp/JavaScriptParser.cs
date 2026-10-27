@@ -363,10 +363,21 @@ public class JavaScriptParser
             return;
         _ = ConsumePeekToken();
         // ----
-        token = Defensive_SkipUntil_LexFor_OrEof(SyntaxKind.CloseParenthesisToken);
-        if (token.SyntaxKind != SyntaxKind.CloseParenthesisToken)
-            return;
 
+        while (true)
+        {
+            token = NextToken();
+            switch (token.SyntaxKind)
+            {
+                case SyntaxKind.IdentifierToken:
+                    ParseAssumedReference(token);
+                    break;
+                case SyntaxKind.CloseParenthesisToken:
+                case SyntaxKind.EndOfFileToken:
+                    goto exitWhileLoop;
+            }
+        }
+        exitWhileLoop:
 
 
         token = PeekToken();
@@ -686,6 +697,27 @@ public class JavaScriptParser
                         var startPosition = new Position(_indexLine, _indexChar);
                         _indexChar++;
                         return new SyntaxToken(SyntaxKind.CloseBraceToken, startPosition, 1);
+                    }
+                case '[':
+                    {
+                        _pos++;
+                        var startPosition = new Position(_indexLine, _indexChar);
+                        _indexChar++;
+                        return new SyntaxToken(SyntaxKind.OpenSquareToken, startPosition, 1);
+                    }
+                case ']':
+                    {
+                        _pos++;
+                        var startPosition = new Position(_indexLine, _indexChar);
+                        _indexChar++;
+                        return new SyntaxToken(SyntaxKind.CloseSquareToken, startPosition, 1);
+                    }
+                case '=':
+                    {
+                        _pos++;
+                        var startPosition = new Position(_indexLine, _indexChar);
+                        _indexChar++;
+                        return new SyntaxToken(SyntaxKind.EqualsToken, startPosition, 1);
                     }
                 case ',':
                     {

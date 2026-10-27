@@ -54,4 +54,7 @@ public enum SyntaxKind
     BlockNode,
     CommaToken,
     SemicolonToken,
+    OpenSquareToken,
+    CloseSquareToken,
+    EqualsToken,
 }
