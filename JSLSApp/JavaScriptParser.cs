@@ -61,11 +61,11 @@ public class JavaScriptParser
     /// _peekToken is also used for temporary storage, when the boolean '_peekTokenExists' is false.
     /// </summary>
     private SyntaxToken _peekToken;
-    private SyntaxToken _previousToken;
+    private SyntaxKind _previousTokenSyntaxKind;
     /// <summary>
     /// TODO: Probably don't do this but I want 'this.apple' to work so I can feel at peace.
     /// </summary>
-    private SyntaxToken _previousPreviousToken;
+    private SyntaxKind _previousPreviousTokenSyntaxKind;
     private bool _peekTokenExists;
 
     /// <summary>
@@ -238,8 +238,8 @@ public class JavaScriptParser
                 case SyntaxKind.WhitespaceToken:
                     break;
             }
-            _previousPreviousToken = _previousToken;
-            _previousToken = token;
+            _previousPreviousTokenSyntaxKind = _previousTokenSyntaxKind;
+            _previousTokenSyntaxKind = token.SyntaxKind;
         }
 
         exitOuterWhileLoop:
@@ -1325,7 +1325,7 @@ public class JavaScriptParser
 
         if (_doc.Chars[_pos] == '(')
         {
-            if (_previousToken.SyntaxKind == SyntaxKind.NewKeywordToken)
+            if (_previousTokenSyntaxKind == SyntaxKind.NewKeywordToken)
             {
                 SyntaxHighlightByteList.SetSyntaxHighlighting(_pos - length, length, TrackedSyntaxKind.Type);
             }
@@ -1338,10 +1338,9 @@ public class JavaScriptParser
         {
             SyntaxHighlightByteList.SetSyntaxHighlighting(_pos - length, length, TrackedSyntaxKind.Member);
         }
-        else if (_pos > (length + 1) && _doc.Chars[_pos - (length + 1)] == '.')
+        else if (_previousTokenSyntaxKind == SyntaxKind.PeriodToken)
         {
-            // I guess '.' isn't being lexed yet? "|| _previousToken.SyntaxKind == SyntaxKind.ThisKeywordToken"
-            if (_previousPreviousToken.SyntaxKind == SyntaxKind.ThisKeywordToken || _previousToken.SyntaxKind == SyntaxKind.ThisKeywordToken)
+            if (_previousPreviousTokenSyntaxKind == SyntaxKind.ThisKeywordToken)
             {
                 SyntaxHighlightByteList.SetSyntaxHighlighting(_pos - length, length, TrackedSyntaxKind.Identifier);
             }
