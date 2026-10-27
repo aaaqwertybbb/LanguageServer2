@@ -640,6 +640,7 @@ public class JavaScriptParser
     {
         while (_pos < _doc.Chars.Count)
         {
+            // TODO: various multicharacter tokens
             switch (_doc.Chars[_pos])
             {
                 case 'a':
@@ -794,7 +795,115 @@ public class JavaScriptParser
                         _indexChar++;
                         return new SyntaxToken(SyntaxKind.SemicolonToken, startPosition, 1);
                     }
+                case '<':
+                    {
+                        _pos++;
+                        var startPosition = new Position(_indexLine, _indexChar);
+                        _indexChar++;
+                        return new SyntaxToken(SyntaxKind.OpenAngleToken, startPosition, 1);
+                    }
+                case '>':
+                    {
+                        _pos++;
+                        var startPosition = new Position(_indexLine, _indexChar);
+                        _indexChar++;
+                        return new SyntaxToken(SyntaxKind.CloseAngleToken, startPosition, 1);
+                    }
+                case '&':
+                    {
+                        _pos++;
+                        var startPosition = new Position(_indexLine, _indexChar);
+                        _indexChar++;
+                        return new SyntaxToken(SyntaxKind.AmpersandToken, startPosition, 1);
+                    }
+                case '.':
+                    {
+                        _pos++;
+                        var startPosition = new Position(_indexLine, _indexChar);
+                        _indexChar++;
+                        return new SyntaxToken(SyntaxKind.PeriodToken, startPosition, 1);
+                    }
+                case '|':
+                    {
+                        _pos++;
+                        var startPosition = new Position(_indexLine, _indexChar);
+                        _indexChar++;
+                        return new SyntaxToken(SyntaxKind.PipeToken, startPosition, 1);
+                    }
+                case ':':
+                    {
+                        _pos++;
+                        var startPosition = new Position(_indexLine, _indexChar);
+                        _indexChar++;
+                        return new SyntaxToken(SyntaxKind.ColonToken, startPosition, 1);
+                    }
+                case '+':
+                    {
+                        _pos++;
+                        var startPosition = new Position(_indexLine, _indexChar);
+                        _indexChar++;
+                        return new SyntaxToken(SyntaxKind.PlusToken, startPosition, 1);
+                    }
+                case '-':
+                    {
+                        _pos++;
+                        var startPosition = new Position(_indexLine, _indexChar);
+                        _indexChar++;
+                        return new SyntaxToken(SyntaxKind.MinusToken, startPosition, 1);
+                    }
+                case '*':
+                    {
+                        _pos++;
+                        var startPosition = new Position(_indexLine, _indexChar);
+                        _indexChar++;
+                        return new SyntaxToken(SyntaxKind.StarToken, startPosition, 1);
+                    }
+                case '^':
+                    {
+                        _pos++;
+                        var startPosition = new Position(_indexLine, _indexChar);
+                        _indexChar++;
+                        return new SyntaxToken(SyntaxKind.CaretToken, startPosition, 1);
+                    }
+                case '%':
+                    {
+                        _pos++;
+                        var startPosition = new Position(_indexLine, _indexChar);
+                        _indexChar++;
+                        return new SyntaxToken(SyntaxKind.PercentToken, startPosition, 1);
+                    }
+                case '$':
+                    {
+                        _pos++;
+                        var startPosition = new Position(_indexLine, _indexChar);
+                        _indexChar++;
+                        return new SyntaxToken(SyntaxKind.DollarSignToken, startPosition, 1);
+                    }
+                case '#':
+                    {
+                        _pos++;
+                        var startPosition = new Position(_indexLine, _indexChar);
+                        _indexChar++;
+                        return new SyntaxToken(SyntaxKind.PoundToken, startPosition, 1);
+                    }
+                case '@':
+                    {
+                        _pos++;
+                        var startPosition = new Position(_indexLine, _indexChar);
+                        _indexChar++;
+                        return new SyntaxToken(SyntaxKind.AtToken, startPosition, 1);
+                    }
+                case '!':
+                    {
+                        _pos++;
+                        var startPosition = new Position(_indexLine, _indexChar);
+                        _indexChar++;
+                        return new SyntaxToken(SyntaxKind.BangToken, startPosition, 1);
+                    }
                 default:
+                    // TODO: multibyte characters
+                    _pos++;
+                    _indexChar++;
                     break;
             }
 
