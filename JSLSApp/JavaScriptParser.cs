@@ -333,7 +333,7 @@ public class JavaScriptParser
         }
     }
 
-    private void ParseVariableDeclaration(SyntaxToken token)
+    private void ParseVariableDeclaration(SyntaxToken token, bool isPending = false)
     {
         /*
         TODO: How do you say it... "implicit global variable declaration"? Lacking let,var,const when defining a variable that isn't defined.
@@ -346,8 +346,15 @@ public class JavaScriptParser
             var identifierHash = _identifierHash;
             variableDeclarationNode.GetIdentifierHash() = identifierHash;
 
-            _currentScope.BodyList.Add(variableDeclarationNode);
-            DeclareVariable(identifierHash, variableDeclarationNode);
+            if (isPending)
+            {
+                _pendingVariableDeclarationNodeList.Add(variableDeclarationNode);
+            }
+            else
+            {
+                _currentScope.BodyList.Add(variableDeclarationNode);
+                DeclareVariable(identifierHash, variableDeclarationNode);
+            }
         }
     }
 
@@ -409,9 +416,26 @@ public class JavaScriptParser
             return;
         _ = ConsumePeekToken();
         // ----
-        token = Defensive_SkipUntil_LexFor_OrEof(SyntaxKind.CloseParenthesisToken);
-        if (token.SyntaxKind != SyntaxKind.CloseParenthesisToken)
-            return;
+
+        while (true)
+        {
+            token = NextToken();
+            switch (token.SyntaxKind)
+            {
+                case SyntaxKind.LetKeywordToken:
+                case SyntaxKind.ConstKeywordToken:
+                case SyntaxKind.VarKeywordToken:
+                    ParseVariableDeclaration(token, isPending: true);
+                    break;
+                case SyntaxKind.IdentifierToken:
+                    ParseAssumedReference(token);
+                    break;
+                case SyntaxKind.CloseParenthesisToken:
+                case SyntaxKind.EndOfFileToken:
+                    goto exitWhileLoop;
+            }
+        }
+        exitWhileLoop:
 
 
 
@@ -423,6 +447,12 @@ public class JavaScriptParser
         var forStatementNode = new ForStatementNode(token.Position.line, token.Position.character, _indexLine, _indexChar);
         _currentScope.BodyList.Add(forStatementNode);
         OpenScope(forStatementNode, openBraceToken.Position);
+        foreach (var variableDeclarationNode in _pendingVariableDeclarationNodeList)
+        {
+            _currentScope.BodyList.Add(variableDeclarationNode);
+            DeclareVariable(variableDeclarationNode.GetIdentifierHash(), variableDeclarationNode);
+        }
+        _pendingVariableDeclarationNodeList.Clear();
     }
 
     public void ParseBlockNode(SyntaxToken openBraceToken)
