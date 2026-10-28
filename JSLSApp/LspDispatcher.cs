@@ -170,6 +170,12 @@ internal static class LspDispatcher
 
         result_node = SyntaxHelper.RecursiveSearch(javaScriptDocument.Chars, javaScriptDocument.CompilationUnit.GlobalNode, definitionRequest.@params.position.line, definitionRequest.@params.position.character, ref totalChecks, ref currentIndexPosition, ref currentIndexLine, ref currentIndexCharacter);
 
+        // Contains both IsScopeProvider==true nodes and IsScopeProvider==false nodes
+        // BECAUSE it contains the definition node itself as the first thing that gets pushed.
+        // Other than that first pushed node everything is IsScopeProvider==true.
+        Stack<SyntaxNode> inclusiveFinalNodeToConsiderAtEachDepth = new();
+        Stack<(SyntaxNode ScopeProvider, int ChildIndexOfScopeProviderAmongItsSiblings)> returnStack = new();
+
         if (result_node is not null && result_node.SyntaxKind == SyntaxKind.VariableReferenceNode)
         {
             var referenceNode = (VariableReferenceNode)result_node;
@@ -181,83 +187,85 @@ internal static class LspDispatcher
                     var indexOf = declarationNode.ParentScopeProvider.GetScope().BodyList.IndexOf(declarationNode);
                     if (indexOf != -1)
                     {
+                        inclusiveFinalNodeToConsiderAtEachDepth.Push(declarationNode);
+
                         var targetScopeProvider = declarationNode.ParentScopeProvider;
-                        
-                        var isFirstWhileLoopIteration = true;
-                        var isFirstNewLine = true;
-                        var characterIndex = 0;
+
+                        while (targetScopeProvider is not null)
+                        {
+                            inclusiveFinalNodeToConsiderAtEachDepth.Push(targetScopeProvider);
+                            targetScopeProvider = targetScopeProvider.GetScope().ParentScopeProvider;
+                        }
+
+                        targetScopeProvider = javaScriptDocument.CompilationUnit.GlobalNode;
+                        var finalNodeToConsider = inclusiveFinalNodeToConsiderAtEachDepth.Pop();
 
                         currentIndexPosition = 0;
                         currentIndexLine = 0;
                         currentIndexCharacter = 0;
 
+                        var i = 0;
                         while (targetScopeProvider is not null)
                         {
                             ref var scope = ref targetScopeProvider.GetScope();
-                            var upperIndexExclusive = scope.BodyList.Count;
-                            if (isFirstWhileLoopIteration)
+                            for (; i < scope.BodyList.Count; i++)
                             {
-                                isFirstWhileLoopIteration = false;
-                                upperIndexExclusive = indexOf + 1;
-                            }
-
-                            for (var i = upperIndexExclusive - 1; i >= 0; i--)
-                            {
-                                if (currentIndexPosition <= 0)
-                                    break;
-
-                                var distance = scope.BodyList[i].DistanceFromPreviousNode;
-
-                                if (currentIndexPosition - distance < 0)
-                                    distance = currentIndexPosition;
-
-                                for (var j = 0; j < distance; j++)
+                                var childNode = scope.BodyList[i];
+                                if (currentIndexPosition < javaScriptDocument.Chars.Count)
                                 {
-                                    currentIndexPosition--;
+                                    var distance = childNode.DistanceFromPreviousNode;
+                                    if (currentIndexPosition + distance >= javaScriptDocument.Chars.Count)
+                                        distance = javaScriptDocument.Chars.Count - currentIndexPosition;
 
-                                    switch (javaScriptDocument.Chars[currentIndexPosition])
+                                    for (var j = 0; j < distance; j++)
                                     {
-                                        //case '\r': TODO: Include or not '\r'? When using my own editor I swap everything to '\n' but...
-                                        case '\n':
-                                            currentIndexLine--;
-                                            if (isFirstNewLine)
-                                            {
-                                                isFirstNewLine = false;
-                                                characterIndex = Math.Abs(currentIndexCharacter);
-                                            }
-                                            currentIndexCharacter = 0;
-                                            break;
-                                        default:
-                                            currentIndexCharacter--;
-                                            break;
+                                        switch (javaScriptDocument.Chars[currentIndexPosition])
+                                        {
+                                            //case '\r': TODO: Include or not '\r'? When using my own editor I swap everything to '\n' but...
+                                            case '\n':
+                                                currentIndexLine++;
+                                                currentIndexCharacter = 0;
+                                                break;
+                                            default:
+                                                currentIndexCharacter++;
+                                                break;
+                                        }
+                                        currentIndexPosition++;
                                     }
                                 }
+                                if (childNode.IsScopeProvider)
+                                {
+                                    if (childNode != finalNodeToConsider)
+                                    {
+                                        returnStack.Push((targetScopeProvider, i));
+                                    }
+                                    targetScopeProvider = childNode;
+                                    break;
+                                }
                             }
-
-                            targetScopeProvider = scope.ParentScopeProvider;
-                        }
-
-                        var lineIndex = Math.Abs(currentIndexLine);
-
-                        if (isFirstNewLine)
-                        {
-#pragma warning disable IDE0059 // Unnecessary assignment of a value
-                            isFirstNewLine = false;
-#pragma warning restore IDE0059 // Unnecessary assignment of a value
-                            characterIndex = Math.Abs(currentIndexCharacter);
+                            if (returnStack.Count > 0)
+                            {
+                                var returnEntry = returnStack.Pop();
+                                targetScopeProvider = returnEntry.ScopeProvider;
+                                i = returnEntry.ChildIndexOfScopeProviderAmongItsSiblings + 1;
+                            }
+                            else
+                            {
+                                targetScopeProvider = null;
+                            }
                         }
 
                         var range = new Range
                         {
                             start = new Position
                             {
-                                line = lineIndex,// TODO: relative changes break this; variableReferenceNode.DefinitionLine,
-                                character = characterIndex//variableReferenceNode.DefinitionCharacter
+                                line = currentIndexLine,// TODO: relative changes break this; variableReferenceNode.DefinitionLine,
+                                character = currentIndexCharacter//variableReferenceNode.DefinitionCharacter
                             },
                             end = new Position //end = result_node.End, // TODO: relative changes break this;
                             {
-                                line = lineIndex,
-                                character = characterIndex
+                                line = currentIndexLine,
+                                character = currentIndexCharacter
                             },
                         };
 
