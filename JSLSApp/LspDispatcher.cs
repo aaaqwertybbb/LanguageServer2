@@ -222,6 +222,9 @@ internal static class LspDispatcher
 
                         var isSidePath = false;
 
+                        // nvm I forgot to republish the app so I was super confused when the test passed but I tried it in the editor and it failed
+                        // and just I'm battling despair so seeing it fail hit deep
+
                         var i = 0;
                         while (targetScopeProvider is not null)
                         {
