@@ -66,7 +66,7 @@ public class LexerTests
                         - [ ] Is an irrelevant point it seems it could go in either one's favor
             - [ ] The first two algorithms are predicated upon the referenceNode having a C# field that references the declarationNode.
                 - [ ] The above idea "feels" asinine (maybe it isn't). But I think it is a necessary step towards the correct answer.
-                - [ ] The declaration would need a reference to the parentNode (of which would be a scope provider).
+                - [x] The declaration would need a reference to the parentNode (of which would be a scope provider).
                     - [ ] You could then find the declaration node among the parentNode's scope-bodyList
                     - [ ] and thus you'd have Algorithm "first thing..." available.
                         - [ ] This comment doesn't actually read completely, you need the knowledge that a scope has a 'SyntaxNode? ParentScopeProvider'

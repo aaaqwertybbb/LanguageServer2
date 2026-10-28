@@ -5,6 +5,11 @@ namespace JSLSApp.Syntax;
 public struct Scope
 {
     public BodyKind Type { get; set; }
+    /// <summary>
+    /// If you ever move a node from one scope's BodyList to another, you need to ensure that the moved node isn't tracking its parent.
+    /// If it is tracking its parent, you need to update things accordingly.
+    /// TODO: Consider making a function that adds a node rather than invoking the List type's 'Add' function so that the above described logic can be encapsulated.
+    /// </summary>
     public List<SyntaxNode> BodyList { get; set; }
     public Position Start { get; private set; }
     public Position End { get; private set; }

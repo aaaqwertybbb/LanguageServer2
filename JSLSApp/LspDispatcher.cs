@@ -172,35 +172,108 @@ internal static class LspDispatcher
 
         if (result_node is not null && result_node.SyntaxKind == SyntaxKind.VariableReferenceNode)
         {
-            var variableReferenceNode = (VariableReferenceNode)result_node;
-            var range = new Range
+            var referenceNode = (VariableReferenceNode)result_node;
+            if (referenceNode.VariableDeclarationNode.SyntaxKind == SyntaxKind.VariableDeclarationNode)
             {
-                start = new Position
+                var declarationNode = (VariableDeclarationNode)referenceNode.VariableDeclarationNode;
+                if (declarationNode.ParentScopeProvider is not null)
                 {
-                    line = 0,// TODO: relative changes break this; variableReferenceNode.DefinitionLine,
-                    character = 0//variableReferenceNode.DefinitionCharacter
-                },
-                end = new Position //end = result_node.End, // TODO: relative changes break this;
-                {
-                    line = 0,
-                    character = 0
-                },
-            };
+                    var indexOf = declarationNode.ParentScopeProvider.GetScope().BodyList.IndexOf(declarationNode);
+                    if (indexOf != -1)
+                    {
+                        var targetScopeProvider = declarationNode.ParentScopeProvider;
+                        
+                        var isFirstWhileLoopIteration = true;
+                        var isFirstNewLine = true;
+                        var characterIndex = 0;
 
-            //nodeString = $"{result_node.SyntaxKind}~{result_node.Id_name}";
+                        currentIndexLine = 0;
+                        currentIndexCharacter = 0;
 
-            var textDocumentDefinitionResponse = new TextDocumentDefinitionResponse(definitionRequest.id, definitionRequest.@params.textDocument.uri, range);
-            Console.Out.WriteLine(Program.MAIN_encodeMessageObject(textDocumentDefinitionResponse));
-            return request;
+                        while (targetScopeProvider is not null)
+                        {
+                            ref var scope = ref targetScopeProvider.GetScope();
+                            var upperIndexExclusive = scope.BodyList.Count;
+                            if (isFirstWhileLoopIteration)
+                            {
+                                isFirstWhileLoopIteration = false;
+                                upperIndexExclusive = indexOf + 1;
+                            }
+
+                            for (var i = upperIndexExclusive - 1; i >= 0; i--)
+                            {
+                                if (currentIndexPosition <= 0)
+                                    break;
+
+                                var distance = scope.BodyList[i].DistanceFromPreviousNode;
+
+                                if (currentIndexPosition - distance < 0)
+                                    distance = currentIndexPosition;
+
+                                for (var j = 0; j < distance; j++)
+                                {
+                                    currentIndexPosition--;
+
+                                    switch (javaScriptDocument.Chars[currentIndexPosition])
+                                    {
+                                        //case '\r': TODO: Include or not '\r'? When using my own editor I swap everything to '\n' but...
+                                        case '\n':
+                                            currentIndexLine--;
+                                            if (isFirstNewLine)
+                                            {
+                                                isFirstNewLine = false;
+                                                characterIndex = Math.Abs(currentIndexCharacter);
+                                            }
+                                            currentIndexCharacter = 0;
+                                            break;
+                                        default:
+                                            currentIndexCharacter--;
+                                            break;
+                                    }
+                                }
+                            }
+
+                            targetScopeProvider = scope.ParentScopeProvider;
+                        }
+
+                        var lineIndex = Math.Abs(currentIndexLine);
+
+                        if (isFirstNewLine)
+                        {
+#pragma warning disable IDE0059 // Unnecessary assignment of a value
+                            isFirstNewLine = false;
+#pragma warning restore IDE0059 // Unnecessary assignment of a value
+                            characterIndex = Math.Abs(currentIndexCharacter);
+                        }
+
+                        var range = new Range
+                        {
+                            start = new Position
+                            {
+                                line = lineIndex,// TODO: relative changes break this; variableReferenceNode.DefinitionLine,
+                                character = characterIndex//variableReferenceNode.DefinitionCharacter
+                            },
+                            end = new Position //end = result_node.End, // TODO: relative changes break this;
+                            {
+                                line = lineIndex,
+                                character = characterIndex
+                            },
+                        };
+
+                        //nodeString = $"{result_node.SyntaxKind}~{result_node.Id_name}";
+                        Console.Out.WriteLine(Program.MAIN_encodeMessageObject(
+                            new TextDocumentDefinitionResponse(definitionRequest.id, definitionRequest.@params.textDocument.uri, range)));
+                        return request;
+                    }
+                }
+            }
         }
-        else
-        {
-            //nodeString = "result_node~was_null";
-            // TODO: What does LSP say for responding the failed result null or...?
-            var textDocumentDefinitionResponse = new TextDocumentDefinitionResponse(definitionRequest.id, definitionRequest.@params.textDocument.uri, null);
-            Console.Out.WriteLine(Program.MAIN_encodeMessageObject(textDocumentDefinitionResponse));
-            return request;
-        }
+
+        //nodeString = "result_node~was_null";
+        // TODO: What does LSP say for responding the failed result null or...?
+        var textDocumentDefinitionResponse = new TextDocumentDefinitionResponse(definitionRequest.id, definitionRequest.@params.textDocument.uri, null);
+        Console.Out.WriteLine(Program.MAIN_encodeMessageObject(textDocumentDefinitionResponse));
+        return request;
     }
 
     private static Message DeserializeContent_Completion(string content, Message request)

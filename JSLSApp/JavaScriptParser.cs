@@ -362,7 +362,7 @@ public class JavaScriptParser
         if (identifierToken.SyntaxKind == SyntaxKind.IdentifierToken)
         {
             ConsumePeekToken();
-            var variableDeclarationNode = new VariableDeclarationNode((_pos - identifierToken.Length) - _posOfPreviousNode, identifierToken.Length);
+            var variableDeclarationNode = new VariableDeclarationNode((_pos - identifierToken.Length) - _posOfPreviousNode, identifierToken.Length, _currentScopeProvider);
             _posOfPreviousNode = _pos - identifierToken.Length;
             var identifierHash = _identifierHash;
             variableDeclarationNode.GetIdentifierHash() = identifierHash;
@@ -548,7 +548,7 @@ public class JavaScriptParser
             {
                 case SyntaxKind.IdentifierToken:
                     var identifierToken = ConsumePeekToken();
-                    var variableDeclarationNode = new VariableDeclarationNode((_pos - token.Length) - _posOfPreviousNode, token.Length);
+                    var variableDeclarationNode = new VariableDeclarationNode((_pos - token.Length) - _posOfPreviousNode, token.Length, parentScopeProvider: null);
                     _posOfPreviousNode = _pos - token.Length;
                     var identifierHash = _identifierHash;
                     variableDeclarationNode.GetIdentifierHash() = identifierHash;
@@ -643,6 +643,7 @@ public class JavaScriptParser
     {
         foreach (var variableDeclarationNodeKvp in _pendingVariableDeclarationNodeDictionary)
         {
+            variableDeclarationNodeKvp.Value.ParentScopeProvider = _currentScopeProvider;
             _currentScope.BodyList.Add(variableDeclarationNodeKvp.Value);
             DeclareVariable(variableDeclarationNodeKvp.Key, variableDeclarationNodeKvp.Value);
         }

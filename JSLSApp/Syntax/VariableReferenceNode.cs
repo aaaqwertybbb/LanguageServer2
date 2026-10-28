@@ -21,6 +21,8 @@ public class VariableReferenceNode : SyntaxNode
     /// If you change VariableDeclarationNode you might have to invalidate the references. Can I "ask C# who holds a reference to the definition?".
     /// 
     /// TODO: Don't make this a 'SyntaxNode'
+    /// 
+    /// TODO: Type this?
     /// </summary>
     public SyntaxNode VariableDeclarationNode { get; set; }
 
