@@ -71,6 +71,7 @@ public class LexerTests
                     - [ ] and thus you'd have Algorithm "first thing..." available.
                         - [ ] This comment doesn't actually read completely, you need the knowledge that a scope has a 'SyntaxNode? ParentScopeProvider'
                               and that is how you'll continue all the way to the GlobalNode.
+                - [ ] You need to map out the positions of every node kind cause if you miss even just 1 it completely falls apart. (and currently you're missing the majority of them).
             - [ ] Algorithm "???"
     - [ ] When you insert text you update the relative positions of the "node on the left and right of where you are inserting".
     - [ ] When you insert text you parse the text to create a new node and modify the AST with the node inserted at the correct position.
