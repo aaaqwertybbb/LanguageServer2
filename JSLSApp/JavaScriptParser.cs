@@ -100,7 +100,14 @@ public class JavaScriptParser
     public SyntaxNode _currentScopeProvider = null!;
     public ref Scope _currentScope => ref _currentScopeProvider.GetScope();
 
+    /// <summary>
+    /// Order matters thus <see cref="_pendingVariableDeclarationNodeList"/>
+    /// </summary>
     public Dictionary<int, VariableDeclarationNode> _pendingVariableDeclarationNodeDictionary = new();
+    /// <summary>
+    /// Order of the pending variables matters (and all must be accounted for) thus this exists in addition to the <see cref="_pendingVariableDeclarationNodeDictionary"/>
+    /// </summary>
+    public List<VariableDeclarationNode> _pendingVariableDeclarationNodeList = new();
 
     public JavaScriptParser(JavaScriptDocument doc, JavaScriptWorkspace javaScriptWorkspace)
     {
@@ -370,6 +377,7 @@ public class JavaScriptParser
             if (isPending)
             {
                 _pendingVariableDeclarationNodeDictionary.TryAdd(identifierHash, variableDeclarationNode);
+                _pendingVariableDeclarationNodeList.Add(variableDeclarationNode);
             }
             else
             {
@@ -475,7 +483,7 @@ public class JavaScriptParser
             CopyPendingDefinitionsToCurrentScope_DOES_NOT_CLEAR_PENDING();
         }
 
-        _pendingVariableDeclarationNodeDictionary.Clear();
+        CopyPendingDefinitionsToCurrentScope_CLEAR();
     }
 
     public void ParseBlockNode(SyntaxToken openBraceToken)
@@ -530,7 +538,7 @@ public class JavaScriptParser
         ParseFunctionArguments();
         ParseFunctionBody(functionDeclarationNode);
 
-        _pendingVariableDeclarationNodeDictionary.Clear();
+        CopyPendingDefinitionsToCurrentScope_CLEAR();
     }
 
     public void ParseFunctionArguments()
@@ -548,11 +556,12 @@ public class JavaScriptParser
             {
                 case SyntaxKind.IdentifierToken:
                     var identifierToken = ConsumePeekToken();
-                    var variableDeclarationNode = new VariableDeclarationNode((_pos - token.Length) - _posOfPreviousNode, token.Length, parentScopeProvider: null);
+                    var variableDeclarationNode = new VariableDeclarationNode((_pos - token.Length) - _posOfPreviousNode, identifierToken.Length, parentScopeProvider: null);
                     _posOfPreviousNode = _pos - token.Length;
                     var identifierHash = _identifierHash;
                     variableDeclarationNode.GetIdentifierHash() = identifierHash;
                     _pendingVariableDeclarationNodeDictionary.TryAdd(identifierHash, variableDeclarationNode);
+                    _pendingVariableDeclarationNodeList.Add(variableDeclarationNode);
                     break;
                 case SyntaxKind.CommaToken:
                     _ = ConsumePeekToken();
@@ -638,15 +647,23 @@ public class JavaScriptParser
     /// 
     /// 
     /// 'OpenScope(forStatementNode, openBraceToken.Position);' prior to invoking.
+    /// 
+    /// <see cref="CopyPendingDefinitionsToCurrentScope_CLEAR"/>
     /// </summary>
     public void CopyPendingDefinitionsToCurrentScope_DOES_NOT_CLEAR_PENDING()
     {
-        foreach (var variableDeclarationNodeKvp in _pendingVariableDeclarationNodeDictionary)
+        foreach (var variableDeclarationNode in _pendingVariableDeclarationNodeList)
         {
-            variableDeclarationNodeKvp.Value.ParentScopeProvider = _currentScopeProvider;
-            _currentScope.BodyList.Add(variableDeclarationNodeKvp.Value);
-            DeclareVariable(variableDeclarationNodeKvp.Key, variableDeclarationNodeKvp.Value);
+            variableDeclarationNode.ParentScopeProvider = _currentScopeProvider;
+            _currentScope.BodyList.Add(variableDeclarationNode);
+            DeclareVariable(variableDeclarationNode.GetIdentifierHash(), variableDeclarationNode);
         }
+    }
+    
+    public void CopyPendingDefinitionsToCurrentScope_CLEAR()
+    {
+        _pendingVariableDeclarationNodeList.Clear();
+        _pendingVariableDeclarationNodeDictionary.Clear();
     }
 
     public SyntaxToken Lex()

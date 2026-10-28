@@ -23,5 +23,9 @@ public class VariableDeclarationNode : SyntaxNode
 
     private int _identifierHash;
 
+    /// <summary>
+    /// TODO: Rename this 'GetHashCode' is too confusingly closely named (maybe).
+    /// </summary>
+    /// <returns></returns>
     public override ref int GetIdentifierHash() => ref _identifierHash;
 }
