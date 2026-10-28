@@ -44,22 +44,30 @@ public class LexerTests
 
     public const string CompletionRequest = "Content-Length: 179\r\n\r\n{\"id\":2,\"method\":\"textDocument/completion\",\"params\":{\"textDocument\":{\"uri\":\"file:///C:/Users/hunte/Repos/New folder (7)/Editor2/testFile.js\"},\"position\":{\"line\":0,\"character\":0}}}\\n";
 
-/*
-There are 4 steps:
-- [x] Get the code to even run (now that you've changed all the properties tons of build errors, and make sure nothing is bugging out)
-- [ ] Replicate the current goto definition logic with the changed properties (that are now relative positions).
-    - [x] find the reference node
-    - [ ] find the declaration node
-        - [ ] Algorithm "first thing that comes to mind regardless of what it is"
-            - [ ] Start at the definition node, and calculate the total "negative" distance required to reach the GlobalNode.
-            - [ ] Absolute value of that is the position but I need the line and character too.
-                - [ ] Line and character would be the absolute value of
-                    - [ ] Upon finding a new line you remember the "negative character index" that you have stored.
-                    - [ ] When you're done your line number is the absolute value of the "negative line index".
-        - [ ] Algorithm "???"
-- [ ] When you insert text you update the relative positions of the "node on the left and right of where you are inserting".
-- [ ] When you insert text you parse the text to create a new node and modify the AST with the node inserted at the correct position.
-*/
+    /*
+    There are 4 steps:
+    - [x] Get the code to even run (now that you've changed all the properties tons of build errors, and make sure nothing is bugging out)
+    - [ ] Replicate the current goto definition logic with the changed properties (that are now relative positions).
+        - [x] find the reference node
+        - [ ] find the declaration node
+            - [ ] Algorithm "first thing that comes to mind regardless of what it is"
+                - [ ] Start at the definition node, and calculate the total "negative" distance required to reach the GlobalNode.
+                - [ ] Absolute value of that is the position but I need the line and character too.
+                    - [ ] Line and character would be the absolute value of
+                        - [ ] Upon finding a new line you remember the "negative character index" that you have stored.
+                        - [ ] When you're done your line number is the absolute value of the "negative line index".
+            - [ ] Algorithm "second thing that comes to mind regardless of what it is"
+                - [ ] Do something similar to the "first thing that comes to mind..." BUT:
+                    - [ ] If the reference were to be valid you'd maybe find the declaration by just backtracking from the reference.
+                - [ ] Problematic: If the declaration were in a different file you'd fail to find it.
+                - [ ] Ambivalent:
+                    - [ ] The distance from the declaration to the Global node compared against:
+                        - [ ] The distance from the reference to the declaration.
+                        - [ ] Is an irrelevant point it seems it could go in either one's favor
+            - [ ] Algorithm "???"
+    - [ ] When you insert text you update the relative positions of the "node on the left and right of where you are inserting".
+    - [ ] When you insert text you parse the text to create a new node and modify the AST with the node inserted at the correct position.
+    */
 
     public string Format_didOpenTextDocumentNotification(string fileText)
     {
