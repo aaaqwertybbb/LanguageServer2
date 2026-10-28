@@ -81,6 +81,8 @@ public class LexerTests
                                        - [ ] And then, the end is how far the close brace is away from the final child node of the scope.
                                        - [ ] But that messes you up a bit because you might start with a child count of 0 so at child count 0 it could be the distance from the open brace token
                                        - [ ] and at child count > 0 it is the distance from the final child node.
+                                       - [ ] I been watching mad azeroth survivors lately.
+                                       - [ ] I don't wanna touch it though myself cause it looks crazy fun -- like to the point of it being dangerous. "don't do azeroth survivors"
                 - [ ] You need to map out the positions of every node kind cause if you miss even just 1 it completely falls apart. (and currently you're missing the majority of them).
             - [ ] Algorithm "???"
     - [ ] When you insert text you update the relative positions of the "node on the left and right of where you are inserting".
