@@ -199,7 +199,10 @@ internal static class LspDispatcher
                             {
                                 isFirstLoop = false;
                                 inclusiveFinalNodeToConsiderAtEachDepth.Push(declarationNode);
-                                inclusiveFinalNodeToConsiderAtEachDepth.Push(targetScopeProvider);
+                                if (targetScopeProvider != javaScriptDocument.CompilationUnit.GlobalNode)
+                                {
+                                    inclusiveFinalNodeToConsiderAtEachDepth.Push(targetScopeProvider);
+                                }
                             }
                             else
                             {
