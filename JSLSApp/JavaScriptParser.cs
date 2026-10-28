@@ -556,8 +556,8 @@ public class JavaScriptParser
             {
                 case SyntaxKind.IdentifierToken:
                     var identifierToken = ConsumePeekToken();
-                    var variableDeclarationNode = new VariableDeclarationNode((_pos - token.Length) - _posOfPreviousNode, identifierToken.Length, parentScopeProvider: null);
-                    _posOfPreviousNode = _pos - token.Length;
+                    var variableDeclarationNode = new VariableDeclarationNode((_pos - identifierToken.Length) - _posOfPreviousNode, identifierToken.Length, parentScopeProvider: null);
+                    _posOfPreviousNode = _pos - identifierToken.Length;
                     var identifierHash = _identifierHash;
                     variableDeclarationNode.GetIdentifierHash() = identifierHash;
                     _pendingVariableDeclarationNodeDictionary.TryAdd(identifierHash, variableDeclarationNode);
