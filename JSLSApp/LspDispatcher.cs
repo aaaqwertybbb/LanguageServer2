@@ -224,6 +224,7 @@ internal static class LspDispatcher
 
                         // nvm I forgot to republish the app so I was super confused when the test passed but I tried it in the editor and it failed
                         // and just I'm battling despair so seeing it fail hit deep
+                        // ^ it doesn't work in 99% of cases I'm just saying it DOES work in the unit test and that specific unit test works in the editor.
 
                         var i = 0;
                         while (targetScopeProvider is not null)
