@@ -4,7 +4,7 @@ namespace JSLSApp.Syntax;
 
 /// <summary>
 /// You could do the relative positions by: function definition arguments are a distance from the function identifier.
-/// And then the 'FunctionDeclarationNode' is a scope provider. So an children of that scope are a distance from the start of the scope.
+/// And then the 'FunctionDeclarationNode' is a scope provider. So any children of that scope are a distance from the start of the scope.
 /// </summary>
 public class FunctionDeclarationNode : SyntaxNode
 {

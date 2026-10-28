@@ -46,10 +46,12 @@ public class LexerTests
 
 /*
 There are 4 steps:
-- Get the code to even run (now that you've changed all the properties tons of build errors, and make sure nothing is bugging out)
-- Replicate the current goto definition logic with the changed properties (that are now relative positions).
-- When you insert text you update the relative positions of the "node on the left and right of where you are inserting".
-- When you insert text you parse the text to create a new node and modify the AST with the node inserted at the correct position.
+- [x] Get the code to even run (now that you've changed all the properties tons of build errors, and make sure nothing is bugging out)
+- [ ] Replicate the current goto definition logic with the changed properties (that are now relative positions).
+    - [x] find the reference node
+    - [ ] find the declaration node
+- [ ] When you insert text you update the relative positions of the "node on the left and right of where you are inserting".
+- [ ] When you insert text you parse the text to create a new node and modify the AST with the node inserted at the correct position.
 */
 
     public string Format_didOpenTextDocumentNotification(string fileText)

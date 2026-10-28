@@ -57,30 +57,40 @@ internal static class SyntaxHelper
         return null;
     }
 
-    public static SyntaxNode? RecursiveSearch(SyntaxNode scopeProvider, int indexLine, int indexCharacter, ref int totalChecks)
+    /// <summary>
+    /// TODO: 'RecursiveSearchArgs' object instance to reduce parameter overhead from inner recursive invocations.
+    /// </summary>
+    public static SyntaxNode? RecursiveSearch(List<char> chars, SyntaxNode scopeProvider, int targetIndexLine, int targetIndexCharacter, ref int totalChecks, ref int currentIndexPosition, ref int currentIndexLine, ref int currentIndexCharacter)
     {
-        return null;
-
         ref var scope = ref scopeProvider.GetScope();
+
+        var parentNode_startLine = currentIndexLine;
+        var parentNode_startCharacter = currentIndexCharacter;
+        //var parentNode_endLine;
+        //var parentNode_endCharacter;
 
         for (int i = 0; i < scope.BodyList.Count; i++)
         {
             SyntaxNode? child_node = scope.BodyList[i];
+            WalkPositionIndices_mutable(chars, child_node.DistanceFromPreviousNode, ref currentIndexPosition, ref currentIndexLine, ref currentIndexCharacter);
+            var childNode_startLine = currentIndexLine;
+            var childNode_startCharacter = currentIndexCharacter;
+            (_, var childNode_endLine, var childNode_endCharacter) = WalkPositionIndices_return(chars, child_node.Length, currentIndexPosition, currentIndexLine, currentIndexCharacter);
 
             if (child_node.IsScopeProvider && child_node.GetScope().Type == BodyKind.EXTERNAL_FunctionBody)
             {
                 continue;
             }
             totalChecks++;
-            // // TODO: relative changes break this;
-            //if (child_node.Start.line == indexLine)
-            //{
-            //    // TODO: This might be inaccurate for a function definition (or etc...) that spans a single line; if you tried to target an identifier in the code block it might target the function definition I'm not sure.
-            //    if (child_node.Start.character <= indexCharacter && child_node.End.character >= indexCharacter)
-            //    {
-            //        return child_node;
-            //    }
-            //}
+            
+            if (childNode_startLine == targetIndexLine)
+            {
+                // TODO: This might be inaccurate for a function definition (or etc...) that spans a single line; if you tried to target an identifier in the code block it might target the function definition I'm not sure.
+                if (childNode_startCharacter <= targetIndexCharacter && childNode_endCharacter >= targetIndexCharacter)
+                {
+                    return child_node;
+                }
+            }
             // super arbitrary 1,000 limit until I sleep on the logic.
             // it should do a tree walking -ish algorithm so 1k isn't too bad?
             if (totalChecks > 1000)
@@ -94,11 +104,11 @@ internal static class SyntaxHelper
             }
 
             ref var childScope = ref child_node.GetScope();
-            if (childScope.End.line > indexLine)
+            if (childScope.End.line > targetIndexLine)
             {
                 if (childScope.BodyList.Count > 0)
                 {
-                    var node = RecursiveSearch(child_node, indexLine, indexCharacter, ref totalChecks);
+                    var node = RecursiveSearch(chars, child_node, targetIndexLine, targetIndexCharacter, ref totalChecks, ref currentIndexPosition, ref currentIndexLine, ref currentIndexCharacter);
                     if (node is not null)
                     {
                         return node;
@@ -108,5 +118,57 @@ internal static class SyntaxHelper
             }
         }
         return null;
+    }
+
+    public static void WalkPositionIndices_mutable(List<char> chars, int distance, ref int currentIndexPosition, ref int currentIndexLine, ref int currentIndexCharacter)
+    {
+        if (currentIndexPosition >= chars.Count)
+            return;
+
+        if (currentIndexPosition + distance >= chars.Count)
+            distance = chars.Count - currentIndexPosition;
+
+        for (var i = 0; i < distance; i++)
+        {
+            switch (chars[currentIndexPosition])
+            {
+                //case '\r': TODO: Include or not '\r'? When using my own editor I swap everything to '\n' but...
+                case '\n':
+                    currentIndexLine++;
+                    currentIndexCharacter = 0;
+                    break;
+                default:
+                    currentIndexCharacter++;
+                    break;
+            }
+            currentIndexPosition++;
+        }
+    }
+
+    public static (int CurrentIndexPosition, int CurrentIndexLine, int CurrentIndexCharacter) WalkPositionIndices_return(List<char> chars, int distance, int currentIndexPosition, int currentIndexLine, int currentIndexCharacter)
+    {
+        if (currentIndexPosition >= chars.Count)
+            return (currentIndexPosition, currentIndexLine, currentIndexCharacter);
+
+        if (currentIndexPosition + distance >= chars.Count)
+            distance = chars.Count - currentIndexPosition;
+
+        for (var i = 0; i < distance; i++)
+        {
+            switch (chars[currentIndexPosition])
+            {
+                //case '\r': TODO: Include or not '\r'? When using my own editor I swap everything to '\n' but...
+                case '\n':
+                    currentIndexLine++;
+                    currentIndexCharacter = 0;
+                    break;
+                default:
+                    currentIndexCharacter++;
+                    break;
+            }
+            currentIndexPosition++;
+        }
+
+        return (currentIndexPosition, currentIndexLine, currentIndexCharacter);
     }
 }
