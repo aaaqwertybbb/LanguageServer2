@@ -50,6 +50,13 @@ There are 4 steps:
 - [ ] Replicate the current goto definition logic with the changed properties (that are now relative positions).
     - [x] find the reference node
     - [ ] find the declaration node
+        - [ ] Algorithm "first thing that comes to mind regardless of what it is"
+            - [ ] Start at the definition node, and calculate the total "negative" distance required to reach the GlobalNode.
+            - [ ] Absolute value of that is the position but I need the line and character too.
+                - [ ] Line and character would be the absolute value of
+                    - [ ] Upon finding a new line you remember the "negative character index" that you have stored.
+                    - [ ] When you're done your line number is the absolute value of the "negative line index".
+        - [ ] Algorithm "???"
 - [ ] When you insert text you update the relative positions of the "node on the left and right of where you are inserting".
 - [ ] When you insert text you parse the text to create a new node and modify the AST with the node inserted at the correct position.
 */
