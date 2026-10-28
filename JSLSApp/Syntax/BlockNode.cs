@@ -16,7 +16,6 @@ public class BlockNode : SyntaxNode
 
     public override int DistanceFromPreviousNode { get; set; }
     public override int Length { get; set; }
-    public override IdKind Id_type => IdKind.Identifier;
     
     public override bool IsScopeProvider => true;
     public override bool IsIdentifiable => false;

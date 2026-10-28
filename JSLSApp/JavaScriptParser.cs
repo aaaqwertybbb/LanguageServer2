@@ -25,6 +25,7 @@ public class JavaScriptParser
     private JavaScriptDocument _doc;
     private readonly JavaScriptWorkspace _javaScriptWorkspace;
     private int _pos = 0;
+    private int _posOfPreviousNode = 0;
     private int _indexLine = 0;
     private int _indexChar = 0;
 

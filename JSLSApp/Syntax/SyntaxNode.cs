@@ -21,20 +21,13 @@ public abstract class SyntaxNode
     /// <see cref="DistanceFromPreviousNode"/>
     /// 
     /// TODO: Length might not make sense.
+    /// 
+    /// TODO: Length maybe could make sense if you tracked the version of the text as it gets edited...
+    /// ...And maybe the utility of this would be that caching the length as you travel over nodes maybe makes traversal faster?...
+    /// ...But maybe it is just not a good idea.
     /// </summary>
     public abstract int Length { get; set; }
 
-    /// <summary>
-    /// I'm being a bit awkward with how strictly I'm following the example
-    /// but I just need the first version to work.
-    /// 
-    /// As well the JSON may or may not be a simple default serialization.
-    /// Based on the JSON it seems every node has a list of children... or maybe the body.
-    /// But maybe this is all a shared list or etc... I have no idea.
-    /// 
-    /// TODO: Remove this 'Id_type' property.
-    /// </summary>
-    public abstract IdKind Id_type { get; }
     /// <summary>
     /// <see cref="GetScope"/>
     /// </summary>

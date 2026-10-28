@@ -14,7 +14,6 @@ public class VariableDeclarationNode : SyntaxNode
 
     public override int DistanceFromPreviousNode { get; set; }
     public override int Length { get; set; }
-    public override IdKind Id_type => IdKind.Identifier;
 
     public override bool IsScopeProvider => false;
     public override bool IsIdentifiable => true;

@@ -15,7 +15,6 @@ public class VariableReferenceNode : SyntaxNode
 
     public override int DistanceFromPreviousNode { get; set; }
     public override int Length { get; set; }
-    public override IdKind Id_type => IdKind.Identifier;
     /// <summary>
     /// TODO: Probably don't store this I don't know.
     /// Also, is there a way to ask the runtime what references to a certain address exist? Or something like that.
