@@ -199,10 +199,14 @@ internal static class LspDispatcher
                             {
                                 isFirstLoop = false;
                                 inclusiveFinalNodeToConsiderAtEachDepth.Push(declarationNode);
+                                inclusiveFinalNodeToConsiderAtEachDepth.Push(targetScopeProvider);
                             }
                             else
                             {
-                                inclusiveFinalNodeToConsiderAtEachDepth.Push(targetScopeProvider);
+                                if (targetScopeProvider != javaScriptDocument.CompilationUnit.GlobalNode)
+                                {
+                                    inclusiveFinalNodeToConsiderAtEachDepth.Push(targetScopeProvider);
+                                }
                             }
                             targetScopeProvider = targetScopeProvider.GetScope().ParentScopeProvider;
                         }
@@ -213,6 +217,10 @@ internal static class LspDispatcher
                         currentIndexPosition = 0;
                         currentIndexLine = 0;
                         currentIndexCharacter = 0;
+
+                        var isNaturalHandOff = true;
+
+                        var isSidePath = false;
 
                         var i = 0;
                         while (targetScopeProvider is not null)
@@ -249,7 +257,15 @@ internal static class LspDispatcher
                                     {
                                         returnStack.Push((targetScopeProvider, i));
                                     }
+                                    else
+                                    {
+                                        if (!isSidePath) // TODO: determine side path!!!!!
+                                        {
+                                            finalNodeToConsider = inclusiveFinalNodeToConsiderAtEachDepth.Pop();
+                                        }
+                                    }
                                     targetScopeProvider = childNode;
+                                    isNaturalHandOff = true;
                                     break;
                                 }
                                 else
@@ -262,15 +278,22 @@ internal static class LspDispatcher
                                     }
                                 }
                             }
-                            if (returnStack.Count > 0)
+                            if (isNaturalHandOff)
                             {
-                                var returnEntry = returnStack.Pop();
-                                targetScopeProvider = returnEntry.ScopeProvider;
-                                i = returnEntry.ChildIndexOfScopeProviderAmongItsSiblings + 1;
+                                isNaturalHandOff = false;
                             }
                             else
                             {
-                                targetScopeProvider = null;
+                                if (returnStack.Count > 0)
+                                {
+                                    var returnEntry = returnStack.Pop();
+                                    targetScopeProvider = returnEntry.ScopeProvider;
+                                    i = returnEntry.ChildIndexOfScopeProviderAmongItsSiblings + 1;
+                                }
+                                else
+                                {
+                                    targetScopeProvider = null;
+                                }
                             }
                         }
 
