@@ -44,25 +44,16 @@ public class LexerTests
 
     public const string CompletionRequest = "Content-Length: 179\r\n\r\n{\"id\":2,\"method\":\"textDocument/completion\",\"params\":{\"textDocument\":{\"uri\":\"file:///C:/Users/hunte/Repos/New folder (7)/Editor2/testFile.js\"},\"position\":{\"line\":0,\"character\":0}}}\\n";
 
+/*
+There are 4 steps:
+- Get the code to even run (now that you've changed all the properties tons of build errors, and make sure nothing is bugging out)
+- Replicate the current goto definition logic with the changed properties (that are now relative positions).
+- When you insert text you update the relative positions of the "node on the left and right of where you are inserting".
+- When you insert text you parse the text to create a new node and modify the AST with the node inserted at the correct position.
+*/
+
     public string Format_didOpenTextDocumentNotification(string fileText)
     {
         return "Content-Length: " + (181 + fileText.Length) + "\r\n\r\n{\"method\":\"textDocument/didOpen\",\"params\":{\"textDocument\":{\"uri\":\"file:///C:/Users/hunte/Repos/New folder (7)/Editor2/testFile.js\",\"languageId\":\"javascript\",\"version\":0,\"text\":\"" + fileText + "\"}}}\\n      ";
     }
 }
-
-//public class ParserTests
-//{
-//    [Theory]
-//    [InlineData("if (true) { return 1; }", "IfStatement(Condition: true, Body: [ReturnStatement(1)])")]
-//    [InlineData("1 + 2 * 3", "BinaryExpression(+, 1, BinaryExpression(*, 2, 3))")] // Tests operator precedence!
-//    public void Parser_ShouldBuild_CorrectAst(string source, string expectedAstString)
-//    {
-//        var lexer = new Lexer(source);
-//        var parser = new Parser(lexer);
-
-//        var program = parser.ParseProgram();
-
-//        Assert.False(parser.HasErrors(), $"Parser had errors: {string.Join(", ", parser.Errors)}");
-//        Assert.Equal(expectedAstString, program.ToDebugString());
-//    }
-//}

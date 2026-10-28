@@ -9,8 +9,20 @@ namespace JSLSApp.Syntax;
 public abstract class SyntaxNode
 {
     public abstract SyntaxKind SyntaxKind { get; }
-    public abstract Position Start { get; set; }
-    public abstract Position End { get; set; }
+    /// <summary>
+    /// TODO: Character or byte distance. I'm gonna start with character.
+    /// 
+    /// <see cref="Length"/>
+    /// </summary>
+    public abstract int DistanceFromPreviousNode { get; set; }
+    /// <summary>
+    /// TODO: Character or byte distance. I'm gonna start with character.
+    /// 
+    /// <see cref="DistanceFromPreviousNode"/>
+    /// 
+    /// TODO: Length might not make sense.
+    /// </summary>
+    public abstract int Length { get; set; }
 
     /// <summary>
     /// I'm being a bit awkward with how strictly I'm following the example
@@ -19,6 +31,8 @@ public abstract class SyntaxNode
     /// As well the JSON may or may not be a simple default serialization.
     /// Based on the JSON it seems every node has a list of children... or maybe the body.
     /// But maybe this is all a shared list or etc... I have no idea.
+    /// 
+    /// TODO: Remove this 'Id_type' property.
     /// </summary>
     public abstract IdKind Id_type { get; }
     /// <summary>
@@ -43,18 +57,3 @@ public abstract class SyntaxNode
     /// </summary>
     public virtual ref int GetIdentifierHash() => throw new InvalidOperationException("Not identifiable");
 }
-
-/// <summary>
-/// Might be wrong right off the bat to use a global node rather than just inferring global due to a lack of parent idk I'll figure it out at some later point I just gotta type something first.
-///
-/// Actually it says body in the first json example.
-/// < {
-/// <   "type": "Program",
-/// <   "body": [...
-/// </summary>
-//public class GlobalNode : SyntaxNode
-//{
-//    public override SyntaxKind SyntaxKind => SyntaxKind.GlobalNode;
-//}
-
-

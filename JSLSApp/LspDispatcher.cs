@@ -173,10 +173,14 @@ internal static class LspDispatcher
             {
                 start = new Position
                 {
-                    line = variableReferenceNode.DefinitionLine,
-                    character = variableReferenceNode.DefinitionCharacter
+                    line = 0,// TODO: relative changes break this; variableReferenceNode.DefinitionLine,
+                    character = 0//variableReferenceNode.DefinitionCharacter
                 },
-                end = result_node.End,
+                end = new Position //end = result_node.End, // TODO: relative changes break this;
+                {
+                    line = 0,
+                    character = 0
+                },
             };
 
             //nodeString = $"{result_node.SyntaxKind}~{result_node.Id_name}";

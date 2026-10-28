@@ -4,6 +4,8 @@ internal static class SyntaxHelper
 {
     public static SyntaxNode? RecursiveSearch_BodyOnly(SyntaxNode scopeProvider, int indexLine, ref int totalChecks, ref int nodeCount)
     {
+        return null;
+
         ref var scope = ref scopeProvider.GetScope();
 
         nodeCount += scope.CountOfChildrenThatAreDefinitions;
@@ -29,11 +31,12 @@ internal static class SyntaxHelper
             }
 
             totalChecks++;
-            if (child_node.Start.line == indexLine)
-            {
-                nodeCount += childScope.CountOfChildrenThatAreDefinitions;
-                return child_node;
-            }
+            // // TODO: relative changes break this;
+            //if (child_node.Start.line == indexLine)
+            //{
+            //    nodeCount += childScope.CountOfChildrenThatAreDefinitions;
+            //    return child_node;
+            //}
             // super arbitrary 1,000 limit until I sleep on the logic.
             // it should do a tree walking -ish algorithm so 1k isn't too bad?
             if (totalChecks > 1000)
@@ -56,6 +59,8 @@ internal static class SyntaxHelper
 
     public static SyntaxNode? RecursiveSearch(SyntaxNode scopeProvider, int indexLine, int indexCharacter, ref int totalChecks)
     {
+        return null;
+
         ref var scope = ref scopeProvider.GetScope();
 
         for (int i = 0; i < scope.BodyList.Count; i++)
@@ -67,14 +72,15 @@ internal static class SyntaxHelper
                 continue;
             }
             totalChecks++;
-            if (child_node.Start.line == indexLine)
-            {
-                // TODO: This might be inaccurate for a function definition (or etc...) that spans a single line; if you tried to target an identifier in the code block it might target the function definition I'm not sure.
-                if (child_node.Start.character <= indexCharacter && child_node.End.character >= indexCharacter)
-                {
-                    return child_node;
-                }
-            }
+            // // TODO: relative changes break this;
+            //if (child_node.Start.line == indexLine)
+            //{
+            //    // TODO: This might be inaccurate for a function definition (or etc...) that spans a single line; if you tried to target an identifier in the code block it might target the function definition I'm not sure.
+            //    if (child_node.Start.character <= indexCharacter && child_node.End.character >= indexCharacter)
+            //    {
+            //        return child_node;
+            //    }
+            //}
             // super arbitrary 1,000 limit until I sleep on the logic.
             // it should do a tree walking -ish algorithm so 1k isn't too bad?
             if (totalChecks > 1000)

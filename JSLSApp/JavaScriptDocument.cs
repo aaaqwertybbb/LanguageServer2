@@ -9,7 +9,7 @@ public class JavaScriptDocument
         UriPath = uriPath;
         Chars = chars;
         // This is just a hack for now otherwise if statements and other not handled scopes would close the scope of the parent.
-        CompilationUnit = new JavaScriptCompilationUnit(new(), new GlobalNode(), new());
+        CompilationUnit = new JavaScriptCompilationUnit(new(), new GlobalNode(0, 0), new());
     }
 
     public string UriPath { get; }

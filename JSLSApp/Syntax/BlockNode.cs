@@ -4,18 +4,18 @@ namespace JSLSApp.Syntax;
 
 public class BlockNode : SyntaxNode
 {
-    public BlockNode(int startLine, int startCharacter, int endLine, int endCharacter)
+    public BlockNode(int distanceFromPreviousNode, int length)
     {
-        Start = new Position(startLine, startCharacter);
-        End = new Position(endLine, endCharacter);
+        DistanceFromPreviousNode = distanceFromPreviousNode;
+        Length = length;
 
         _scope.Type = BodyKind.BlockBody;
     }
 
     public override SyntaxKind SyntaxKind => SyntaxKind.BlockNode;
 
-    public override Position Start { get; set; }
-    public override Position End { get; set; }
+    public override int DistanceFromPreviousNode { get; set; }
+    public override int Length { get; set; }
     public override IdKind Id_type => IdKind.Identifier;
     
     public override bool IsScopeProvider => true;

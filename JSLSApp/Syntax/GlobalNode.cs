@@ -12,15 +12,18 @@ namespace JSLSApp.Syntax;
 public class GlobalNode : SyntaxNode
 {
     //public static readonly GlobalNode GLOBAL_NODE = new GlobalNode();
-    public GlobalNode()
+    public GlobalNode(int distanceFromPreviousNode, int length)
     {
+        DistanceFromPreviousNode = distanceFromPreviousNode;
+        Length = length;
+
         _scope.Type = BodyKind.GlobalBody;
     }
 
     public override SyntaxKind SyntaxKind => SyntaxKind.GlobalNode;
 
-    public override Position Start { get; set; }
-    public override Position End { get; set; }
+    public override int DistanceFromPreviousNode { get; set; }
+    public override int Length { get; set; }
 
     public override IdKind Id_type => IdKind.Identifier;
 
@@ -31,18 +34,3 @@ public class GlobalNode : SyntaxNode
 
     public override ref Scope GetScope() => ref _scope;
 }
-
-/// <summary>
-/// Might be wrong right off the bat to use a global node rather than just inferring global due to a lack of parent idk I'll figure it out at some later point I just gotta type something first.
-///
-/// Actually it says body in the first json example.
-/// < {
-/// <   "type": "Program",
-/// <   "body": [...
-/// </summary>
-//public class GlobalNode : SyntaxNode
-//{
-//    public override SyntaxKind SyntaxKind => SyntaxKind.GlobalNode;
-//}
-
-
