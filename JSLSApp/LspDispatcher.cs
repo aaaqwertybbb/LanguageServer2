@@ -187,13 +187,23 @@ internal static class LspDispatcher
                     var indexOf = declarationNode.ParentScopeProvider.GetScope().BodyList.IndexOf(declarationNode);
                     if (indexOf != -1)
                     {
-                        inclusiveFinalNodeToConsiderAtEachDepth.Push(declarationNode);
+                        
 
                         var targetScopeProvider = declarationNode.ParentScopeProvider;
 
+                        var isFirstLoop = true;
+
                         while (targetScopeProvider is not null)
                         {
-                            inclusiveFinalNodeToConsiderAtEachDepth.Push(targetScopeProvider);
+                            if (isFirstLoop)
+                            {
+                                isFirstLoop = false;
+                                inclusiveFinalNodeToConsiderAtEachDepth.Push(declarationNode);
+                            }
+                            else
+                            {
+                                inclusiveFinalNodeToConsiderAtEachDepth.Push(targetScopeProvider);
+                            }
                             targetScopeProvider = targetScopeProvider.GetScope().ParentScopeProvider;
                         }
 
@@ -241,6 +251,15 @@ internal static class LspDispatcher
                                     }
                                     targetScopeProvider = childNode;
                                     break;
+                                }
+                                else
+                                {
+                                    if (childNode == finalNodeToConsider)
+                                    {
+                                        returnStack.Clear(); // TODO: Don't do this just anxiety I have no reason for this line to exist?
+                                        targetScopeProvider = null;
+                                        break;
+                                    }
                                 }
                             }
                             if (returnStack.Count > 0)
