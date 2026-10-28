@@ -187,6 +187,7 @@ internal static class LspDispatcher
                         var isFirstNewLine = true;
                         var characterIndex = 0;
 
+                        currentIndexPosition = 0;
                         currentIndexLine = 0;
                         currentIndexCharacter = 0;
 

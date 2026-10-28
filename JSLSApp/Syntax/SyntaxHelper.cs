@@ -104,7 +104,7 @@ internal static class SyntaxHelper
             }
 
             ref var childScope = ref child_node.GetScope();
-            if (childScope.End.line > targetIndexLine)
+            if (childScope.End.line >= targetIndexLine)
             {
                 if (childScope.BodyList.Count > 0)
                 {

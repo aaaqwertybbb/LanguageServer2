@@ -346,7 +346,7 @@ public class JavaScriptParser
         var identifierHash = _identifierHash;
         if (_pendingVariableDeclarationNodeDictionary.TryGetValue(identifierHash, out var definition))
         {
-            var variableReferenceNode = new VariableReferenceNode((_pos - token.Length) - _posOfPreviousNode, 0, definition);
+            var variableReferenceNode = new VariableReferenceNode((_pos - token.Length) - _posOfPreviousNode, token.Length, definition);
             _posOfPreviousNode = _pos - token.Length;
             variableReferenceNode.GetIdentifierHash() = identifierHash;
             _currentScope.BodyList.Add(variableReferenceNode);

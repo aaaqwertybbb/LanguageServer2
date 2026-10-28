@@ -31,11 +31,11 @@ public class LexerTests
     public const string didOpenTextDocumentNotification = "Content-Length: 433\r\n\r\n{\"method\":\"textDocument/didOpen\",\"params\":{\"textDocument\":{\"uri\":\"file:///C:/Users/hunte/Repos/New folder (7)/Editor2/testFile.js\",\"languageId\":\"javascript\",\"version\":0,\"text\":\"aaa\\n        /**\\n         * @type {HTMLDivElement}\\n         * Consider the existence of such methods as 'state_cursor_setIndex' before mutating state directly\\n         */xxx/*\\n         */\\n        this.cursorElement = document.createElement('div');\"}}}\\n      ";
     public const string customFullFileLexRequest = "Content-Length: 157\r\n\r\n{\"id\":1,\"method\":\"textDocument/CustomFullFileLexRequest\",\"params\":{\"textDocument\":{\"uri\":\"file:///C:/Users/hunte/Repos/New folder (7)/Editor2/testFile.js\"}}}\\n";
 
-    public const string FileText = "let x = 2;\\n\\nreturn x;";
+    public const string FileText = "let x = 2;\\n\\n{\\nreturn x;}";
     
 
-    public const string DefinitionRequestOne = "Content-Length: 179\r\n\r\n{\"id\":3,\"method\":\"textDocument/definition\",\"params\":{\"textDocument\":{\"uri\":\"file:///C:/Users/hunte/Repos/New folder (7)/Editor2/testFile.js\"},\"position\":{\"line\":2,\"character\":7}}}\n";
-    public const string DefinitionRequestTwo = "Content-Length: 179\r\n\r\n{\"id\":3,\"method\":\"textDocument/definition\",\"params\":{\"textDocument\":{\"uri\":\"file:///C:/Users/hunte/Repos/New folder (7)/Editor2/testFile.js\"},\"position\":{\"line\":2,\"character\":7}}}\n";
+    public const string DefinitionRequestOne = "Content-Length: 179\r\n\r\n{\"id\":3,\"method\":\"textDocument/definition\",\"params\":{\"textDocument\":{\"uri\":\"file:///C:/Users/hunte/Repos/New folder (7)/Editor2/testFile.js\"},\"position\":{\"line\":3,\"character\":7}}}\n";
+    public const string DefinitionRequestTwo = "Content-Length: 179\r\n\r\n{\"id\":3,\"method\":\"textDocument/definition\",\"params\":{\"textDocument\":{\"uri\":\"file:///C:/Users/hunte/Repos/New folder (7)/Editor2/testFile.js\"},\"position\":{\"line\":3,\"character\":7}}}\n";
     public const string DefinitionRequestThree = "Content-Length: 179\r\n\r\n{\"id\":3,\"method\":\"textDocument/definition\",\"params\":{\"textDocument\":{\"uri\":\"file:///C:/Users/hunte/Repos/New folder (7)/Editor2/testFile.js\"},\"position\":{\"line\":5,\"character\":7}}}\n";
     public const string DefinitionRequestFour = "Content-Length: 180\r\n\r\n{\"id\":3,\"method\":\"textDocument/definition\",\"params\":{\"textDocument\":{\"uri\":\"file:///C:/Users/hunte/Repos/New folder (7)/Editor2/testFile.js\"},\"position\":{\"line\":3,\"character\":11}}}\n";
 
@@ -71,6 +71,12 @@ public class LexerTests
                     - [ ] and thus you'd have Algorithm "first thing..." available.
                         - [ ] This comment doesn't actually read completely, you need the knowledge that a scope has a 'SyntaxNode? ParentScopeProvider'
                               and that is how you'll continue all the way to the GlobalNode.
+                              - [ ] No it's the scopes that are wrong they still use absolute positions
+                              - [ ] Okay I know what to do
+                                  - [ ] You go backwards from the definition node by just jumping to each parent scope until you are at the global node.
+                                       - [ ] And you only need to determine the distances up until the scope provider that you visited at that level.
+                                       - [ ] Go in reverse, track all the scopeProviders that would bring you back to where you were so you stop reading past that "sibling" at each depth.
+                                       - [ ] If there's an earlier scope at the same depth you still have to descend into it so you can determine the positions of it all.
                 - [ ] You need to map out the positions of every node kind cause if you miss even just 1 it completely falls apart. (and currently you're missing the majority of them).
             - [ ] Algorithm "???"
     - [ ] When you insert text you update the relative positions of the "node on the left and right of where you are inserting".
