@@ -64,6 +64,11 @@ public class LexerTests
                     - [ ] The distance from the declaration to the Global node compared against:
                         - [ ] The distance from the reference to the declaration.
                         - [ ] Is an irrelevant point it seems it could go in either one's favor
+            - [ ] The first two algorithms are predicated upon the referenceNode having a C# field that references the declarationNode.
+                - [ ] The above idea "feels" asinine (maybe it isn't). But I think it is a necessary step towards the correct answer.
+                - [ ] The declaration would need a reference to the parentNode (of which would be a scope provider).
+                    - [ ] You could then find the declaration node among the parentNode's scope-bodyList
+                    - [ ] and thus you'd have Algorithm "first thing..." available.
             - [ ] Algorithm "???"
     - [ ] When you insert text you update the relative positions of the "node on the left and right of where you are inserting".
     - [ ] When you insert text you parse the text to create a new node and modify the AST with the node inserted at the correct position.
