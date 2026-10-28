@@ -16,18 +16,33 @@ public class LexerTests
         var aaa = Format_didOpenTextDocumentNotification(FileText);
         JSLSApp.Program.MAIN_decodeMessage(aaa);
         JSLSApp.Program.MAIN_decodeMessage(customFullFileLexRequest);
-        JSLSApp.Program.MAIN_decodeMessage(DefinitionRequest);
+        JSLSApp.Program.MAIN_decodeMessage(DefinitionRequestOne); // ensure the goto definition of the original 'x'
+        JSLSApp.Program.MAIN_decodeMessage(DidChangeNotification); // paste "function Aaa() { return 'x'; }"
+        JSLSApp.Program.MAIN_decodeMessage(DefinitionRequestTwo); // ensure the original goto definition of the 'x' no longer works
+        JSLSApp.Program.MAIN_decodeMessage(DefinitionRequestThree); // try another goto definition but with the updated position for 'x'
+        JSLSApp.Program.MAIN_decodeMessage(DefinitionRequestFour); // try a final goto definition but for the 'x' that is inside of the "function Aaa() { return 'x'; }" text.
     }
+
+    // TODO: Try to resolve unknown symbols after parsing the file rather than doing what you did last time which was to parse the entire scope and then re-visit the child scopes one by one...
+    // ...whichever is the correct answer I don't know but you tried one so you should try the other one now.
 
     public const string InitializeJson = "Content-Length: 331\r\n\r\n{\"method\":\"initialize\",\"id\":0,\"params\":{\"processId\":18260,\"clientInfo\":{\"name\":\"TextEditor123\",\"version\":\"0.0.1\"},\"rootUri\":null,\"capabilities\":{\"workspace\":{}},\"workspaceFolders\":[{\"uri\":\"C:\\\\Users\\\\hunte\\\\Repos\\\\New folder (7)\\\\Editor2\",\"name\":\"2\"},{\"uri\":\"C:\\\\Users\\\\hunte\\\\Repos\\\\New folder (7)\\\\LanguageServer2\",\"name\":\"3\"}]}}\\n";
     // I'm gonna put "      " at the end of this string cuz the length is wrong and it won't read it
     public const string didOpenTextDocumentNotification = "Content-Length: 433\r\n\r\n{\"method\":\"textDocument/didOpen\",\"params\":{\"textDocument\":{\"uri\":\"file:///C:/Users/hunte/Repos/New folder (7)/Editor2/testFile.js\",\"languageId\":\"javascript\",\"version\":0,\"text\":\"aaa\\n        /**\\n         * @type {HTMLDivElement}\\n         * Consider the existence of such methods as 'state_cursor_setIndex' before mutating state directly\\n         */xxx/*\\n         */\\n        this.cursorElement = document.createElement('div');\"}}}\\n      ";
     public const string customFullFileLexRequest = "Content-Length: 157\r\n\r\n{\"id\":1,\"method\":\"textDocument/CustomFullFileLexRequest\",\"params\":{\"textDocument\":{\"uri\":\"file:///C:/Users/hunte/Repos/New folder (7)/Editor2/testFile.js\"}}}\\n";
 
-    public const string FileText = "function EDI_render_request(renderKind) { if (EDI_renderKindBuffer[lastIndex] === renderKind { return; } }";
-    public const string CompletionRequest = "Content-Length: 179\r\n\r\n{\"id\":2,\"method\":\"textDocument/completion\",\"params\":{\"textDocument\":{\"uri\":\"file:///C:/Users/hunte/Repos/New folder (7)/Editor2/testFile.js\"},\"position\":{\"line\":0,\"character\":0}}}\\n";
+    public const string FileText = "let x = 2;\\n\\nreturn x;";
+    
 
-    public const string DefinitionRequest = "Content-Length: 180\r\n\r\n{\"id\":3,\"method\":\"textDocument/definition\",\"params\":{\"textDocument\":{\"uri\":\"file:///C:/Users/hunte/Repos/New folder (7)/Editor2/testFile.js\"},\"position\":{\"line\":1,\"character\":23}}}\\n";
+    public const string DefinitionRequestOne = "Content-Length: 179\r\n\r\n{\"id\":3,\"method\":\"textDocument/definition\",\"params\":{\"textDocument\":{\"uri\":\"file:///C:/Users/hunte/Repos/New folder (7)/Editor2/testFile.js\"},\"position\":{\"line\":2,\"character\":7}}}\n";
+    public const string DefinitionRequestTwo = "Content-Length: 179\r\n\r\n{\"id\":3,\"method\":\"textDocument/definition\",\"params\":{\"textDocument\":{\"uri\":\"file:///C:/Users/hunte/Repos/New folder (7)/Editor2/testFile.js\"},\"position\":{\"line\":2,\"character\":7}}}\n";
+    public const string DefinitionRequestThree = "Content-Length: 179\r\n\r\n{\"id\":3,\"method\":\"textDocument/definition\",\"params\":{\"textDocument\":{\"uri\":\"file:///C:/Users/hunte/Repos/New folder (7)/Editor2/testFile.js\"},\"position\":{\"line\":5,\"character\":7}}}\n";
+    public const string DefinitionRequestFour = "Content-Length: 180\r\n\r\n{\"id\":3,\"method\":\"textDocument/definition\",\"params\":{\"textDocument\":{\"uri\":\"file:///C:/Users/hunte/Repos/New folder (7)/Editor2/testFile.js\"},\"position\":{\"line\":3,\"character\":11}}}\n";
+
+    public const string DidChangeNotification = "Content-Length: 288\r\n\r\n{\"method\":\"textDocument/didChange\",\"params\":{\"textDocument\":{\"uri\":\"file:///C:/Users/hunte/Repos/New folder (7)/Editor2/testFile.js\",\"version\":1},\"contentChanges\":[{\"range\":{\"start\":{\"line\":1,\"character\":0},\"end\":{\"line\":1,\"character\":0}},\"text\":\"function Aaa() {\\\\n    return x;\\\\n}\"}]}}\\n";
+
+
+    public const string CompletionRequest = "Content-Length: 179\r\n\r\n{\"id\":2,\"method\":\"textDocument/completion\",\"params\":{\"textDocument\":{\"uri\":\"file:///C:/Users/hunte/Repos/New folder (7)/Editor2/testFile.js\"},\"position\":{\"line\":0,\"character\":0}}}\\n";
 
     public string Format_didOpenTextDocumentNotification(string fileText)
     {
