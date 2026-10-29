@@ -83,6 +83,7 @@ public class LexerTests
                                        - [ ] and at child count > 0 it is the distance from the final child node.
                                        - [ ] I been watching mad azeroth survivors lately.
                                        - [ ] I don't wanna touch it though myself cause it looks crazy fun -- like to the point of it being dangerous. "don't do azeroth survivors"
+                                       - [ ] I'm crazy distracted rn I don't wanna do this I might just go to bed I've been watching the same "music video" on loop for more than an hour
                 - [ ] You need to map out the positions of every node kind cause if you miss even just 1 it completely falls apart. (and currently you're missing the majority of them).
             - [ ] Algorithm "???"
     - [ ] When you insert text you update the relative positions of the "node on the left and right of where you are inserting".
