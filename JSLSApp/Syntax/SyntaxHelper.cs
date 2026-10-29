@@ -197,6 +197,7 @@ internal static class SyntaxHelper
             if (isNaturalHandOff)
             {
                 isNaturalHandOff = false;
+                i = 0;
             }
             else
             {
