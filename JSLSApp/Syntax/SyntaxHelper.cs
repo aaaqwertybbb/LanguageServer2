@@ -60,7 +60,16 @@ internal static class SyntaxHelper
     /// <summary>
     /// TODO: 'RecursiveSearchArgs' object instance to reduce parameter overhead from inner recursive invocations.
     /// </summary>
-    public static SyntaxNode? RecursiveSearch(List<char> chars, SyntaxNode scopeProvider, int targetIndexLine, int targetIndexCharacter, ref int totalChecks, ref int currentIndexPosition, ref int currentIndexLine, ref int currentIndexCharacter)
+    public static SyntaxNode? RecursiveSearch(List<char> chars,
+                                              SyntaxNode scopeProvider,
+                                              int targetIndexLine,
+                                              int targetIndexCharacter,
+                                              ref int totalChecks,
+                                              ref int currentIndexPosition,
+                                              ref int currentIndexLine,
+                                              ref int currentIndexCharacter,
+                                              Stack<SyntaxNode> inclusiveFinalNodeToConsiderAtEachDepth,
+                                              Stack<(SyntaxNode ScopeProvider, int ChildIndexOfScopeProviderAmongItsSiblings)> returnStack)
     {
         ref var scope = ref scopeProvider.GetScope();
 
@@ -108,7 +117,16 @@ internal static class SyntaxHelper
             {
                 if (childScope.BodyList.Count > 0)
                 {
-                    var node = RecursiveSearch(chars, child_node, targetIndexLine, targetIndexCharacter, ref totalChecks, ref currentIndexPosition, ref currentIndexLine, ref currentIndexCharacter);
+                    var node = RecursiveSearch(chars,
+                                               child_node,
+                                               targetIndexLine,
+                                               targetIndexCharacter,
+                                               ref totalChecks,
+                                               ref currentIndexPosition,
+                                               ref currentIndexLine,
+                                               ref currentIndexCharacter,
+                                               inclusiveFinalNodeToConsiderAtEachDepth,
+                                               returnStack);
                     if (node is not null)
                     {
                         return node;
@@ -116,8 +134,84 @@ internal static class SyntaxHelper
                 }
                 break;
             }
+            else
+            {
+                SkipBranchButStillCountItPositionWise(chars,
+                                                      child_node,
+                                                      ref currentIndexPosition,
+                                                      ref currentIndexLine,
+                                                      ref currentIndexCharacter,
+                                                      inclusiveFinalNodeToConsiderAtEachDepth,
+                                                      returnStack);
+            }
         }
         return null;
+    }
+
+    public static void SkipBranchButStillCountItPositionWise(List<char> chars,
+                                                             SyntaxNode? targetScopeProvider,
+                                                             ref int currentIndexPosition,
+                                                             ref int currentIndexLine,
+                                                             ref int currentIndexCharacter,
+                                                             Stack<SyntaxNode> inclusiveFinalNodeToConsiderAtEachDepth,
+                                                             Stack<(SyntaxNode ScopeProvider, int ChildIndexOfScopeProviderAmongItsSiblings)> returnStack)
+    {
+        var isNaturalHandOff = true;
+        var i = 0;
+        while (targetScopeProvider is not null)
+        {
+            ref var scope = ref targetScopeProvider.GetScope();
+            for (; i < scope.BodyList.Count; i++)
+            {
+                var childNode = scope.BodyList[i];
+                if (currentIndexPosition < chars.Count)
+                {
+                    var distance = childNode.DistanceFromPreviousNode;
+                    if (currentIndexPosition + distance >= chars.Count)
+                        distance = chars.Count - currentIndexPosition;
+
+                    for (var j = 0; j < distance; j++)
+                    {
+                        switch (chars[currentIndexPosition])
+                        {
+                            //case '\r': TODO: Include or not '\r'? When using my own editor I swap everything to '\n' but...
+                            case '\n':
+                                currentIndexLine++;
+                                currentIndexCharacter = 0;
+                                break;
+                            default:
+                                currentIndexCharacter++;
+                                break;
+                        }
+                        currentIndexPosition++;
+                    }
+                }
+                if (childNode.IsScopeProvider)
+                {
+                    returnStack.Push((targetScopeProvider, i));
+                    targetScopeProvider = childNode;
+                    isNaturalHandOff = true;
+                    break;
+                }
+            }
+            if (isNaturalHandOff)
+            {
+                isNaturalHandOff = false;
+            }
+            else
+            {
+                if (returnStack.Count > 0)
+                {
+                    var returnEntry = returnStack.Pop();
+                    targetScopeProvider = returnEntry.ScopeProvider;
+                    i = returnEntry.ChildIndexOfScopeProviderAmongItsSiblings + 1;
+                }
+                else
+                {
+                    targetScopeProvider = null;
+                }
+            }
+        }
     }
 
     public static void WalkPositionIndices_mutable(List<char> chars, int distance, ref int currentIndexPosition, ref int currentIndexLine, ref int currentIndexCharacter)

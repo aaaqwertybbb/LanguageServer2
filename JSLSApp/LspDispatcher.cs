@@ -168,13 +168,25 @@ internal static class LspDispatcher
         var currentIndexLine = 0;
         var currentIndexCharacter = 0;
 
-        result_node = SyntaxHelper.RecursiveSearch(javaScriptDocument.Chars, javaScriptDocument.CompilationUnit.GlobalNode, definitionRequest.@params.position.line, definitionRequest.@params.position.character, ref totalChecks, ref currentIndexPosition, ref currentIndexLine, ref currentIndexCharacter);
-
         // Contains both IsScopeProvider==true nodes and IsScopeProvider==false nodes
         // BECAUSE it contains the definition node itself as the first thing that gets pushed.
         // Other than that first pushed node everything is IsScopeProvider==true.
         Stack<SyntaxNode> inclusiveFinalNodeToConsiderAtEachDepth = new();
         Stack<(SyntaxNode ScopeProvider, int ChildIndexOfScopeProviderAmongItsSiblings)> returnStack = new();
+
+        result_node = SyntaxHelper.RecursiveSearch(javaScriptDocument.Chars,
+                                                   javaScriptDocument.CompilationUnit.GlobalNode,
+                                                   definitionRequest.@params.position.line,
+                                                   definitionRequest.@params.position.character,
+                                                   ref totalChecks,
+                                                   ref currentIndexPosition,
+                                                   ref currentIndexLine,
+                                                   ref currentIndexCharacter,
+                                                   inclusiveFinalNodeToConsiderAtEachDepth,
+                                                   returnStack);
+
+        inclusiveFinalNodeToConsiderAtEachDepth.Clear();
+        returnStack.Clear();
 
         if (result_node is not null && result_node.SyntaxKind == SyntaxKind.VariableReferenceNode)
         {
@@ -486,6 +498,7 @@ internal static class LspDispatcher
 
     private static Message DeserializeContent_Hover(string content, Message request)
     {
+        return request;
         var hoverRequest = JsonSerializer.Deserialize<TextDocumentHoverRequest>(content);
         if (hoverRequest is null || hoverRequest.@params.textDocument.uri is null)
         {
@@ -525,7 +538,16 @@ internal static class LspDispatcher
         var currentIndexLine = 0;
         var currentIndexCharacter = 0;
 
-        result_node = SyntaxHelper.RecursiveSearch(javaScriptDocument.Chars, javaScriptDocument.CompilationUnit.GlobalNode, hoverRequest.@params.position.line, hoverRequest.@params.position.character, ref totalChecks, ref currentIndexPosition, ref currentIndexLine, ref currentIndexCharacter);
+        // Contains both IsScopeProvider==true nodes and IsScopeProvider==false nodes
+        // BECAUSE it contains the definition node itself as the first thing that gets pushed.
+        // Other than that first pushed node everything is IsScopeProvider==true.
+        Stack<SyntaxNode> inclusiveFinalNodeToConsiderAtEachDepth = new();
+        Stack<(SyntaxNode ScopeProvider, int ChildIndexOfScopeProviderAmongItsSiblings)> returnStack = new();
+
+        result_node = SyntaxHelper.RecursiveSearch(javaScriptDocument.Chars, javaScriptDocument.CompilationUnit.GlobalNode, hoverRequest.@params.position.line, hoverRequest.@params.position.character, ref totalChecks, ref currentIndexPosition, ref currentIndexLine, ref currentIndexCharacter, inclusiveFinalNodeToConsiderAtEachDepth, returnStack);
+
+        inclusiveFinalNodeToConsiderAtEachDepth.Clear();
+        returnStack.Clear();
 
         string nodeString;
         if (result_node is not null && result_node.IsIdentifiable)
