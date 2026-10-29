@@ -300,6 +300,7 @@ internal static class LspDispatcher
                             if (isNaturalHandOff)
                             {
                                 isNaturalHandOff = false;
+                                i = 0;
                             }
                             else
                             {
