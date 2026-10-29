@@ -233,6 +233,7 @@ internal static class LspDispatcher
                         currentIndexLine = 0;
                         currentIndexCharacter = 0;
 
+                        // TODO: This should probably start as false (it was required to start as false in a similar but not exactly the same scenario)
                         var isNaturalHandOff = true;
 
                         var isSidePath = false;
