@@ -156,7 +156,7 @@ internal static class SyntaxHelper
                                                              Stack<SyntaxNode> inclusiveFinalNodeToConsiderAtEachDepth,
                                                              Stack<(SyntaxNode ScopeProvider, int ChildIndexOfScopeProviderAmongItsSiblings)> returnStack)
     {
-        var isNaturalHandOff = true;
+        var isNaturalHandOff = false;
         var i = 0;
         while (targetScopeProvider is not null)
         {
