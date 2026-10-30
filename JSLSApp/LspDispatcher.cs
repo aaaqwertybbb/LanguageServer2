@@ -95,12 +95,12 @@ internal static class LspDispatcher
         }
 
 
-        (SyntaxNode? before, SyntaxNode? among, SyntaxNode? after) = _javaScriptWorkspace.FindNodesAdjacentToTheEdit(javaScriptDocument, customEditorGetNodesAdjacentToCursorFromLspRequest.@params.position, customEditorGetNodesAdjacentToCursorFromLspRequest.@params.position);
+        (SyntaxNodeWithPosition before, SyntaxNodeWithPosition among, SyntaxNodeWithPosition after) = _javaScriptWorkspace.FindNodesAdjacentToTheEdit(javaScriptDocument, customEditorGetNodesAdjacentToCursorFromLspRequest.@params.position, customEditorGetNodesAdjacentToCursorFromLspRequest.@params.position);
 
         var textDocumentDocumentSymbolResponse = new CustomEditorGetNodesAdjacentToCursorFromLspRequestResponse(customEditorGetNodesAdjacentToCursorFromLspRequest.id, new CustomEditorGetNodesAdjacentToCursorFromLspRequestResponseResult(
-            before: new CustomEditorGetNodesAdjacentToCursorFromLspRequestResponseResultNode(SyntaxHelper.GetSyntaxKindString(before?.SyntaxKind ?? SyntaxKind.None), SyntaxHelper.GetIdentifierText(before), new Position(0, 1)),
-            among: new CustomEditorGetNodesAdjacentToCursorFromLspRequestResponseResultNode(SyntaxHelper.GetSyntaxKindString(among?.SyntaxKind ?? SyntaxKind.None), SyntaxHelper.GetIdentifierText(among), new Position(1, 3)),
-            after: new CustomEditorGetNodesAdjacentToCursorFromLspRequestResponseResultNode(SyntaxHelper.GetSyntaxKindString(after?.SyntaxKind ?? SyntaxKind.None), SyntaxHelper.GetIdentifierText(after), new Position(5, 7))));
+            before: new CustomEditorGetNodesAdjacentToCursorFromLspRequestResponseResultNode(SyntaxHelper.GetSyntaxKindString(before.Node?.SyntaxKind ?? SyntaxKind.None), SyntaxHelper.GetIdentifierText(before.Node), before.Position),
+            among: new CustomEditorGetNodesAdjacentToCursorFromLspRequestResponseResultNode(SyntaxHelper.GetSyntaxKindString(among.Node?.SyntaxKind ?? SyntaxKind.None), SyntaxHelper.GetIdentifierText(among.Node), among.Position),
+            after: new CustomEditorGetNodesAdjacentToCursorFromLspRequestResponseResultNode(SyntaxHelper.GetSyntaxKindString(after.Node?.SyntaxKind ?? SyntaxKind.None), SyntaxHelper.GetIdentifierText(after.Node), after.Position)));
         Console.Out.WriteLine(Program.MAIN_encodeMessageObject(textDocumentDocumentSymbolResponse));
 
         return request;

@@ -152,7 +152,7 @@ public class JavaScriptWorkspace
     /// 
     /// before,among,after are all in reference to the START of a given node.
     /// </summary>
-    public (SyntaxNode? before, SyntaxNode? among, SyntaxNode? after) FindNodesAdjacentToTheEdit(JavaScriptDocument javaScriptDocument, Position start, Position end)
+    public (SyntaxNodeWithPosition before, SyntaxNodeWithPosition among, SyntaxNodeWithPosition after) FindNodesAdjacentToTheEdit(JavaScriptDocument javaScriptDocument, Position start, Position end)
     {
         SyntaxNode? result_node = null;
 
@@ -166,9 +166,9 @@ public class JavaScriptWorkspace
         Stack<SyntaxNode> inclusiveFinalNodeToConsiderAtEachDepth = new();
         Stack<(SyntaxNode ScopeProvider, int ChildIndexOfScopeProviderAmongItsSiblings)> returnStack = new();
 
-        SyntaxNode? before = null;
-        SyntaxNode? among = null;
-        SyntaxNode? after = null;
+        SyntaxNodeWithPosition before = default;
+        SyntaxNodeWithPosition among = default;
+        SyntaxNodeWithPosition after = default;
 
         SyntaxHelper.RecursiveSearch_FindNodesAdjacentToTheEdit(javaScriptDocument.Chars, javaScriptDocument.CompilationUnit.GlobalNode, start.line, start.character, ref currentIndexPosition, ref currentIndexLine, ref currentIndexCharacter, ref before, ref among, ref after, inclusiveFinalNodeToConsiderAtEachDepth, returnStack);
 

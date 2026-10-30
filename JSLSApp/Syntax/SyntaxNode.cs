@@ -1,5 +1,4 @@
-﻿using JSLSApp.LspTypes;
-using System.Text;
+﻿using System.Text;
 
 namespace JSLSApp.Syntax;
 
