@@ -31,11 +31,11 @@ public class LexerTests
     public const string didOpenTextDocumentNotification = "Content-Length: 433\r\n\r\n{\"method\":\"textDocument/didOpen\",\"params\":{\"textDocument\":{\"uri\":\"file:///C:/Users/hunte/Repos/New folder (7)/Editor2/testFile.js\",\"languageId\":\"javascript\",\"version\":0,\"text\":\"aaa\\n        /**\\n         * @type {HTMLDivElement}\\n         * Consider the existence of such methods as 'state_cursor_setIndex' before mutating state directly\\n         */xxx/*\\n         */\\n        this.cursorElement = document.createElement('div');\"}}}\\n      ";
     public const string customFullFileLexRequest = "Content-Length: 157\r\n\r\n{\"id\":1,\"method\":\"textDocument/CustomFullFileLexRequest\",\"params\":{\"textDocument\":{\"uri\":\"file:///C:/Users/hunte/Repos/New folder (7)/Editor2/testFile.js\"}}}\\n";
 
-    public const string FileText = "function EDI_init() {\\n    const gutterPaddingLeft;\\n}\\n\\nfunction EDI_render_do() {\\n    const renderKind;\\n    renderKind;\\n}";
-    
+    public const string FileText = "let x = 2;\\n\\nreturn x;";
 
-    public const string DefinitionRequestOne = "Content-Length: 180\r\n\r\n{\"id\":3,\"method\":\"textDocument/definition\",\"params\":{\"textDocument\":{\"uri\":\"file:///C:/Users/hunte/Repos/New folder (7)/Editor2/testFile.js\"},\"position\":{\"line\":6,\"character\":4}}}\n";
-    public const string DefinitionRequestTwo = "Content-Length: 180\r\n\r\n{\"id\":3,\"method\":\"textDocument/definition\",\"params\":{\"textDocument\":{\"uri\":\"file:///C:/Users/hunte/Repos/New folder (7)/Editor2/testFile.js\"},\"position\":{\"line\":6,\"character\":4}}}\n";
+
+    public const string DefinitionRequestOne = "Content-Length: 179\r\n\r\n{\"id\":3,\"method\":\"textDocument/definition\",\"params\":{\"textDocument\":{\"uri\":\"file:///C:/Users/hunte/Repos/New folder (7)/Editor2/testFile.js\"},\"position\":{\"line\":2,\"character\":7}}}\n";
+    public const string DefinitionRequestTwo = "Content-Length: 179\r\n\r\n{\"id\":3,\"method\":\"textDocument/definition\",\"params\":{\"textDocument\":{\"uri\":\"file:///C:/Users/hunte/Repos/New folder (7)/Editor2/testFile.js\"},\"position\":{\"line\":2,\"character\":7}}}\n";
     public const string DefinitionRequestThree = "Content-Length: 179\r\n\r\n{\"id\":3,\"method\":\"textDocument/definition\",\"params\":{\"textDocument\":{\"uri\":\"file:///C:/Users/hunte/Repos/New folder (7)/Editor2/testFile.js\"},\"position\":{\"line\":5,\"character\":7}}}\n";
     public const string DefinitionRequestFour = "Content-Length: 180\r\n\r\n{\"id\":3,\"method\":\"textDocument/definition\",\"params\":{\"textDocument\":{\"uri\":\"file:///C:/Users/hunte/Repos/New folder (7)/Editor2/testFile.js\"},\"position\":{\"line\":3,\"character\":11}}}\n";
 
@@ -86,6 +86,8 @@ public class LexerTests
                                        - [ ] I'm crazy distracted rn I don't wanna do this I might just go to bed I've been watching the same "music video" on loop for more than an hour
                                        - [ ] 8:51
                                        - [ ] you need some kind of caching for the "traversal of the relative lengths" so you don't have to do the whole summing over and over you just do it when there's a cache invalidation
+                                       - [ ] 8:16
+                                       - [ ] get the insertion to shift
                 - [ ] You need to map out the positions of every node kind cause if you miss even just 1 it completely falls apart. (and currently you're missing the majority of them).
             - [ ] Algorithm "???"
     - [ ] When you insert text you update the relative positions of the "node on the left and right of where you are inserting".
