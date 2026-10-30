@@ -1,4 +1,5 @@
 ﻿using JSLSApp.LspTypes;
+using JSLSApp.Syntax;
 
 namespace JSLSApp;
 
@@ -84,6 +85,7 @@ public class JavaScriptWorkspace
             return;
         }
 
+        // TODO: is 'contentChanges' guaranteed to be sorted?
         foreach (var change in contentChanges)
         {
             if (change.range is null)
@@ -103,7 +105,16 @@ public class JavaScriptWorkspace
 
                 var startIndexPosition = FindPositionFromLineAndCharacter(doc.Chars, change.range.start.line, change.range.start.character);
                 var endIndexPosition = FindPositionFromLineAndCharacter(doc.Chars, change.range.end.line, change.range.end.character);
-                doc.Chars.RemoveRange(startIndexPosition, endIndexPosition - startIndexPosition);
+
+                var count = endIndexPosition - startIndexPosition;
+
+                //(SyntaxNode before, SyntaxNode? among, SyntaxNode after) = FindNodesAdjacentToTheEdit(doc, change.range.start, change.range.end);
+                //if (among is null)
+                //{
+                //    after.DistanceFromPreviousNode -= count;
+                //}
+
+                doc.Chars.RemoveRange(startIndexPosition, count);
             }
             else
             {
@@ -119,10 +130,49 @@ public class JavaScriptWorkspace
                     //Console.Out.WriteLine($"\n====DidChangeTextDocumentNotification; if (indexPosition == -1)====\n");
                     continue;
                 }
+
+                //(SyntaxNode before, SyntaxNode? among, SyntaxNode after) = FindNodesAdjacentToTheEdit(doc, change.range.start, change.range.start);
+                //if (among is null)
+                //{
+                //    after.DistanceFromPreviousNode += change.text.Length;
+                //}
                 
                 doc.Chars.InsertRange(indexPosition, change.text);
             }
         }
+    }
+
+    /// <summary>
+    /// find the current node (which is gonna be null for this simplest scenario of an edit that "doesn't change anything other than text positions")
+    /// then the node that came before
+    /// the node that came after
+    /// 
+    /// 'int endLine, int endCharacter' can be ignored for the first version because it is assumed that no modifications to the AST are taking place
+    /// and thus from "start to end" you only have whitespace essentially is the first idea.
+    /// 
+    /// before,among,after are all in reference to the START of a given node.
+    /// </summary>
+    public (SyntaxNode? before, SyntaxNode? among, SyntaxNode? after) FindNodesAdjacentToTheEdit(JavaScriptDocument javaScriptDocument, Position start, Position end)
+    {
+        SyntaxNode? result_node = null;
+
+        var currentIndexPosition = 0;
+        var currentIndexLine = 0;
+        var currentIndexCharacter = 0;
+
+        // Contains both IsScopeProvider==true nodes and IsScopeProvider==false nodes
+        // BECAUSE it contains the definition node itself as the first thing that gets pushed.
+        // Other than that first pushed node everything is IsScopeProvider==true.
+        Stack<SyntaxNode> inclusiveFinalNodeToConsiderAtEachDepth = new();
+        Stack<(SyntaxNode ScopeProvider, int ChildIndexOfScopeProviderAmongItsSiblings)> returnStack = new();
+
+        SyntaxNode? before = null;
+        SyntaxNode? among = null;
+        SyntaxNode? after = null;
+
+        SyntaxHelper.RecursiveSearch_FindNodesAdjacentToTheEdit(javaScriptDocument.Chars, javaScriptDocument.CompilationUnit.GlobalNode, start.line, start.character, ref currentIndexPosition, ref currentIndexLine, ref currentIndexCharacter, ref before, ref among, ref after, inclusiveFinalNodeToConsiderAtEachDepth, returnStack);
+
+        return (before, among, after);
     }
 
     /*public void Recursive_FileDiscovery(string targetDir)

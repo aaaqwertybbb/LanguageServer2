@@ -42,6 +42,8 @@ internal static class LspDispatcher
                 return DeserializeContent_CompletionSlice(content, request);
             case "textDocument/CustomFullFileLexRequest":
                 return DeserializeContent_CustomFullFileLexRequest(content, request);
+            case "textDocument/CustomEditorGetNodesAdjacentToCursorFromLspRequest":
+                return DeserializeContent_CustomEditorGetNodesAdjacentToCursorFromLspRequest(content, request);
             case "textDocument/CustomEditorVerifyLspTextAgainstEditorTextRequest":
                 return DeserializeContent_CustomEditorVerifyLspTextAgainstEditorTextRequest(content, request);
             default:
@@ -71,6 +73,34 @@ internal static class LspDispatcher
         var base64String = Convert.ToBase64String(javascriptParser.SyntaxHighlightByteList);
 
         var textDocumentDocumentSymbolResponse = new CustomFullFileLexResponse(customFullFileLexRequest.id, base64String);
+        Console.Out.WriteLine(Program.MAIN_encodeMessageObject(textDocumentDocumentSymbolResponse));
+
+        return request;
+    }
+
+    private static Message DeserializeContent_CustomEditorGetNodesAdjacentToCursorFromLspRequest(string content, Message request)
+    {
+        var customEditorGetNodesAdjacentToCursorFromLspRequest = JsonSerializer.Deserialize<CustomEditorGetNodesAdjacentToCursorFromLspRequest>(content);
+        if (customEditorGetNodesAdjacentToCursorFromLspRequest is null || customEditorGetNodesAdjacentToCursorFromLspRequest.@params.textDocument.uri is null)
+        {
+            return request;
+        }
+
+        customEditorGetNodesAdjacentToCursorFromLspRequest.@params.textDocument.uri = EnsureLocalPath(customEditorGetNodesAdjacentToCursorFromLspRequest.@params.textDocument.uri);
+
+        var found = _javaScriptWorkspace.OpenedSourceFileAbsolutePathToInMemoryContentMap.TryGetValue(customEditorGetNodesAdjacentToCursorFromLspRequest.@params.textDocument.uri, out var javaScriptDocument);
+        if (!found || javaScriptDocument is null)
+        {
+            return request;
+        }
+
+        var javascriptParser = new JavaScriptParser(javaScriptDocument, _javaScriptWorkspace);
+        javaScriptDocument.CompilationUnit = javascriptParser.Parse();
+
+        var textDocumentDocumentSymbolResponse = new CustomEditorGetNodesAdjacentToCursorFromLspRequestResponse(customEditorGetNodesAdjacentToCursorFromLspRequest.id, new CustomEditorGetNodesAdjacentToCursorFromLspRequestResponseResult(
+            before: new CustomEditorGetNodesAdjacentToCursorFromLspRequestResponseResultNode(SyntaxKind.AmpersandToken, "aaa", new Position(0, 0)),
+            among: new CustomEditorGetNodesAdjacentToCursorFromLspRequestResponseResultNode(SyntaxKind.AmpersandToken, "bbb", new Position(0, 0)),
+            after: new CustomEditorGetNodesAdjacentToCursorFromLspRequestResponseResultNode(SyntaxKind.AmpersandToken, "ccc", new Position(0, 0))));
         Console.Out.WriteLine(Program.MAIN_encodeMessageObject(textDocumentDocumentSymbolResponse));
 
         return request;

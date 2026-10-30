@@ -60,16 +60,7 @@ internal static class SyntaxHelper
     /// <summary>
     /// TODO: 'RecursiveSearchArgs' object instance to reduce parameter overhead from inner recursive invocations.
     /// </summary>
-    public static SyntaxNode? RecursiveSearch(List<char> chars,
-                                              SyntaxNode scopeProvider,
-                                              int targetIndexLine,
-                                              int targetIndexCharacter,
-                                              ref int totalChecks,
-                                              ref int currentIndexPosition,
-                                              ref int currentIndexLine,
-                                              ref int currentIndexCharacter,
-                                              Stack<SyntaxNode> inclusiveFinalNodeToConsiderAtEachDepth,
-                                              Stack<(SyntaxNode ScopeProvider, int ChildIndexOfScopeProviderAmongItsSiblings)> returnStack)
+    public static SyntaxNode? RecursiveSearch(List<char> chars, SyntaxNode scopeProvider, int targetIndexLine, int targetIndexCharacter, ref int totalChecks, ref int currentIndexPosition, ref int currentIndexLine, ref int currentIndexCharacter, Stack<SyntaxNode> inclusiveFinalNodeToConsiderAtEachDepth, Stack<(SyntaxNode ScopeProvider, int ChildIndexOfScopeProviderAmongItsSiblings)> returnStack)
     {
         ref var scope = ref scopeProvider.GetScope();
 
@@ -117,16 +108,7 @@ internal static class SyntaxHelper
             {
                 if (childScope.BodyList.Count > 0)
                 {
-                    var node = RecursiveSearch(chars,
-                                               child_node,
-                                               targetIndexLine,
-                                               targetIndexCharacter,
-                                               ref totalChecks,
-                                               ref currentIndexPosition,
-                                               ref currentIndexLine,
-                                               ref currentIndexCharacter,
-                                               inclusiveFinalNodeToConsiderAtEachDepth,
-                                               returnStack);
+                    var node = RecursiveSearch(chars, child_node, targetIndexLine, targetIndexCharacter, ref totalChecks, ref currentIndexPosition, ref currentIndexLine, ref currentIndexCharacter, inclusiveFinalNodeToConsiderAtEachDepth, returnStack);
                     if (node is not null)
                     {
                         return node;
@@ -136,25 +118,89 @@ internal static class SyntaxHelper
             }
             else
             {
-                SkipBranchButStillCountItPositionWise(chars,
-                                                      child_node,
-                                                      ref currentIndexPosition,
-                                                      ref currentIndexLine,
-                                                      ref currentIndexCharacter,
-                                                      inclusiveFinalNodeToConsiderAtEachDepth,
-                                                      returnStack);
+                SkipBranchButStillCountItPositionWise(chars, child_node, ref currentIndexPosition, ref currentIndexLine, ref currentIndexCharacter, inclusiveFinalNodeToConsiderAtEachDepth, returnStack);
             }
         }
         return null;
     }
+    
+    public static void RecursiveSearch_FindNodesAdjacentToTheEdit(List<char> chars, SyntaxNode scopeProvider, int targetIndexLine, int targetIndexCharacter, ref int currentIndexPosition, ref int currentIndexLine, ref int currentIndexCharacter, ref SyntaxNode? before, ref SyntaxNode? among, ref SyntaxNode? after, Stack<SyntaxNode> inclusiveFinalNodeToConsiderAtEachDepth, Stack<(SyntaxNode ScopeProvider, int ChildIndexOfScopeProviderAmongItsSiblings)> returnStack)
+    {
+        // when you descend you need to update the before of the parent recursive invocation.
+        // this is a result of how I have things written where a scopeProvider, aaa you need 'scopeProvider.deepestRightNode' -> aaa
+        var myBefore = scopeProvider;
+        ref var scope = ref scopeProvider.GetScope();
 
-    public static void SkipBranchButStillCountItPositionWise(List<char> chars,
-                                                             SyntaxNode? targetScopeProvider,
-                                                             ref int currentIndexPosition,
-                                                             ref int currentIndexLine,
-                                                             ref int currentIndexCharacter,
-                                                             Stack<SyntaxNode> inclusiveFinalNodeToConsiderAtEachDepth,
-                                                             Stack<(SyntaxNode ScopeProvider, int ChildIndexOfScopeProviderAmongItsSiblings)> returnStack)
+        var parentNode_startLine = currentIndexLine;
+        var parentNode_startCharacter = currentIndexCharacter;
+        //var parentNode_endLine;
+        //var parentNode_endCharacter;
+
+        for (int i = 0; i < scope.BodyList.Count; i++)
+        {
+            SyntaxNode? child_node = scope.BodyList[i];
+            WalkPositionIndices_mutable(chars, child_node.DistanceFromPreviousNode, ref currentIndexPosition, ref currentIndexLine, ref currentIndexCharacter);
+            var childNode_startLine = currentIndexLine;
+            var childNode_startCharacter = currentIndexCharacter;
+            (_, var childNode_endLine, var childNode_endCharacter) = WalkPositionIndices_return(chars, child_node.Length, currentIndexPosition, currentIndexLine, currentIndexCharacter);
+
+            if (child_node.IsScopeProvider && child_node.GetScope().Type == BodyKind.EXTERNAL_FunctionBody)
+            {
+                continue;
+            }
+            
+            if (childNode_startLine == targetIndexLine)
+            {
+                // TODO: This might be inaccurate for a function definition (or etc...) that spans a single line; if you tried to target an identifier in the code block it might target the function definition I'm not sure.
+                if (childNode_startCharacter <= targetIndexCharacter && childNode_endCharacter >= targetIndexCharacter)
+                {
+                    before = myBefore;
+                    among = child_node;
+                    if (i < scope.BodyList.Count - 1)
+                    {
+                        after = scope.BodyList[i + 1];
+                    }
+                    else if (child_node.IsScopeProvider && child_node.GetScope().BodyList.Count > 0)
+                    {
+                        after = child_node.GetScope().BodyList[0];
+                    }
+                    else
+                    {
+                        after = null;
+                    }
+                    
+                    return;
+                }
+            }
+
+            if (!child_node.IsScopeProvider)
+            {
+                before = myBefore;
+                continue;
+            }
+
+            ref var childScope = ref child_node.GetScope();
+            if (childScope.End.line >= targetIndexLine)
+            {
+                if (childScope.BodyList.Count > 0)
+                {
+                    before = myBefore;
+                    RecursiveSearch_FindNodesAdjacentToTheEdit(chars, child_node, targetIndexLine, targetIndexCharacter, ref currentIndexPosition, ref currentIndexLine, ref currentIndexCharacter, ref before, ref among, ref after, inclusiveFinalNodeToConsiderAtEachDepth, returnStack);
+                    if (among is not null)
+                    {
+                        return;
+                    }
+                }
+                break;
+            }
+            else
+            {
+                SkipBranchButStillCountItPositionWise(chars, child_node, ref currentIndexPosition, ref currentIndexLine, ref currentIndexCharacter, inclusiveFinalNodeToConsiderAtEachDepth, returnStack);
+            }
+        }
+    }
+
+    public static void SkipBranchButStillCountItPositionWise(List<char> chars, SyntaxNode? targetScopeProvider, ref int currentIndexPosition, ref int currentIndexLine, ref int currentIndexCharacter, Stack<SyntaxNode> inclusiveFinalNodeToConsiderAtEachDepth, Stack<(SyntaxNode ScopeProvider, int ChildIndexOfScopeProviderAmongItsSiblings)> returnStack)
     {
         var isNaturalHandOff = false;
         var i = 0;
