@@ -88,6 +88,30 @@ public class LexerTests
                                        - [ ] you need some kind of caching for the "traversal of the relative lengths" so you don't have to do the whole summing over and over you just do it when there's a cache invalidation
                                        - [ ] 8:16
                                        - [ ] get the insertion to shift
+                                       - [ ] get the removals to shift
+                                       - [ ] then start mapping out all the ways an edit can change the AST
+                                           - [ ] that is to say: the two "shift" goals are just about shifting the existing nodes
+                                               - [ ] The initial goal: the edits specifically will not modify the AST it just is about shifting the existing ones.
+                                               - [ ] You gotta write out every EditKind and check that each one works.
+                                               - [ ] 90% of them should solve one another
+                                               - [ ] But indent more and indent less are cases you might miss so just check everything.
+                                               - [ ] LspDispatcher.cs
+                                                   - [ ] DeserializeContent_DidChange
+                                                       - [ ] _javaScriptWorkspace.DidChangeTextDocumentNotification(...);
+                                                       - [ ] JavaScriptWorkspace.cs
+                                                           - [ ] DidChangeTextDocumentNotification
+                                                               - [ ] doc.Chars.RemoveRange(startIndexPosition, endIndexPosition - startIndexPosition);
+                                                               - [ ] doc.Chars.InsertRange(indexPosition, change.text);
+                                                               - [ ] And to start you have 1 test that will successfully goto definition
+                                                                   - [ ] Then it inserts text
+                                                                   - [ ] It tries the original goto definition and this time it fails
+                                                                   - [ ] It changes the goto definition to the location it should be at post text insertions
+                                                                   - [ ] And now when trying this changed goto definition it works.
+                                                                   - [ ] You could try making this for the removal of text too.
+                                                                   - [ ] But I think at minimum the unit test is the fastest turn around for getting an initial case to work.
+                                                                   - [ ] After that you'll probably be familiar with the code enough to where it doesn't matter how you do it just do it
+                                                                   - [ ] ^ I'm thinking this to myself because I don't feel focused, I don't feel like I wanna write code right now.
+                                                                   - [ ] ^ So important to the steps of solving the problem is to understand my own emotional state and what is required of me in order to will myself to complete the goal.
                 - [ ] You need to map out the positions of every node kind cause if you miss even just 1 it completely falls apart. (and currently you're missing the majority of them).
             - [ ] Algorithm "???"
     - [ ] When you insert text you update the relative positions of the "node on the left and right of where you are inserting".
