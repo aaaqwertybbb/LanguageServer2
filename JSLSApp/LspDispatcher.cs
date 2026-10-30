@@ -98,12 +98,12 @@ internal static class LspDispatcher
 
         (SyntaxNodeWithPosition before, SyntaxNodeWithPosition among, SyntaxNodeWithPosition after) = _javaScriptWorkspace.FindNodesAdjacentToTheEdit(javaScriptDocument, customEditorGetNodesAdjacentToCursorFromLspRequest.@params.position, customEditorGetNodesAdjacentToCursorFromLspRequest.@params.position);
 
-        var array = CollectionsMarshal.AsSpan(javaScriptDocument.Chars);
+        var span = CollectionsMarshal.AsSpan(javaScriptDocument.Chars);
 
         var textDocumentDocumentSymbolResponse = new CustomEditorGetNodesAdjacentToCursorFromLspRequestResponse(customEditorGetNodesAdjacentToCursorFromLspRequest.id, new CustomEditorGetNodesAdjacentToCursorFromLspRequestResponseResult(
-            before: new CustomEditorGetNodesAdjacentToCursorFromLspRequestResponseResultNode(SyntaxHelper.GetSyntaxKindString(before.Node?.SyntaxKind ?? SyntaxKind.None), SyntaxHelper.GetIdentifierText(before, array), before.Position),
-            among: new CustomEditorGetNodesAdjacentToCursorFromLspRequestResponseResultNode(SyntaxHelper.GetSyntaxKindString(among.Node?.SyntaxKind ?? SyntaxKind.None), SyntaxHelper.GetIdentifierText(among, array), among.Position),
-            after: new CustomEditorGetNodesAdjacentToCursorFromLspRequestResponseResultNode(SyntaxHelper.GetSyntaxKindString(after.Node?.SyntaxKind ?? SyntaxKind.None), SyntaxHelper.GetIdentifierText(after, array), after.Position)));
+            before: new CustomEditorGetNodesAdjacentToCursorFromLspRequestResponseResultNode(SyntaxHelper.GetSyntaxKindString(before.Node?.SyntaxKind ?? SyntaxKind.None), SyntaxHelper.GetIdentifierText(before, span), before.Position),
+            among: new CustomEditorGetNodesAdjacentToCursorFromLspRequestResponseResultNode(SyntaxHelper.GetSyntaxKindString(among.Node?.SyntaxKind ?? SyntaxKind.None), SyntaxHelper.GetIdentifierText(among, span), among.Position),
+            after: new CustomEditorGetNodesAdjacentToCursorFromLspRequestResponseResultNode(SyntaxHelper.GetSyntaxKindString(after.Node?.SyntaxKind ?? SyntaxKind.None), SyntaxHelper.GetIdentifierText(after, span), after.Position)));
         Console.Out.WriteLine(Program.MAIN_encodeMessageObject(textDocumentDocumentSymbolResponse));
 
         return request;
