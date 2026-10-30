@@ -125,6 +125,9 @@ public class LexerTests
                                                                    - [ ] If you consistently day after day feel like garbage
                                                                    - [ ] And consistently you "with maturity" force yourself to do what needs to get done
                                                                    - [ ] This constant drag of your emotional state will wear you down no matter how mature you are.
+                                                                   - [ ] Some days I literally feel "euphoric"
+                                                                   - [ ] Other days I feel like complete garbage (like today)
+                                                                   - [ ] Some days I feel like complete garbage but after 4 hours of forcing myself to code "via maturity" I find that I either feel slightly better or enter that state of euphoria again.
                 - [ ] You need to map out the positions of every node kind cause if you miss even just 1 it completely falls apart. (and currently you're missing the majority of them).
             - [ ] Algorithm "???"
     - [ ] When you insert text you update the relative positions of the "node on the left and right of where you are inserting".
