@@ -133,6 +133,7 @@ public class LexerTests
                                                                    - [ ] There's also the "I don't have ADHD but I wanna slam dopaminergic substances 24/7 to increase my throughput"
                                                                    - [ ] These people tend to suck at coding. They just drown you in spaghetti code and delusions of grandeur.
                                                                    - [ ] Versus someone who has ADHD and were to be taking dopaminergic substances as prescribed, they're much more reasonable
+                                                                   - [ ] I played a ton of Azeroth Survivors (in the browser) yesterday the game is awesome.
                 - [ ] You need to map out the positions of every node kind cause if you miss even just 1 it completely falls apart. (and currently you're missing the majority of them).
             - [ ] Algorithm "???"
     - [ ] When you insert text you update the relative positions of the "node on the left and right of where you are inserting".
