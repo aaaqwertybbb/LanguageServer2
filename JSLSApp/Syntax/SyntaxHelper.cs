@@ -312,4 +312,15 @@ internal static class SyntaxHelper
 
         return (currentIndexPosition, currentIndexLine, currentIndexCharacter);
     }
+
+    public static string GetSyntaxKindString(SyntaxKind syntaxKind)
+    {
+        return syntaxKind switch
+        {
+            SyntaxKind.AmpersandToken => "AmpersandToken",
+            SyntaxKind.BlockNode => "BlockNode",
+            SyntaxKind.CatchKeywordToken => "CatchKeywordToken",
+            _ => "GetSyntaxKindString is missing a map for some token"
+        };
+    }
 }
