@@ -41,7 +41,8 @@ public class LexerTests
 
     public const string FileText = "function EDI_init() {\\n    \\n}\\n\\nfunction EDI_render_do() {\\n    \\n}";
 
-
+    // 0,0 is wrongly (4,9) not (0,9)
+    // 3,0 is missing after
     public const string DefinitionRequestOne = "Content-Length: 179\r\n\r\n{\"id\":3,\"method\":\"textDocument/definition\",\"params\":{\"textDocument\":{\"uri\":\"file:///C:/Users/hunte/Repos/New folder (7)/Editor2/testFile.js\"},\"position\":{\"line\":2,\"character\":7}}}\n";
     public const string DefinitionRequestTwo = "Content-Length: 179\r\n\r\n{\"id\":3,\"method\":\"textDocument/definition\",\"params\":{\"textDocument\":{\"uri\":\"file:///C:/Users/hunte/Repos/New folder (7)/Editor2/testFile.js\"},\"position\":{\"line\":2,\"character\":7}}}\n";
     public const string DefinitionRequestThree = "Content-Length: 179\r\n\r\n{\"id\":3,\"method\":\"textDocument/definition\",\"params\":{\"textDocument\":{\"uri\":\"file:///C:/Users/hunte/Repos/New folder (7)/Editor2/testFile.js\"},\"position\":{\"line\":5,\"character\":7}}}\n";
