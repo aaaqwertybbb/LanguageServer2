@@ -130,6 +130,9 @@ public class LexerTests
                                                                    - [ ] Some days I feel like complete garbage but after 4 hours of forcing myself to code "via maturity" I find that I either feel slightly better or enter that state of euphoria again.
                                                                    - [ ] It is this ability for me to have good days that I would say demonstrates I do NOT have ADHD
                                                                    - [ ] If someone were the alternative, I feel completely for them. That must be terrible.
+                                                                   - [ ] There's also the "I don't have ADHD but I wanna slam dopaminergic substances 24/7 to increase my throughput"
+                                                                   - [ ] These people tend to suck at coding. They just drown you in spaghetti code and delusions of grandeur.
+                                                                   - [ ] Versus someone who has ADHD and were to be taking dopaminergic substances as prescribed, they're much more reasonable
                 - [ ] You need to map out the positions of every node kind cause if you miss even just 1 it completely falls apart. (and currently you're missing the majority of them).
             - [ ] Algorithm "???"
     - [ ] When you insert text you update the relative positions of the "node on the left and right of where you are inserting".
