@@ -130,8 +130,8 @@ internal static class SyntaxHelper
     {
         // when you descend you need to update the before of the parent recursive invocation.
         // this is a result of how I have things written where a scopeProvider, aaa you need 'scopeProvider.deepestRightNode' -> aaa
-        var myBefore_node = scopeProvider;
-        var myBefore_position = new Position(currentIndexLine, currentIndexCharacter);
+        before.Node = scopeProvider;
+        before.Position = new Position(currentIndexLine, currentIndexCharacter);
         ref var scope = ref scopeProvider.GetScope();
 
         var parentNode_startLine = currentIndexLine;
@@ -157,14 +157,15 @@ internal static class SyntaxHelper
                 after.Node = child_node;
                 after.Position = new(childNode_startLine, childNode_startCharacter);
             }
-            
+
+            bool isAfter = childNode_startLine >= targetIndexLine;
+
+
             if (childNode_startLine == targetIndexLine)
             {
                 // TODO: This might be inaccurate for a function definition (or etc...) that spans a single line; if you tried to target an identifier in the code block it might target the function definition I'm not sure.
                 if (childNode_startCharacter <= targetIndexCharacter && childNode_endCharacter >= targetIndexCharacter)
                 {
-                    before.Node = myBefore_node;
-                    before.Position = myBefore_position;
                     among.Node = child_node;
                     among.Position = new Position(currentIndexLine, currentIndexCharacter);
                     if (i < scope.BodyList.Count - 1)
@@ -187,12 +188,25 @@ internal static class SyntaxHelper
                     
                     return;
                 }
+                else
+                {
+                    isAfter = true;
+                }
+            }
+
+            if (isAfter)
+            {
+                after.Node = child_node;
+                after.Position = new Position(currentIndexLine, currentIndexCharacter);
+            }
+            else
+            {
+                before.Node = child_node;
+                before.Position = new Position(currentIndexLine, currentIndexCharacter);
             }
 
             if (!child_node.IsScopeProvider)
             {
-                before.Node = myBefore_node;
-                before.Position = myBefore_position;
                 continue;
             }
 
@@ -201,8 +215,6 @@ internal static class SyntaxHelper
             {
                 if (childScope.BodyList.Count > 0)
                 {
-                    before.Node = myBefore_node;
-                    before.Position = myBefore_position;
                     RecursiveSearch_FindNodesAdjacentToTheEdit(chars, child_node, targetIndexLine, targetIndexCharacter, ref currentIndexPosition, ref currentIndexLine, ref currentIndexCharacter, ref before, ref among, ref after, inclusiveFinalNodeToConsiderAtEachDepth, returnStack);
                     if (among.Node is not null)
                     {
