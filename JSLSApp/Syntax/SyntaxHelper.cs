@@ -197,8 +197,11 @@ internal static class SyntaxHelper
 
             if (isAfter)
             {
-                after.Node = child_node;
-                after.Position = new Position(currentIndexLine, currentIndexCharacter);
+                if (after.Node is null)
+                {
+                    after.Node = child_node;
+                    after.Position = new Position(currentIndexLine, currentIndexCharacter);
+                }
             }
             else
             {
@@ -208,22 +211,25 @@ internal static class SyntaxHelper
 
             if (!child_node.IsScopeProvider)
             {
-                if (i < scope.BodyList.Count - 1)
+                if (after.Node is null)
                 {
-                    after.Node = scope.BodyList[i + 1];
-                    WalkPositionIndices_mutable(chars, after.Node.DistanceFromPreviousNode, ref currentIndexPosition, ref currentIndexLine, ref currentIndexCharacter);
-                    after.Position = new(currentIndexLine, currentIndexCharacter);
-                }
-                else if (child_node.IsScopeProvider && child_node.GetScope().BodyList.Count > 0)
-                {
-                    after.Node = child_node.GetScope().BodyList[0];
-                    WalkPositionIndices_mutable(chars, after.Node.DistanceFromPreviousNode, ref currentIndexPosition, ref currentIndexLine, ref currentIndexCharacter);
-                    after.Position = new(currentIndexLine, currentIndexCharacter);
-                }
-                else
-                {
-                    after.Node = null;
-                    after.Position = new(0, 0);
+                    if (i < scope.BodyList.Count - 1)
+                    {
+                        after.Node = scope.BodyList[i + 1];
+                        WalkPositionIndices_mutable(chars, after.Node.DistanceFromPreviousNode, ref currentIndexPosition, ref currentIndexLine, ref currentIndexCharacter);
+                        after.Position = new(currentIndexLine, currentIndexCharacter);
+                    }
+                    else if (child_node.IsScopeProvider && child_node.GetScope().BodyList.Count > 0)
+                    {
+                        after.Node = child_node.GetScope().BodyList[0];
+                        WalkPositionIndices_mutable(chars, after.Node.DistanceFromPreviousNode, ref currentIndexPosition, ref currentIndexLine, ref currentIndexCharacter);
+                        after.Position = new(currentIndexLine, currentIndexCharacter);
+                    }
+                    else
+                    {
+                        after.Node = null;
+                        after.Position = new(0, 0);
+                    }
                 }
                 continue;
             }
@@ -243,22 +249,25 @@ internal static class SyntaxHelper
                 {
 
                 }
-                if (i < scope.BodyList.Count - 1)
+                if (after.Node is null)
                 {
-                    after.Node = scope.BodyList[i + 1];
-                    WalkPositionIndices_mutable(chars, after.Node.DistanceFromPreviousNode, ref currentIndexPosition, ref currentIndexLine, ref currentIndexCharacter);
-                    after.Position = new(currentIndexLine, currentIndexCharacter);
-                }
-                else if (child_node.IsScopeProvider && child_node.GetScope().BodyList.Count > 0)
-                {
-                    after.Node = child_node.GetScope().BodyList[0];
-                    WalkPositionIndices_mutable(chars, after.Node.DistanceFromPreviousNode, ref currentIndexPosition, ref currentIndexLine, ref currentIndexCharacter);
-                    after.Position = new(currentIndexLine, currentIndexCharacter);
-                }
-                else
-                {
-                    after.Node = null;
-                    after.Position = new(0, 0);
+                    if (i < scope.BodyList.Count - 1)
+                    {
+                        after.Node = scope.BodyList[i + 1];
+                        WalkPositionIndices_mutable(chars, after.Node.DistanceFromPreviousNode, ref currentIndexPosition, ref currentIndexLine, ref currentIndexCharacter);
+                        after.Position = new(currentIndexLine, currentIndexCharacter);
+                    }
+                    else if (child_node.IsScopeProvider && child_node.GetScope().BodyList.Count > 0)
+                    {
+                        after.Node = child_node.GetScope().BodyList[0];
+                        WalkPositionIndices_mutable(chars, after.Node.DistanceFromPreviousNode, ref currentIndexPosition, ref currentIndexLine, ref currentIndexCharacter);
+                        after.Position = new(currentIndexLine, currentIndexCharacter);
+                    }
+                    else
+                    {
+                        after.Node = null;
+                        after.Position = new(0, 0);
+                    }
                 }
                 break;
             }
