@@ -117,6 +117,14 @@ public class LexerTests
                                                                    - [ ] Some days the struggle is focus. This problem at this point I think shouldn't be too bad I just don't wanna do anything.
                                                                    - [ ] So I'm trying to figure out all my heuristics for whether I've sufficiently fatigued myself for the day.
                                                                    - [ ] I think a meaningful workload/progress is "shift the existing nodes in the easiest case where you aren't modifying any nodes or parsing the insertions or etc.. just simple shifting"
+                                                                   - [ ] Ultimately the feeling of lacking focus on some random day is just your brain playing tricks on you.
+                                                                   - [ ] After all we know this is common for the brain to do, as some days it has me thinking I am a good programmer
+                                                                   - [ ] Some people comment about ADHD as not existing at all, that it solely is a matter of maturity
+                                                                   - [ ] After all, if you don't feel well, you can from the perspective of maturity know that you "ought" to get something done regardless of your emotional state
+                                                                   - [ ] BUT I disagree highly with the idea "ADHD as not existing at all".
+                                                                   - [ ] If you consistently day after day feel like garbage
+                                                                   - [ ] And consistently you "with maturity" force yourself to do what needs to get done
+                                                                   - [ ] This constant drag of your emotional state will wear you down no matter how mature you are.
                 - [ ] You need to map out the positions of every node kind cause if you miss even just 1 it completely falls apart. (and currently you're missing the majority of them).
             - [ ] Algorithm "???"
     - [ ] When you insert text you update the relative positions of the "node on the left and right of where you are inserting".
