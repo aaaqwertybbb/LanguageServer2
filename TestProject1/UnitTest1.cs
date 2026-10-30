@@ -1,4 +1,6 @@
-﻿namespace TestProject1;
+﻿using JSLSApp.LspTypes;
+
+namespace TestProject1;
 
 public class LexerTests
 {
@@ -16,11 +18,16 @@ public class LexerTests
         var aaa = Format_didOpenTextDocumentNotification(FileText);
         JSLSApp.Program.MAIN_decodeMessage(aaa);
         JSLSApp.Program.MAIN_decodeMessage(customFullFileLexRequest);
-        JSLSApp.Program.MAIN_decodeMessage(DefinitionRequestOne); // ensure the goto definition of the original 'x'
-        JSLSApp.Program.MAIN_decodeMessage(DidChangeNotification); // paste "function Aaa() { return 'x'; }"
-        JSLSApp.Program.MAIN_decodeMessage(DefinitionRequestTwo); // ensure the original goto definition of the 'x' no longer works
-        JSLSApp.Program.MAIN_decodeMessage(DefinitionRequestThree); // try another goto definition but with the updated position for 'x'
-        JSLSApp.Program.MAIN_decodeMessage(DefinitionRequestFour); // try a final goto definition but for the 'x' that is inside of the "function Aaa() { return 'x'; }" text.
+        JSLSApp.Program.MAIN_decodeMessage(customEditorGetNodesAdjacentToCursorFromLspRequest);
+
+
+
+
+        //JSLSApp.Program.MAIN_decodeMessage(DefinitionRequestOne); // ensure the goto definition of the original 'x'
+        //JSLSApp.Program.MAIN_decodeMessage(DidChangeNotification); // paste "function Aaa() { return 'x'; }"
+        //JSLSApp.Program.MAIN_decodeMessage(DefinitionRequestTwo); // ensure the original goto definition of the 'x' no longer works
+        //JSLSApp.Program.MAIN_decodeMessage(DefinitionRequestThree); // try another goto definition but with the updated position for 'x'
+        //JSLSApp.Program.MAIN_decodeMessage(DefinitionRequestFour); // try a final goto definition but for the 'x' that is inside of the "function Aaa() { return 'x'; }" text.
     }
 
     // TODO: Try to resolve unknown symbols after parsing the file rather than doing what you did last time which was to parse the entire scope and then re-visit the child scopes one by one...
@@ -30,8 +37,9 @@ public class LexerTests
     // I'm gonna put "      " at the end of this string cuz the length is wrong and it won't read it
     public const string didOpenTextDocumentNotification = "Content-Length: 433\r\n\r\n{\"method\":\"textDocument/didOpen\",\"params\":{\"textDocument\":{\"uri\":\"file:///C:/Users/hunte/Repos/New folder (7)/Editor2/testFile.js\",\"languageId\":\"javascript\",\"version\":0,\"text\":\"aaa\\n        /**\\n         * @type {HTMLDivElement}\\n         * Consider the existence of such methods as 'state_cursor_setIndex' before mutating state directly\\n         */xxx/*\\n         */\\n        this.cursorElement = document.createElement('div');\"}}}\\n      ";
     public const string customFullFileLexRequest = "Content-Length: 157\r\n\r\n{\"id\":1,\"method\":\"textDocument/CustomFullFileLexRequest\",\"params\":{\"textDocument\":{\"uri\":\"file:///C:/Users/hunte/Repos/New folder (7)/Editor2/testFile.js\"}}}\\n";
+    public const string customEditorGetNodesAdjacentToCursorFromLspRequest = "Content-Length: 219\r\n\r\n{\"id\":3,\"method\":\"textDocument/CustomEditorGetNodesAdjacentToCursorFromLspRequest\",\"params\":{\"textDocument\":{\"uri\":\"file:///C:/Users/hunte/Repos/New folder (7)/Editor2/testFile.js\"},\"position\":{\"line\":3,\"character\":0}}}\\n";
 
-    public const string FileText = "let x = 2;\\n\\nreturn x;";
+    public const string FileText = "function EDI_init() {\\n    const gutterPaddingLeft;\\n}\\n\\nfunction EDI_render_do() {\\n    const renderKind;\\n    renderKind;\\n}";
 
 
     public const string DefinitionRequestOne = "Content-Length: 179\r\n\r\n{\"id\":3,\"method\":\"textDocument/definition\",\"params\":{\"textDocument\":{\"uri\":\"file:///C:/Users/hunte/Repos/New folder (7)/Editor2/testFile.js\"},\"position\":{\"line\":2,\"character\":7}}}\n";
