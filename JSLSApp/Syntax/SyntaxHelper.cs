@@ -204,7 +204,7 @@ internal static class SyntaxHelper
                 }
 
                 if (!found)
-                    break;
+                    continue;
 
                 among.Node = child_node;
                 among.Position = new Position(currentIndexLine, currentIndexCharacter);
