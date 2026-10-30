@@ -528,7 +528,7 @@ public class JavaScriptParser
         //    _functionDefinitionStartPositionList[^1].Name = str;
         //}
         
-        var functionDeclarationNode = new FunctionDeclarationNode((_pos - identifierToken.Length) - _posOfPreviousNode, 0);
+        var functionDeclarationNode = new FunctionDeclarationNode((_pos - identifierToken.Length) - _posOfPreviousNode, identifierToken.Length);
         _posOfPreviousNode = _pos - identifierToken.Length;
         _currentScope.BodyList.Add(functionDeclarationNode);
 
@@ -628,7 +628,7 @@ public class JavaScriptParser
 
     public void ParseConstructorDefinitionNode(SyntaxToken constructorToken)
     {
-        var functionDeclarationNode = new FunctionDeclarationNode((_pos - constructorToken.Length) - _posOfPreviousNode, 0);
+        var functionDeclarationNode = new FunctionDeclarationNode((_pos - constructorToken.Length) - _posOfPreviousNode, constructorToken.Length);
         _posOfPreviousNode = _pos - constructorToken.Length;
         _currentScope.BodyList.Add(functionDeclarationNode);
 
