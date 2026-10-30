@@ -112,6 +112,11 @@ public class LexerTests
                                                                    - [ ] After that you'll probably be familiar with the code enough to where it doesn't matter how you do it just do it
                                                                    - [ ] ^ I'm thinking this to myself because I don't feel focused, I don't feel like I wanna write code right now.
                                                                    - [ ] ^ So important to the steps of solving the problem is to understand my own emotional state and what is required of me in order to will myself to complete the goal.
+                                                                   - [ ] In terms of a "make daily progress that is at minimum fatiguing"
+                                                                   - [ ] Whether some days you do an hour or some days you do 10 hours is irrelevant what matters is the feeling of fatigue and like you've struggled with something.
+                                                                   - [ ] Some days the struggle is focus. This problem at this point I think shouldn't be too bad I just don't wanna do anything.
+                                                                   - [ ] So I'm trying to figure out all my heuristics for whether I've sufficiently fatigued myself for the day.
+                                                                   - [ ] I think a meaningful workload/progress is "shift the existing nodes in the easiest case where you aren't modifying any nodes or parsing the insertions or etc.. just simple shifting"
                 - [ ] You need to map out the positions of every node kind cause if you miss even just 1 it completely falls apart. (and currently you're missing the majority of them).
             - [ ] Algorithm "???"
     - [ ] When you insert text you update the relative positions of the "node on the left and right of where you are inserting".
