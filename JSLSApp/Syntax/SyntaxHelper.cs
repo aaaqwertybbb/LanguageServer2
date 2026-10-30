@@ -125,170 +125,98 @@ internal static class SyntaxHelper
         }
         return null;
     }
-    
-    public static void RecursiveSearch_FindNodesAdjacentToTheEdit(List<char> chars, SyntaxNode scopeProvider, int targetIndexLine, int targetIndexCharacter, ref int currentIndexPosition, ref int currentIndexLine, ref int currentIndexCharacter, ref SyntaxNodeWithPosition before, ref SyntaxNodeWithPosition among, ref SyntaxNodeWithPosition after, Stack<SyntaxNode> inclusiveFinalNodeToConsiderAtEachDepth, Stack<(SyntaxNode ScopeProvider, int ChildIndexOfScopeProviderAmongItsSiblings)> returnStack)
+
+    /// <summary>
+    /// If you're going to invoke this: 'before.Node.IsScopeProvider' must be true.
+    /// That is not to say the end resulting 'before.Node.IsScopeProvider' has to be true.
+    /// 
+    /// before.Node = scopeProvider;
+    /// before.Position = new Position(currentIndexLine, currentIndexCharacter);
+    /// before.PositionIndex = currentIndexPosition;
+    /// </summary>
+    public static void RecursiveSearch_FindNodesAdjacentToTheEdit(List<char> chars, int targetIndexLine, int targetIndexCharacter, ref int currentIndexPosition, ref int currentIndexLine, ref int currentIndexCharacter, ref SyntaxNodeWithPosition before, ref SyntaxNodeWithPosition among, ref SyntaxNodeWithPosition after, Stack<SyntaxNode> inclusiveFinalNodeToConsiderAtEachDepth, Stack<(SyntaxNode ScopeProvider, int ChildIndexOfScopeProviderAmongItsSiblings)> returnStack)
     {
-        // when you descend you need to update the before of the parent recursive invocation.
-        // this is a result of how I have things written where a scopeProvider, aaa you need 'scopeProvider.deepestRightNode' -> aaa
-        before.Node = scopeProvider;
-        before.Position = new Position(currentIndexLine, currentIndexCharacter);
-        before.PositionIndex = currentIndexPosition;
-        ref var scope = ref scopeProvider.GetScope();
-
-        var parentNode_startLine = currentIndexLine;
-        var parentNode_startCharacter = currentIndexCharacter;
-        //var parentNode_endLine;
-        //var parentNode_endCharacter;
-
-        for (int i = 0; i < scope.BodyList.Count; i++)
+        // Do not expect 'before' to stay the same later in this function because the variable is overwritten.
+        ref var scope = ref before.Node.GetScope();
+        
+        var i = 0;
+        for (; i < scope.BodyList.Count; i++)
         {
             SyntaxNode? child_node = scope.BodyList[i];
             WalkPositionIndices_mutable(chars, child_node.DistanceFromPreviousNode, ref currentIndexPosition, ref currentIndexLine, ref currentIndexCharacter);
-            var childNode_startLine = currentIndexLine;
-            var childNode_startCharacter = currentIndexCharacter;
-            var childNode_indexPosition = currentIndexPosition;
-            (_, var childNode_endLine, var childNode_endCharacter) = WalkPositionIndices_return(chars, child_node.Length, currentIndexPosition, currentIndexLine, currentIndexCharacter);
 
-            if (child_node.IsScopeProvider && child_node.GetScope().Type == BodyKind.EXTERNAL_FunctionBody)
-            {
-                continue;
-            }
-
-            if (childNode_startLine >= targetIndexLine && after.Node is null &&
-                childNode_startCharacter > targetIndexCharacter)
-            {
-                after.Node = child_node;
-                after.Position = new(childNode_startLine, childNode_startCharacter);
-                after.PositionIndex = childNode_indexPosition;
-            }
-
-            bool isAfter = childNode_startLine >= targetIndexLine && childNode_startCharacter > targetIndexCharacter;
-
-
-            if (childNode_startLine == targetIndexLine)
-            {
-                // TODO: This might be inaccurate for a function definition (or etc...) that spans a single line; if you tried to target an identifier in the code block it might target the function definition I'm not sure.
-                if (childNode_startCharacter <= targetIndexCharacter && childNode_endCharacter >= targetIndexCharacter)
-                {
-                    among.Node = child_node;
-                    among.Position = new Position(currentIndexLine, currentIndexCharacter);
-                    among.PositionIndex = currentIndexPosition;
-                    if (i < scope.BodyList.Count - 1)
-                    {
-                        after.Node = scope.BodyList[i + 1];
-                        WalkPositionIndices_mutable(chars, after.Node.DistanceFromPreviousNode, ref currentIndexPosition, ref currentIndexLine, ref currentIndexCharacter);
-                        after.Position = new(currentIndexLine, currentIndexCharacter);
-                        after.PositionIndex = currentIndexPosition;
-                    }
-                    else if (child_node.IsScopeProvider && child_node.GetScope().BodyList.Count > 0)
-                    {
-                        after.Node = child_node.GetScope().BodyList[0];
-                        WalkPositionIndices_mutable(chars, after.Node.DistanceFromPreviousNode, ref currentIndexPosition, ref currentIndexLine, ref currentIndexCharacter);
-                        after.Position = new(currentIndexLine, currentIndexCharacter);
-                        after.PositionIndex = currentIndexPosition;
-                    }
-                    else
-                    {
-                        after.Node = null;
-                        after.Position = new(0, 0);
-                        after.PositionIndex = 0;
-                    }
-                    
-                    return;
-                }
-                else if (childNode_startCharacter > targetIndexCharacter)
-                {
-                    isAfter = true;
-                }
-            }
-
-            if (isAfter)
-            {
-                if (after.Node is null)
-                {
-                    after.Node = child_node;
-                    after.Position = new Position(currentIndexLine, currentIndexCharacter);
-                    after.PositionIndex = currentIndexPosition;
-                }
-            }
-            else
+            if (currentIndexLine < targetIndexLine) // before line
             {
                 before.Node = child_node;
                 before.Position = new Position(currentIndexLine, currentIndexCharacter);
                 before.PositionIndex = currentIndexPosition;
-            }
 
-            if (!child_node.IsScopeProvider)
-            {
-                if (after.Node is null)
+                if (child_node.IsScopeProvider)
                 {
-                    if (i < scope.BodyList.Count - 1)
+                    ref var childScope = ref child_node.GetScope();
+                    if (childScope.End.line >= targetIndexLine && childScope.BodyList.Count > 0)
                     {
-                        after.Node = scope.BodyList[i + 1];
-                        WalkPositionIndices_mutable(chars, after.Node.DistanceFromPreviousNode, ref currentIndexPosition, ref currentIndexLine, ref currentIndexCharacter);
-                        after.Position = new(currentIndexLine, currentIndexCharacter);
-                        after.PositionIndex = currentIndexPosition;
-                    }
-                    else if (child_node.IsScopeProvider && child_node.GetScope().BodyList.Count > 0)
-                    {
-                        after.Node = child_node.GetScope().BodyList[0];
-                        WalkPositionIndices_mutable(chars, after.Node.DistanceFromPreviousNode, ref currentIndexPosition, ref currentIndexLine, ref currentIndexCharacter);
-                        after.Position = new(currentIndexLine, currentIndexCharacter);
-                        after.PositionIndex = currentIndexPosition;
+                        RecursiveSearch_FindNodesAdjacentToTheEdit(chars, targetIndexLine, targetIndexCharacter, ref currentIndexPosition, ref currentIndexLine, ref currentIndexCharacter, ref before, ref among, ref after, inclusiveFinalNodeToConsiderAtEachDepth, returnStack);
+                        i++;
+                        break;
                     }
                     else
                     {
-                        after.Node = null;
-                        after.Position = new(0, 0);
-                        after.PositionIndex = 0;
+                        SkipBranchButStillCountItPositionWise_FindNodesAdjacentToTheEdit(ref before, chars, child_node, ref currentIndexPosition, ref currentIndexLine, ref currentIndexCharacter, inclusiveFinalNodeToConsiderAtEachDepth, returnStack);
                     }
                 }
-                continue;
             }
-
-            ref var childScope = ref child_node.GetScope();
-            if (childScope.End.line >= targetIndexLine)
+            else if (currentIndexLine > targetIndexLine) // after line
             {
-                if (childScope.BodyList.Count > 0)
+                break;
+            }
+            else // same line
+            {
+                if (currentIndexCharacter > targetIndexCharacter) // after character
+                    break;
+
+                var found = false;
+
+                if (targetIndexCharacter == currentIndexCharacter)
                 {
-                    RecursiveSearch_FindNodesAdjacentToTheEdit(chars, child_node, targetIndexLine, targetIndexCharacter, ref currentIndexPosition, ref currentIndexLine, ref currentIndexCharacter, ref before, ref among, ref after, inclusiveFinalNodeToConsiderAtEachDepth, returnStack);
-                    if (among.Node is not null)
-                    {
-                        return;
-                    }
+                    found = true;
                 }
                 else
                 {
+                    // TODO: Awkward assumption that the childNode's `startLine` and `endLine` would be equal. (currently only the length of a node's "word based identifier" is being accounted for, so this is currently true.
+                    (_, _, var childNode_endCharacter) = WalkPositionIndices_return(chars, child_node.Length, currentIndexPosition, currentIndexLine, currentIndexCharacter);
+                    if (currentIndexCharacter <= targetIndexCharacter && childNode_endCharacter >= targetIndexCharacter)
+                        found = true;
+                }
 
-                }
-                if (after.Node is null)
-                {
-                    if (i < scope.BodyList.Count - 1)
-                    {
-                        after.Node = scope.BodyList[i + 1];
-                        WalkPositionIndices_mutable(chars, after.Node.DistanceFromPreviousNode, ref currentIndexPosition, ref currentIndexLine, ref currentIndexCharacter);
-                        after.Position = new(currentIndexLine, currentIndexCharacter);
-                        after.PositionIndex = currentIndexPosition;
-                    }
-                    else if (child_node.IsScopeProvider && child_node.GetScope().BodyList.Count > 0)
-                    {
-                        after.Node = child_node.GetScope().BodyList[0];
-                        WalkPositionIndices_mutable(chars, after.Node.DistanceFromPreviousNode, ref currentIndexPosition, ref currentIndexLine, ref currentIndexCharacter);
-                        after.Position = new(currentIndexLine, currentIndexCharacter);
-                        after.PositionIndex = currentIndexPosition;
-                    }
-                    else
-                    {
-                        after.Node = null;
-                        after.Position = new(0, 0);
-                        after.PositionIndex = 0;
-                    }
-                }
+                if (!found)
+                    break;
+
+                among.Node = child_node;
+                among.Position = new Position(currentIndexLine, currentIndexCharacter);
+                among.PositionIndex = currentIndexPosition;
+                i++;
                 break;
             }
-            else
+        }
+
+        // Found 'among' node: then 'i' is ensured to have been incremented prior to the break.
+        //
+        // All nodes are before: 'i' will be >= scope.BodyList.Count.
+        //
+        // Found 'after' node: then 'i' will NOT have been incremented prior to the break.
+        //
+        if (i < scope.BodyList.Count)
+        {
+            if (among.Node is not null)
             {
-                SkipBranchButStillCountItPositionWise_FindNodesAdjacentToTheEdit(ref before, chars, child_node, ref currentIndexPosition, ref currentIndexLine, ref currentIndexCharacter, inclusiveFinalNodeToConsiderAtEachDepth, returnStack);
+                if (after.Node is null)
+                {
+                    after.Node = scope.BodyList[i + 1];
+                    WalkPositionIndices_mutable(chars, after.Node.DistanceFromPreviousNode, ref currentIndexPosition, ref currentIndexLine, ref currentIndexCharacter);
+                    after.Position = new(currentIndexLine, currentIndexCharacter);
+                    after.PositionIndex = currentIndexPosition;
+                }
             }
         }
     }
