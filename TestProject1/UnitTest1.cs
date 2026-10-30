@@ -150,6 +150,7 @@ public class LexerTests
                                                                    - [ ] I wanna get another 2 hours in real quick before I go to bed.
                                                                    - [ ] I exercised and etc...
                                                                    - [ ] I need to sleep for a million years I feel like I'm... idk I can't brain
+                                                                   - [ ] tired, stressed, applesauce le random xd
                 - [ ] You need to map out the positions of every node kind cause if you miss even just 1 it completely falls apart. (and currently you're missing the majority of them).
             - [ ] Algorithm "???"
     - [ ] When you insert text you update the relative positions of the "node on the left and right of where you are inserting".
