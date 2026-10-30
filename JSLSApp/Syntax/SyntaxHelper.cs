@@ -138,6 +138,8 @@ internal static class SyntaxHelper
     {
         // Do not expect 'before' to stay the same later in this function because the variable is overwritten.
         ref var scope = ref before.Node.GetScope();
+
+        var thisFunctionInvocationIsAtAnAfter = false;
         
         var i = 0;
         for (; i < scope.BodyList.Count; i++)
@@ -168,12 +170,16 @@ internal static class SyntaxHelper
             }
             else if (currentIndexLine > targetIndexLine) // after line
             {
+                thisFunctionInvocationIsAtAnAfter = true;
                 break;
             }
             else // same line
             {
                 if (currentIndexCharacter > targetIndexCharacter) // after character
+                {
+                    thisFunctionInvocationIsAtAnAfter = true;
                     break;
+                }
 
                 var found = false;
 
@@ -185,8 +191,16 @@ internal static class SyntaxHelper
                 {
                     // TODO: Awkward assumption that the childNode's `startLine` and `endLine` would be equal. (currently only the length of a node's "word based identifier" is being accounted for, so this is currently true.
                     (_, _, var childNode_endCharacter) = WalkPositionIndices_return(chars, child_node.Length, currentIndexPosition, currentIndexLine, currentIndexCharacter);
-                    if (currentIndexCharacter <= targetIndexCharacter && childNode_endCharacter >= targetIndexCharacter)
+                    if (childNode_endCharacter >= targetIndexCharacter)
+                    {
                         found = true;
+                    }
+                    else
+                    {
+                        before.Node = child_node;
+                        before.Position = new Position(currentIndexLine, currentIndexCharacter);
+                        before.PositionIndex = currentIndexPosition;
+                    }
                 }
 
                 if (!found)
@@ -208,15 +222,16 @@ internal static class SyntaxHelper
         //
         if (i < scope.BodyList.Count)
         {
-            if (among.Node is not null)
+            if (after.Node is null)
             {
-                if (after.Node is null)
+                after.Node = scope.BodyList[i];
+                if (!thisFunctionInvocationIsAtAnAfter)
                 {
-                    after.Node = scope.BodyList[i + 1];
+                    // i was incremented then 'break' but you still need to walk to the node.
                     WalkPositionIndices_mutable(chars, after.Node.DistanceFromPreviousNode, ref currentIndexPosition, ref currentIndexLine, ref currentIndexCharacter);
-                    after.Position = new(currentIndexLine, currentIndexCharacter);
-                    after.PositionIndex = currentIndexPosition;
                 }
+                after.Position = new(currentIndexLine, currentIndexCharacter);
+                after.PositionIndex = currentIndexPosition;
             }
         }
     }
@@ -229,6 +244,7 @@ internal static class SyntaxHelper
         {
             before.Node = targetScopeProvider;
             before.Position = new(currentIndexLine, currentIndexCharacter);
+            before.PositionIndex = currentIndexPosition;
             ref var scope = ref targetScopeProvider.GetScope();
             for (; i < scope.BodyList.Count; i++)
             {
@@ -257,6 +273,7 @@ internal static class SyntaxHelper
                     }
                 }
                 before.Position = new(currentIndexLine, currentIndexCharacter);
+                before.PositionIndex = currentIndexPosition;
                 if (childNode.IsScopeProvider)
                 {
                     returnStack.Push((targetScopeProvider, i));

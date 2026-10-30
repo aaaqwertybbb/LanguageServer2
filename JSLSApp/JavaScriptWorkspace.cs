@@ -175,7 +175,7 @@ public class JavaScriptWorkspace
         before.Node = javaScriptDocument.CompilationUnit.GlobalNode;
         before.Position = new Position(currentIndexLine, currentIndexCharacter);
         before.PositionIndex = currentIndexPosition;
-        SyntaxHelper.RecursiveSearch_FindNodesAdjacentToTheEdit(javaScriptDocument.Chars, javaScriptDocument.CompilationUnit.GlobalNode, start.line, start.character, ref currentIndexPosition, ref currentIndexLine, ref currentIndexCharacter, ref before, ref among, ref after, inclusiveFinalNodeToConsiderAtEachDepth, returnStack);
+        SyntaxHelper.RecursiveSearch_FindNodesAdjacentToTheEdit(javaScriptDocument.Chars, start.line, start.character, ref currentIndexPosition, ref currentIndexLine, ref currentIndexCharacter, ref before, ref among, ref after, inclusiveFinalNodeToConsiderAtEachDepth, returnStack);
 
         return (before, among, after);
     }
