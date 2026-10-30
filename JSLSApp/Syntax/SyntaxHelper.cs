@@ -152,13 +152,14 @@ internal static class SyntaxHelper
                 continue;
             }
 
-            if (childNode_startLine >= targetIndexLine && after.Node is null)
+            if (childNode_startLine >= targetIndexLine && after.Node is null &&
+                childNode_startCharacter > targetIndexCharacter)
             {
                 after.Node = child_node;
                 after.Position = new(childNode_startLine, childNode_startCharacter);
             }
 
-            bool isAfter = childNode_startLine >= targetIndexLine;
+            bool isAfter = childNode_startLine >= targetIndexLine && childNode_startCharacter > targetIndexCharacter;
 
 
             if (childNode_startLine == targetIndexLine)
@@ -188,7 +189,7 @@ internal static class SyntaxHelper
                     
                     return;
                 }
-                else
+                else if (childNode_startCharacter > targetIndexCharacter)
                 {
                     isAfter = true;
                 }
@@ -207,6 +208,23 @@ internal static class SyntaxHelper
 
             if (!child_node.IsScopeProvider)
             {
+                if (i < scope.BodyList.Count - 1)
+                {
+                    after.Node = scope.BodyList[i + 1];
+                    WalkPositionIndices_mutable(chars, after.Node.DistanceFromPreviousNode, ref currentIndexPosition, ref currentIndexLine, ref currentIndexCharacter);
+                    after.Position = new(currentIndexLine, currentIndexCharacter);
+                }
+                else if (child_node.IsScopeProvider && child_node.GetScope().BodyList.Count > 0)
+                {
+                    after.Node = child_node.GetScope().BodyList[0];
+                    WalkPositionIndices_mutable(chars, after.Node.DistanceFromPreviousNode, ref currentIndexPosition, ref currentIndexLine, ref currentIndexCharacter);
+                    after.Position = new(currentIndexLine, currentIndexCharacter);
+                }
+                else
+                {
+                    after.Node = null;
+                    after.Position = new(0, 0);
+                }
                 continue;
             }
 
@@ -220,6 +238,27 @@ internal static class SyntaxHelper
                     {
                         return;
                     }
+                }
+                else
+                {
+
+                }
+                if (i < scope.BodyList.Count - 1)
+                {
+                    after.Node = scope.BodyList[i + 1];
+                    WalkPositionIndices_mutable(chars, after.Node.DistanceFromPreviousNode, ref currentIndexPosition, ref currentIndexLine, ref currentIndexCharacter);
+                    after.Position = new(currentIndexLine, currentIndexCharacter);
+                }
+                else if (child_node.IsScopeProvider && child_node.GetScope().BodyList.Count > 0)
+                {
+                    after.Node = child_node.GetScope().BodyList[0];
+                    WalkPositionIndices_mutable(chars, after.Node.DistanceFromPreviousNode, ref currentIndexPosition, ref currentIndexLine, ref currentIndexCharacter);
+                    after.Position = new(currentIndexLine, currentIndexCharacter);
+                }
+                else
+                {
+                    after.Node = null;
+                    after.Position = new(0, 0);
                 }
                 break;
             }
