@@ -320,7 +320,13 @@ internal static class SyntaxHelper
             SyntaxKind.AmpersandToken => "AmpersandToken",
             SyntaxKind.BlockNode => "BlockNode",
             SyntaxKind.CatchKeywordToken => "CatchKeywordToken",
-            _ => "GetSyntaxKindString is missing a map for some token"
+            SyntaxKind.IfStatementNode => "IfStatementNode",
+            SyntaxKind.FunctionDeclarationNode => "FunctionDeclarationNode",
+            SyntaxKind.GlobalNode => "GlobalNode",
+            SyntaxKind.VariableDeclarationNode => "VariableDeclarationNode",
+            SyntaxKind.VariableReferenceNode => "VariableReferenceNode",
+            SyntaxKind.None => "None",
+            _ => $"GetSyntaxKindString is missing a map for {syntaxKind.ToString()}"
         };
     }
 }
