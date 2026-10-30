@@ -128,6 +128,8 @@ public class LexerTests
                                                                    - [ ] Some days I literally feel "euphoric"
                                                                    - [ ] Other days I feel like complete garbage (like today)
                                                                    - [ ] Some days I feel like complete garbage but after 4 hours of forcing myself to code "via maturity" I find that I either feel slightly better or enter that state of euphoria again.
+                                                                   - [ ] It is this ability for me to have good days that I would say demonstrates I do NOT have ADHD
+                                                                   - [ ] If someone were the alternative, I feel completely for them. That must be terrible.
                 - [ ] You need to map out the positions of every node kind cause if you miss even just 1 it completely falls apart. (and currently you're missing the majority of them).
             - [ ] Algorithm "???"
     - [ ] When you insert text you update the relative positions of the "node on the left and right of where you are inserting".
