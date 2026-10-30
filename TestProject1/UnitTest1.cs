@@ -39,7 +39,7 @@ public class LexerTests
     public const string customFullFileLexRequest = "Content-Length: 157\r\n\r\n{\"id\":1,\"method\":\"textDocument/CustomFullFileLexRequest\",\"params\":{\"textDocument\":{\"uri\":\"file:///C:/Users/hunte/Repos/New folder (7)/Editor2/testFile.js\"}}}\\n";
     public const string customEditorGetNodesAdjacentToCursorFromLspRequest = "Content-Length: 219\r\n\r\n{\"id\":3,\"method\":\"textDocument/CustomEditorGetNodesAdjacentToCursorFromLspRequest\",\"params\":{\"textDocument\":{\"uri\":\"file:///C:/Users/hunte/Repos/New folder (7)/Editor2/testFile.js\"},\"position\":{\"line\":3,\"character\":0}}}\\n";
 
-    public const string FileText = "function EDI_init() {\\n    const gutterPaddingLeft;\\n}\\n\\nfunction EDI_render_do() {\\n    const renderKind;\\n    renderKind;\\n}";
+    public const string FileText = "function EDI_init() {\\n    \\n}\\n\\nfunction EDI_render_do() {\\n    \\n}";
 
 
     public const string DefinitionRequestOne = "Content-Length: 179\r\n\r\n{\"id\":3,\"method\":\"textDocument/definition\",\"params\":{\"textDocument\":{\"uri\":\"file:///C:/Users/hunte/Repos/New folder (7)/Editor2/testFile.js\"},\"position\":{\"line\":2,\"character\":7}}}\n";

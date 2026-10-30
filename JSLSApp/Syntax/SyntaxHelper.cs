@@ -148,6 +148,11 @@ internal static class SyntaxHelper
             {
                 continue;
             }
+
+            if (childNode_startLine >= targetIndexLine && after is null)
+            {
+                after = child_node;
+            }
             
             if (childNode_startLine == targetIndexLine)
             {
@@ -195,7 +200,70 @@ internal static class SyntaxHelper
             }
             else
             {
-                SkipBranchButStillCountItPositionWise(chars, child_node, ref currentIndexPosition, ref currentIndexLine, ref currentIndexCharacter, inclusiveFinalNodeToConsiderAtEachDepth, returnStack);
+                SkipBranchButStillCountItPositionWise_FindNodesAdjacentToTheEdit(ref before, chars, child_node, ref currentIndexPosition, ref currentIndexLine, ref currentIndexCharacter, inclusiveFinalNodeToConsiderAtEachDepth, returnStack);
+            }
+        }
+    }
+
+    public static void SkipBranchButStillCountItPositionWise_FindNodesAdjacentToTheEdit(ref SyntaxNode before, List<char> chars, SyntaxNode? targetScopeProvider, ref int currentIndexPosition, ref int currentIndexLine, ref int currentIndexCharacter, Stack<SyntaxNode> inclusiveFinalNodeToConsiderAtEachDepth, Stack<(SyntaxNode ScopeProvider, int ChildIndexOfScopeProviderAmongItsSiblings)> returnStack)
+    {
+        var isNaturalHandOff = false;
+        var i = 0;
+        while (targetScopeProvider is not null)
+        {
+            before = targetScopeProvider;
+            ref var scope = ref targetScopeProvider.GetScope();
+            for (; i < scope.BodyList.Count; i++)
+            {
+                var childNode = scope.BodyList[i];
+                before = childNode;
+                if (currentIndexPosition < chars.Count)
+                {
+                    var distance = childNode.DistanceFromPreviousNode;
+                    if (currentIndexPosition + distance >= chars.Count)
+                        distance = chars.Count - currentIndexPosition;
+
+                    for (var j = 0; j < distance; j++)
+                    {
+                        switch (chars[currentIndexPosition])
+                        {
+                            //case '\r': TODO: Include or not '\r'? When using my own editor I swap everything to '\n' but...
+                            case '\n':
+                                currentIndexLine++;
+                                currentIndexCharacter = 0;
+                                break;
+                            default:
+                                currentIndexCharacter++;
+                                break;
+                        }
+                        currentIndexPosition++;
+                    }
+                }
+                if (childNode.IsScopeProvider)
+                {
+                    returnStack.Push((targetScopeProvider, i));
+                    targetScopeProvider = childNode;
+                    isNaturalHandOff = true;
+                    break;
+                }
+            }
+            if (isNaturalHandOff)
+            {
+                isNaturalHandOff = false;
+                i = 0;
+            }
+            else
+            {
+                if (returnStack.Count > 0)
+                {
+                    var returnEntry = returnStack.Pop();
+                    targetScopeProvider = returnEntry.ScopeProvider;
+                    i = returnEntry.ChildIndexOfScopeProviderAmongItsSiblings + 1;
+                }
+                else
+                {
+                    targetScopeProvider = null;
+                }
             }
         }
     }
@@ -327,6 +395,52 @@ internal static class SyntaxHelper
             SyntaxKind.VariableReferenceNode => "VariableReferenceNode",
             SyntaxKind.None => "None",
             _ => $"GetSyntaxKindString is missing a map for {syntaxKind.ToString()}"
+        };
+    }
+    
+    public static string GetIdentifierText(SyntaxNode? node)
+    {
+        if (node is null)
+        {
+            return "null";
+        }
+        if (node.IsIdentifiable)
+        {
+            return node.GetIdentifierHash().ToString();
+        }
+        switch (node.SyntaxKind)
+        {
+            case SyntaxKind.AmpersandToken:
+                return "AmpersandToken";
+                break;
+            case SyntaxKind.BlockNode:
+                return "BlockNode";
+                break;
+            case SyntaxKind.CatchKeywordToken:
+                return "CatchKeywordToken";
+                break;
+            case SyntaxKind.IfStatementNode:
+                return "IfStatementNode";
+                break;
+            case SyntaxKind.FunctionDeclarationNode:
+                var functionDeclarationNode = (FunctionDeclarationNode)node;
+                return "FunctionDeclarationNode";
+                break;
+            case SyntaxKind.GlobalNode:
+                return "GlobalNode";
+                break;
+            case SyntaxKind.VariableDeclarationNode:
+                return "VariableDeclarationNode";
+                break;
+            case SyntaxKind.VariableReferenceNode:
+                return "VariableReferenceNode";
+                break;
+            case SyntaxKind.None:
+                return "None";
+                break;
+            default:
+                return $"GetIdentifierText is missing a map for {node.SyntaxKind.ToString()}";
+                break;
         };
     }
 }
