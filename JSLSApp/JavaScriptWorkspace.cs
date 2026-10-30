@@ -151,6 +151,8 @@ public class JavaScriptWorkspace
     /// and thus from "start to end" you only have whitespace essentially is the first idea.
     /// 
     /// before,among,after are all in reference to the START of a given node.
+    /// 
+    /// this isn't correct/done I only stopped to cook 1 lb of 98% fat free ground chicken with sriracha I'm gonna eat it now
     /// </summary>
     public (SyntaxNodeWithPosition before, SyntaxNodeWithPosition among, SyntaxNodeWithPosition after) FindNodesAdjacentToTheEdit(JavaScriptDocument javaScriptDocument, Position start, Position end)
     {

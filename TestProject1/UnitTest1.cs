@@ -37,7 +37,7 @@ public class LexerTests
     // I'm gonna put "      " at the end of this string cuz the length is wrong and it won't read it
     public const string didOpenTextDocumentNotification = "Content-Length: 433\r\n\r\n{\"method\":\"textDocument/didOpen\",\"params\":{\"textDocument\":{\"uri\":\"file:///C:/Users/hunte/Repos/New folder (7)/Editor2/testFile.js\",\"languageId\":\"javascript\",\"version\":0,\"text\":\"aaa\\n        /**\\n         * @type {HTMLDivElement}\\n         * Consider the existence of such methods as 'state_cursor_setIndex' before mutating state directly\\n         */xxx/*\\n         */\\n        this.cursorElement = document.createElement('div');\"}}}\\n      ";
     public const string customFullFileLexRequest = "Content-Length: 157\r\n\r\n{\"id\":1,\"method\":\"textDocument/CustomFullFileLexRequest\",\"params\":{\"textDocument\":{\"uri\":\"file:///C:/Users/hunte/Repos/New folder (7)/Editor2/testFile.js\"}}}\\n";
-    public const string customEditorGetNodesAdjacentToCursorFromLspRequest = "Content-Length: 219\r\n\r\n{\"id\":3,\"method\":\"textDocument/CustomEditorGetNodesAdjacentToCursorFromLspRequest\",\"params\":{\"textDocument\":{\"uri\":\"file:///C:/Users/hunte/Repos/New folder (7)/Editor2/testFile.js\"},\"position\":{\"line\":3,\"character\":0}}}\\n";
+    public const string customEditorGetNodesAdjacentToCursorFromLspRequest = "Content-Length: 219\r\n\r\n{\"id\":3,\"method\":\"textDocument/CustomEditorGetNodesAdjacentToCursorFromLspRequest\",\"params\":{\"textDocument\":{\"uri\":\"file:///C:/Users/hunte/Repos/New folder (7)/Editor2/testFile.js\"},\"position\":{\"line\":0,\"character\":9}}}\\n";
 
     public const string FileText = "function EDI_init() {\\n    \\n}\\n\\nfunction EDI_render_do() {\\n    \\n}";
 
