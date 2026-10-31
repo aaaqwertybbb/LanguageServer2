@@ -137,7 +137,7 @@ internal static class SyntaxHelper
     public static void RecursiveSearch_FindNodesAdjacentToTheEdit(ref RecursiveSearch_FindNodesAdjacentToTheEdit_Args args)
     {
         // Do not expect 'before' to stay the same later in this function because the variable is overwritten.
-        ref var scope = ref args._before.Node.GetScope();
+        ref var scope = ref args.Before.Node.GetScope();
 
         var thisFunctionInvocationIsAtAnAfter = false;
         
@@ -147,16 +147,16 @@ internal static class SyntaxHelper
             SyntaxNode? child_node = scope.BodyList[i];
             WalkPositionIndices_mutable_FindNodesAdjacentToTheEdit(ref args, child_node.DistanceFromPreviousNode);
 
-            if (args._currentIndexLine < args._targetIndexLine) // before line
+            if (args.CurrentIndexLine < args.TargetIndexLine) // before line
             {
-                args._before.Node = child_node;
-                args._before.Position = new Position(args._currentIndexLine, args._currentIndexCharacter);
-                args._before.PositionIndex = args._currentIndexPosition;
+                args.Before.Node = child_node;
+                args.Before.Position = new Position(args.CurrentIndexLine, args.CurrentIndexCharacter);
+                args.Before.PositionIndex = args.CurrentIndexPosition;
 
                 if (child_node.IsScopeProvider)
                 {
                     ref var childScope = ref child_node.GetScope();
-                    if (childScope.End.line >= args._targetIndexLine && childScope.BodyList.Count > 0)
+                    if (childScope.End.line >= args.TargetIndexLine && childScope.BodyList.Count > 0)
                     {
                         RecursiveSearch_FindNodesAdjacentToTheEdit(ref args);
                         i++;
@@ -168,14 +168,14 @@ internal static class SyntaxHelper
                     }
                 }
             }
-            else if (args._currentIndexLine > args._targetIndexLine) // after line
+            else if (args.CurrentIndexLine > args.TargetIndexLine) // after line
             {
                 thisFunctionInvocationIsAtAnAfter = true;
                 break;
             }
             else // same line
             {
-                if (args._currentIndexCharacter > args._targetIndexCharacter) // after character
+                if (args.CurrentIndexCharacter > args.TargetIndexCharacter) // after character
                 {
                     thisFunctionInvocationIsAtAnAfter = true;
                     break;
@@ -183,7 +183,7 @@ internal static class SyntaxHelper
 
                 var found = false;
 
-                if (args._targetIndexCharacter == args._currentIndexCharacter)
+                if (args.TargetIndexCharacter == args.CurrentIndexCharacter)
                 {
                     found = true;
                 }
@@ -191,24 +191,24 @@ internal static class SyntaxHelper
                 {
                     // TODO: Awkward assumption that the childNode's `startLine` and `endLine` would be equal. (currently only the length of a node's "word based identifier" is being accounted for, so this is currently true.
                     (_, _, var childNode_endCharacter) = WalkPositionIndices_return_FindNodesAdjacentToTheEdit(ref args, child_node.Length);
-                    if (childNode_endCharacter >= args._targetIndexCharacter)
+                    if (childNode_endCharacter >= args.TargetIndexCharacter)
                     {
                         found = true;
                     }
                     else
                     {
-                        args._before.Node = child_node;
-                        args._before.Position = new Position(args._currentIndexLine, args._currentIndexCharacter);
-                        args._before.PositionIndex = args._currentIndexPosition;
+                        args.Before.Node = child_node;
+                        args.Before.Position = new Position(args.CurrentIndexLine, args.CurrentIndexCharacter);
+                        args.Before.PositionIndex = args.CurrentIndexPosition;
                     }
                 }
 
                 if (!found)
                     continue;
 
-                args._among.Node = child_node;
-                args._among.Position = new Position(args._currentIndexLine, args._currentIndexCharacter);
-                args._among.PositionIndex = args._currentIndexPosition;
+                args.Among.Node = child_node;
+                args.Among.Position = new Position(args.CurrentIndexLine, args.CurrentIndexCharacter);
+                args.Among.PositionIndex = args.CurrentIndexPosition;
                 i++;
                 break;
             }
@@ -222,70 +222,70 @@ internal static class SyntaxHelper
         //
         if (i < scope.BodyList.Count)
         {
-            if (args._after.Node is null)
+            if (args.After.Node is null)
             {
-                args._after.Node = scope.BodyList[i];
+                args.After.Node = scope.BodyList[i];
                 if (!thisFunctionInvocationIsAtAnAfter)
                 {
                     // i was incremented then 'break' but you still need to walk to the node.
-                    WalkPositionIndices_mutable_FindNodesAdjacentToTheEdit(ref args, args._after.Node.DistanceFromPreviousNode);
+                    WalkPositionIndices_mutable_FindNodesAdjacentToTheEdit(ref args, args.After.Node.DistanceFromPreviousNode);
                 }
-                args._after.Position = new(args._currentIndexLine, args._currentIndexCharacter);
-                args._after.PositionIndex = args._currentIndexPosition;
+                args.After.Position = new(args.CurrentIndexLine, args.CurrentIndexCharacter);
+                args.After.PositionIndex = args.CurrentIndexPosition;
             }
         }
     }
 
     public static void WalkPositionIndices_mutable_FindNodesAdjacentToTheEdit(ref RecursiveSearch_FindNodesAdjacentToTheEdit_Args args, int distance)
     {
-        if (args._currentIndexPosition >= args._chars.Length)
+        if (args.CurrentIndexPosition >= args.Chars.Length)
             return;
 
-        if (args._currentIndexPosition + distance >= args._chars.Length)
-            distance = args._chars.Length - args._currentIndexPosition;
+        if (args.CurrentIndexPosition + distance >= args.Chars.Length)
+            distance = args.Chars.Length - args.CurrentIndexPosition;
 
         for (var i = 0; i < distance; i++)
         {
-            switch (args._chars[args._currentIndexPosition])
+            switch (args.Chars[args.CurrentIndexPosition])
             {
                 //case '\r': TODO: Include or not '\r'? When using my own editor I swap everything to '\n' but...
                 case '\n':
-                    args._currentIndexLine++;
-                    args._currentIndexCharacter = 0;
+                    args.CurrentIndexLine++;
+                    args.CurrentIndexCharacter = 0;
                     break;
                 default:
-                    args._currentIndexCharacter++;
+                    args.CurrentIndexCharacter++;
                     break;
             }
-            args._currentIndexPosition++;
+            args.CurrentIndexPosition++;
         }
     }
 
     public static (int CurrentIndexPosition, int CurrentIndexLine, int CurrentIndexCharacter) WalkPositionIndices_return_FindNodesAdjacentToTheEdit(ref RecursiveSearch_FindNodesAdjacentToTheEdit_Args args, int distance)
     {
-        if (args._currentIndexPosition >= args._chars.Length)
-            return (args._currentIndexPosition, args._currentIndexLine, args._currentIndexCharacter);
+        if (args.CurrentIndexPosition >= args.Chars.Length)
+            return (args.CurrentIndexPosition, args.CurrentIndexLine, args.CurrentIndexCharacter);
 
-        if (args._currentIndexPosition + distance >= args._chars.Length)
-            distance = args._chars.Length - args._currentIndexPosition;
+        if (args.CurrentIndexPosition + distance >= args.Chars.Length)
+            distance = args.Chars.Length - args.CurrentIndexPosition;
 
         for (var i = 0; i < distance; i++)
         {
-            switch (args._chars[args._currentIndexPosition])
+            switch (args.Chars[args.CurrentIndexPosition])
             {
                 //case '\r': TODO: Include or not '\r'? When using my own editor I swap everything to '\n' but...
                 case '\n':
-                    args._currentIndexLine++;
-                    args._currentIndexCharacter = 0;
+                    args.CurrentIndexLine++;
+                    args.CurrentIndexCharacter = 0;
                     break;
                 default:
-                    args._currentIndexCharacter++;
+                    args.CurrentIndexCharacter++;
                     break;
             }
-            args._currentIndexPosition++;
+            args.CurrentIndexPosition++;
         }
 
-        return (args._currentIndexPosition, args._currentIndexLine, args._currentIndexCharacter);
+        return (args.CurrentIndexPosition, args.CurrentIndexLine, args.CurrentIndexCharacter);
     }
 
     public static void SkipBranchButStillCountItPositionWise_FindNodesAdjacentToTheEdit(ref RecursiveSearch_FindNodesAdjacentToTheEdit_Args args, SyntaxNode? targetScopeProvider)
@@ -294,41 +294,41 @@ internal static class SyntaxHelper
         var i = 0;
         while (targetScopeProvider is not null)
         {
-            args._before.Node = targetScopeProvider;
-            args._before.Position = new(args._currentIndexLine, args._currentIndexCharacter);
-            args._before.PositionIndex = args._currentIndexPosition;
+            args.Before.Node = targetScopeProvider;
+            args.Before.Position = new(args.CurrentIndexLine, args.CurrentIndexCharacter);
+            args.Before.PositionIndex = args.CurrentIndexPosition;
             ref var scope = ref targetScopeProvider.GetScope();
             for (; i < scope.BodyList.Count; i++)
             {
                 var childNode = scope.BodyList[i];
-                args._before.Node = childNode;
-                if (args._currentIndexPosition < args._chars.Length)
+                args.Before.Node = childNode;
+                if (args.CurrentIndexPosition < args.Chars.Length)
                 {
                     var distance = childNode.DistanceFromPreviousNode;
-                    if (args._currentIndexPosition + distance >= args._chars.Length)
-                        distance = args._chars.Length - args._currentIndexPosition;
+                    if (args.CurrentIndexPosition + distance >= args.Chars.Length)
+                        distance = args.Chars.Length - args.CurrentIndexPosition;
 
                     for (var j = 0; j < distance; j++)
                     {
-                        switch (args._chars[args._currentIndexPosition])
+                        switch (args.Chars[args.CurrentIndexPosition])
                         {
                             //case '\r': TODO: Include or not '\r'? When using my own editor I swap everything to '\n' but...
                             case '\n':
-                                args._currentIndexLine++;
-                                args._currentIndexCharacter = 0;
+                                args.CurrentIndexLine++;
+                                args.CurrentIndexCharacter = 0;
                                 break;
                             default:
-                                args._currentIndexCharacter++;
+                                args.CurrentIndexCharacter++;
                                 break;
                         }
-                        args._currentIndexPosition++;
+                        args.CurrentIndexPosition++;
                     }
                 }
-                args._before.Position = new(args._currentIndexLine, args._currentIndexCharacter);
-                args._before.PositionIndex = args._currentIndexPosition;
+                args.Before.Position = new(args.CurrentIndexLine, args.CurrentIndexCharacter);
+                args.Before.PositionIndex = args.CurrentIndexPosition;
                 if (childNode.IsScopeProvider)
                 {
-                    args._returnStack.Push((targetScopeProvider, i));
+                    args.ReturnStack.Push((targetScopeProvider, i));
                     targetScopeProvider = childNode;
                     isNaturalHandOff = true;
                     break;
@@ -341,9 +341,9 @@ internal static class SyntaxHelper
             }
             else
             {
-                if (args._returnStack.Count > 0)
+                if (args.ReturnStack.Count > 0)
                 {
-                    var returnEntry = args._returnStack.Pop();
+                    var returnEntry = args.ReturnStack.Pop();
                     targetScopeProvider = returnEntry.ScopeProvider;
                     i = returnEntry.ChildIndexOfScopeProviderAmongItsSiblings + 1;
                 }

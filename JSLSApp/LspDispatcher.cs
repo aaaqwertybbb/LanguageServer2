@@ -11,45 +11,45 @@ internal ref struct RecursiveSearch_FindNodesAdjacentToTheEdit_Args
 {
     public RecursiveSearch_FindNodesAdjacentToTheEdit_Args(JavaScriptDocument javaScriptDocument, int targetIndexLine, int targetIndexCharacter, Stack<SyntaxNode> inclusiveFinalNodeToConsiderAtEachDepth, Stack<(SyntaxNode ScopeProvider, int ChildIndexOfScopeProviderAmongItsSiblings)> returnStack, ref SyntaxNodeWithPosition before, ref SyntaxNodeWithPosition among, ref SyntaxNodeWithPosition after)
     {
-        _before = ref before;
-        _among = ref among;
-        _after = ref after;
+        Before = ref before;
+        Among = ref among;
+        After = ref after;
 
-        _inclusiveFinalNodeToConsiderAtEachDepth = inclusiveFinalNodeToConsiderAtEachDepth;
-        _inclusiveFinalNodeToConsiderAtEachDepth.Clear();
+        InclusiveFinalNodeToConsiderAtEachDepth = inclusiveFinalNodeToConsiderAtEachDepth;
+        InclusiveFinalNodeToConsiderAtEachDepth.Clear();
 
-        _returnStack = returnStack;
-        _returnStack.Clear();
+        ReturnStack = returnStack;
+        ReturnStack.Clear();
 
-        _currentIndexPosition = 0;
-        _currentIndexLine = 0;
-        _currentIndexCharacter = 0;
+        CurrentIndexPosition = 0;
+        CurrentIndexLine = 0;
+        CurrentIndexCharacter = 0;
 
-        _before.Node = javaScriptDocument.CompilationUnit.GlobalNode;
-        _before.Position = new Position(_currentIndexLine, _currentIndexCharacter);
-        _before.PositionIndex = _currentIndexPosition;
+        Before.Node = javaScriptDocument.CompilationUnit.GlobalNode;
+        Before.Position = new Position(CurrentIndexLine, CurrentIndexCharacter);
+        Before.PositionIndex = CurrentIndexPosition;
 
-        _targetIndexLine = targetIndexLine;
-        _targetIndexCharacter = targetIndexCharacter;
+        TargetIndexLine = targetIndexLine;
+        TargetIndexCharacter = targetIndexCharacter;
 
-        _chars = CollectionsMarshal.AsSpan(javaScriptDocument.Chars);
+        Chars = CollectionsMarshal.AsSpan(javaScriptDocument.Chars);
     }
 
-    internal ref SyntaxNodeWithPosition _before;
-    internal ref SyntaxNodeWithPosition _among;
-    internal ref SyntaxNodeWithPosition _after;
+    internal ref SyntaxNodeWithPosition Before;
+    internal ref SyntaxNodeWithPosition Among;
+    internal ref SyntaxNodeWithPosition After;
 
-    internal Stack<SyntaxNode> _inclusiveFinalNodeToConsiderAtEachDepth;
-    internal Stack<(SyntaxNode ScopeProvider, int ChildIndexOfScopeProviderAmongItsSiblings)> _returnStack;
+    internal Stack<SyntaxNode> InclusiveFinalNodeToConsiderAtEachDepth;
+    internal Stack<(SyntaxNode ScopeProvider, int ChildIndexOfScopeProviderAmongItsSiblings)> ReturnStack;
 
-    internal int _currentIndexPosition;
-    internal int _currentIndexLine;
-    internal int _currentIndexCharacter;
+    internal int CurrentIndexPosition;
+    internal int CurrentIndexLine;
+    internal int CurrentIndexCharacter;
 
-    internal int _targetIndexLine;
-    internal int _targetIndexCharacter;
+    internal int TargetIndexLine;
+    internal int TargetIndexCharacter;
 
-    internal ReadOnlySpan<char> _chars;
+    internal ReadOnlySpan<char> Chars;
 }
 
 internal static class LspDispatcher
@@ -175,17 +175,17 @@ internal static class LspDispatcher
         var args = new RecursiveSearch_FindNodesAdjacentToTheEdit_Args(javaScriptDocument, customEditorGetNodesAdjacentToCursorFromLspRequest.@params.position.line, customEditorGetNodesAdjacentToCursorFromLspRequest.@params.position.character, _inclusiveFinalNodeToConsiderAtEachDepth, _returnStack, ref bbbefore, ref aaamong, ref aaafter);
         SyntaxHelper.RecursiveSearch_FindNodesAdjacentToTheEdit(ref args);
 
-        _before.SyntaxKindString = SyntaxHelper.GetSyntaxKindString(args._before.Node?.SyntaxKind ?? SyntaxKind.None);
-        _before.Identifier = SyntaxHelper.GetIdentifierText(args._before, args._chars);
-        _before.Start = args._before.Position;
+        _before.SyntaxKindString = SyntaxHelper.GetSyntaxKindString(args.Before.Node?.SyntaxKind ?? SyntaxKind.None);
+        _before.Identifier = SyntaxHelper.GetIdentifierText(args.Before, args.Chars);
+        _before.Start = args.Before.Position;
 
-        _among.SyntaxKindString = SyntaxHelper.GetSyntaxKindString(args._among.Node?.SyntaxKind ?? SyntaxKind.None);
-        _among.Identifier = SyntaxHelper.GetIdentifierText(args._among, args._chars);
-        _among.Start = args._among.Position;
+        _among.SyntaxKindString = SyntaxHelper.GetSyntaxKindString(args.Among.Node?.SyntaxKind ?? SyntaxKind.None);
+        _among.Identifier = SyntaxHelper.GetIdentifierText(args.Among, args.Chars);
+        _among.Start = args.Among.Position;
         
-        _after.SyntaxKindString = SyntaxHelper.GetSyntaxKindString(args._after.Node?.SyntaxKind ?? SyntaxKind.None);
-        _after.Identifier = SyntaxHelper.GetIdentifierText(args._after, args._chars);
-        _after.Start = args._after.Position;
+        _after.SyntaxKindString = SyntaxHelper.GetSyntaxKindString(args.After.Node?.SyntaxKind ?? SyntaxKind.None);
+        _after.Identifier = SyntaxHelper.GetIdentifierText(args.After, args.Chars);
+        _after.Start = args.After.Position;
 
         _customEditorGetNodesAdjacentToCursorFromLspRequestResponse.id = customEditorGetNodesAdjacentToCursorFromLspRequest.id;
         _customEditorGetNodesAdjacentToCursorFromLspRequestResponseResult.Before = _before;
