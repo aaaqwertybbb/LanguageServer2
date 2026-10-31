@@ -52,6 +52,48 @@ internal ref struct RecursiveSearch_FindNodesAdjacentToTheEdit_Args
     internal ReadOnlySpan<char> Chars;
 }
 
+internal ref struct RecursiveSearch_Args
+{
+    public RecursiveSearch_Args(JavaScriptDocument javaScriptDocument, int targetIndexLine, int targetIndexCharacter, Stack<SyntaxNode> inclusiveFinalNodeToConsiderAtEachDepth, Stack<(SyntaxNode ScopeProvider, int ChildIndexOfScopeProviderAmongItsSiblings)> returnStack)
+    {
+        InclusiveFinalNodeToConsiderAtEachDepth = inclusiveFinalNodeToConsiderAtEachDepth;
+        InclusiveFinalNodeToConsiderAtEachDepth.Clear();
+
+        ReturnStack = returnStack;
+        ReturnStack.Clear();
+
+        CurrentIndexPosition = 0;
+        CurrentIndexLine = 0;
+        CurrentIndexCharacter = 0;
+
+        ScopeProvider = javaScriptDocument.CompilationUnit.GlobalNode;
+
+        TargetIndexLine = targetIndexLine;
+        TargetIndexCharacter = targetIndexCharacter;
+
+        Chars = CollectionsMarshal.AsSpan(javaScriptDocument.Chars);
+    }
+
+    // Contains both IsScopeProvider==true nodes and IsScopeProvider==false nodes
+    // BECAUSE it contains the definition node itself as the first thing that gets pushed.
+    // Other than that first pushed node everything is IsScopeProvider==true.
+    internal Stack<SyntaxNode> InclusiveFinalNodeToConsiderAtEachDepth;
+    internal Stack<(SyntaxNode ScopeProvider, int ChildIndexOfScopeProviderAmongItsSiblings)> ReturnStack;
+
+    internal int TotalChecks;
+
+    internal int CurrentIndexPosition;
+    internal int CurrentIndexLine;
+    internal int CurrentIndexCharacter;
+
+    internal SyntaxNode ScopeProvider;
+
+    internal int TargetIndexLine;
+    internal int TargetIndexCharacter;
+
+    internal ReadOnlySpan<char> Chars;
+}
+
 /// <summary>
 /// Single threaded and a lot of pooling for the expensive messages.
 /// (common pools are shared across messages since the single threaded implementation)
@@ -77,6 +119,8 @@ internal static class LspDispatcher
     internal static CustomEditorGetNodesAdjacentToCursorFromLspRequestResponseResultNode _before = new();
     internal static CustomEditorGetNodesAdjacentToCursorFromLspRequestResponseResultNode _among = new();
     internal static CustomEditorGetNodesAdjacentToCursorFromLspRequestResponseResultNode _after = new();
+
+
     /// <summary>
     /// Contains both IsScopeProvider==true nodes and IsScopeProvider==false nodes BECAUSE it contains the definition node itself as the first thing that gets pushed. Other than that first pushed node everything is IsScopeProvider==true.
     /// </summary>
@@ -175,9 +219,12 @@ internal static class LspDispatcher
         SyntaxNodeWithPosition bbbefore = default;
         SyntaxNodeWithPosition aaamong = default;
         SyntaxNodeWithPosition aaafter = default;
-
         var args = new RecursiveSearch_FindNodesAdjacentToTheEdit_Args(javaScriptDocument, customEditorGetNodesAdjacentToCursorFromLspRequest.@params.position.line, customEditorGetNodesAdjacentToCursorFromLspRequest.@params.position.character, _inclusiveFinalNodeToConsiderAtEachDepth, _returnStack, ref bbbefore, ref aaamong, ref aaafter);
+
         SyntaxHelper.RecursiveSearch_FindNodesAdjacentToTheEdit(ref args);
+
+        args.InclusiveFinalNodeToConsiderAtEachDepth.Clear();
+        args.ReturnStack.Clear();
 
         _before.SyntaxKindString = SyntaxHelper.GetSyntaxKindString(args.Before.Node?.SyntaxKind ?? SyntaxKind.None);
         _before.Identifier = SyntaxHelper.GetIdentifierText(args.Before, args.Chars);
@@ -220,31 +267,12 @@ internal static class LspDispatcher
 
         SyntaxNode? result_node = null;
 
-        var totalChecks = 0;
+        var args = new RecursiveSearch_Args(javaScriptDocument, definitionRequest.@params.position.line, definitionRequest.@params.position.character, _inclusiveFinalNodeToConsiderAtEachDepth, _returnStack);
 
-        var currentIndexPosition = 0;
-        var currentIndexLine = 0;
-        var currentIndexCharacter = 0;
+        result_node = SyntaxHelper.RecursiveSearch(ref args);
 
-        // Contains both IsScopeProvider==true nodes and IsScopeProvider==false nodes
-        // BECAUSE it contains the definition node itself as the first thing that gets pushed.
-        // Other than that first pushed node everything is IsScopeProvider==true.
-        Stack<SyntaxNode> inclusiveFinalNodeToConsiderAtEachDepth = new();
-        Stack<(SyntaxNode ScopeProvider, int ChildIndexOfScopeProviderAmongItsSiblings)> returnStack = new();
-
-        result_node = SyntaxHelper.RecursiveSearch(javaScriptDocument.Chars,
-                                                   javaScriptDocument.CompilationUnit.GlobalNode,
-                                                   definitionRequest.@params.position.line,
-                                                   definitionRequest.@params.position.character,
-                                                   ref totalChecks,
-                                                   ref currentIndexPosition,
-                                                   ref currentIndexLine,
-                                                   ref currentIndexCharacter,
-                                                   inclusiveFinalNodeToConsiderAtEachDepth,
-                                                   returnStack);
-
-        inclusiveFinalNodeToConsiderAtEachDepth.Clear();
-        returnStack.Clear();
+        args.InclusiveFinalNodeToConsiderAtEachDepth.Clear();
+        args.ReturnStack.Clear();
 
         if (result_node is not null && result_node.SyntaxKind == SyntaxKind.VariableReferenceNode)
         {
@@ -268,28 +296,28 @@ internal static class LspDispatcher
                             if (isFirstLoop)
                             {
                                 isFirstLoop = false;
-                                inclusiveFinalNodeToConsiderAtEachDepth.Push(declarationNode);
+                                args.InclusiveFinalNodeToConsiderAtEachDepth.Push(declarationNode);
                                 if (targetScopeProvider != javaScriptDocument.CompilationUnit.GlobalNode)
                                 {
-                                    inclusiveFinalNodeToConsiderAtEachDepth.Push(targetScopeProvider);
+                                    args.InclusiveFinalNodeToConsiderAtEachDepth.Push(targetScopeProvider);
                                 }
                             }
                             else
                             {
                                 if (targetScopeProvider != javaScriptDocument.CompilationUnit.GlobalNode)
                                 {
-                                    inclusiveFinalNodeToConsiderAtEachDepth.Push(targetScopeProvider);
+                                    args.InclusiveFinalNodeToConsiderAtEachDepth.Push(targetScopeProvider);
                                 }
                             }
                             targetScopeProvider = targetScopeProvider.GetScope().ParentScopeProvider;
                         }
 
                         targetScopeProvider = javaScriptDocument.CompilationUnit.GlobalNode;
-                        var finalNodeToConsider = inclusiveFinalNodeToConsiderAtEachDepth.Pop();
+                        var finalNodeToConsider = args.InclusiveFinalNodeToConsiderAtEachDepth.Pop();
 
-                        currentIndexPosition = 0;
-                        currentIndexLine = 0;
-                        currentIndexCharacter = 0;
+                        args.CurrentIndexPosition = 0;
+                        args.CurrentIndexLine = 0;
+                        args.CurrentIndexCharacter = 0;
 
                         // TODO: This should probably start as false (it was required to start as false in a similar but not exactly the same scenario)
                         var isNaturalHandOff = true;
@@ -307,39 +335,39 @@ internal static class LspDispatcher
                             for (; i < scope.BodyList.Count; i++)
                             {
                                 var childNode = scope.BodyList[i];
-                                if (currentIndexPosition < javaScriptDocument.Chars.Count)
+                                if (args.CurrentIndexPosition < javaScriptDocument.Chars.Count)
                                 {
                                     var distance = childNode.DistanceFromPreviousNode;
-                                    if (currentIndexPosition + distance >= javaScriptDocument.Chars.Count)
-                                        distance = javaScriptDocument.Chars.Count - currentIndexPosition;
+                                    if (args.CurrentIndexPosition + distance >= javaScriptDocument.Chars.Count)
+                                        distance = javaScriptDocument.Chars.Count - args.CurrentIndexPosition;
 
                                     for (var j = 0; j < distance; j++)
                                     {
-                                        switch (javaScriptDocument.Chars[currentIndexPosition])
+                                        switch (javaScriptDocument.Chars[args.CurrentIndexPosition])
                                         {
                                             //case '\r': TODO: Include or not '\r'? When using my own editor I swap everything to '\n' but...
                                             case '\n':
-                                                currentIndexLine++;
-                                                currentIndexCharacter = 0;
+                                                args.CurrentIndexLine++;
+                                                args.CurrentIndexCharacter = 0;
                                                 break;
                                             default:
-                                                currentIndexCharacter++;
+                                                args.CurrentIndexCharacter++;
                                                 break;
                                         }
-                                        currentIndexPosition++;
+                                        args.CurrentIndexPosition++;
                                     }
                                 }
                                 if (childNode.IsScopeProvider)
                                 {
                                     if (childNode != finalNodeToConsider)
                                     {
-                                        returnStack.Push((targetScopeProvider, i));
+                                        args.ReturnStack.Push((targetScopeProvider, i));
                                     }
                                     else
                                     {
                                         if (!isSidePath) // TODO: determine side path!!!!!
                                         {
-                                            finalNodeToConsider = inclusiveFinalNodeToConsiderAtEachDepth.Pop();
+                                            finalNodeToConsider = args.InclusiveFinalNodeToConsiderAtEachDepth.Pop();
                                         }
                                     }
                                     targetScopeProvider = childNode;
@@ -350,7 +378,7 @@ internal static class LspDispatcher
                                 {
                                     if (childNode == finalNodeToConsider)
                                     {
-                                        returnStack.Clear(); // TODO: Don't do this just anxiety I have no reason for this line to exist?
+                                        args.ReturnStack.Clear(); // TODO: Don't do this just anxiety I have no reason for this line to exist?
                                         targetScopeProvider = null;
                                         break;
                                     }
@@ -363,9 +391,9 @@ internal static class LspDispatcher
                             }
                             else
                             {
-                                if (returnStack.Count > 0)
+                                if (args.ReturnStack.Count > 0)
                                 {
-                                    var returnEntry = returnStack.Pop();
+                                    var returnEntry = args.ReturnStack.Pop();
                                     targetScopeProvider = returnEntry.ScopeProvider;
                                     i = returnEntry.ChildIndexOfScopeProviderAmongItsSiblings + 1;
                                 }
@@ -380,15 +408,18 @@ internal static class LspDispatcher
                         {
                             start = new Position
                             {
-                                line = currentIndexLine,// TODO: relative changes break this; variableReferenceNode.DefinitionLine,
-                                character = currentIndexCharacter//variableReferenceNode.DefinitionCharacter
+                                line = args.CurrentIndexLine,// TODO: relative changes break this; variableReferenceNode.DefinitionLine,
+                                character = args.CurrentIndexCharacter//variableReferenceNode.DefinitionCharacter
                             },
                             end = new Position //end = result_node.End, // TODO: relative changes break this;
                             {
-                                line = currentIndexLine,
-                                character = currentIndexCharacter
+                                line = args.CurrentIndexLine,
+                                character = args.CurrentIndexCharacter
                             },
                         };
+
+                        args.InclusiveFinalNodeToConsiderAtEachDepth.Clear();
+                        args.ReturnStack.Clear();
 
                         //nodeString = $"{result_node.SyntaxKind}~{result_node.Id_name}";
                         Console.Out.WriteLine(Program.MAIN_encodeMessageObject(
@@ -627,7 +658,7 @@ internal static class LspDispatcher
     private static Message DeserializeContent_Hover(string content, Message request)
     {
         return request;
-        var hoverRequest = JsonSerializer.Deserialize<TextDocumentHoverRequest>(content);
+        /*var hoverRequest = JsonSerializer.Deserialize<TextDocumentHoverRequest>(content);
         if (hoverRequest is null || hoverRequest.@params.textDocument.uri is null)
         {
             return request;
@@ -690,7 +721,7 @@ internal static class LspDispatcher
         var textDocumentHoverResponse = new TextDocumentHoverResponse(hoverRequest.id, $"tooltip example for ({nodeString}) ({hoverRequest.@params.position.line}, {hoverRequest.@params.position.character}) {hoverRequest.@params.textDocument.uri}");
         Console.Out.WriteLine(Program.MAIN_encodeMessageObject(textDocumentHoverResponse));
 
-        return request;
+        return request;*/
     }
 
     private static Message DeserializeContent_DocumentSymbol(string content, Message request)
