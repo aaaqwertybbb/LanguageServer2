@@ -95,8 +95,38 @@ internal static class LspDispatcher
             return request;
         }
 
+        // maybe 11:00 AM?
 
-        (SyntaxNodeWithPosition before, SyntaxNodeWithPosition among, SyntaxNodeWithPosition after) = _javaScriptWorkspace.FindNodesAdjacentToTheEdit(javaScriptDocument, customEditorGetNodesAdjacentToCursorFromLspRequest.@params.position, customEditorGetNodesAdjacentToCursorFromLspRequest.@params.position);
+        /// find the current node (which is gonna be null for this simplest scenario of an edit that "doesn't change anything other than text positions")
+        /// then the node that came before
+        /// the node that came after
+        /// 
+        /// 'int endLine, int endCharacter' can be ignored for the first version because it is assumed that no modifications to the AST are taking place
+        /// and thus from "start to end" you only have whitespace essentially is the first idea.
+        /// 
+        /// before,among,after are all in reference to the START of a given node.
+        /// 
+        /// this isn't correct/done I only stopped to cook 1 lb of 98% fat free ground chicken with sriracha I'm gonna eat it now
+
+        ///////
+        ///////
+        ///////
+        var currentIndexPosition = 0;
+        var currentIndexLine = 0;
+        var currentIndexCharacter = 0;
+        // Contains both IsScopeProvider==true nodes and IsScopeProvider==false nodes BECAUSE it contains the definition node itself as the first thing that gets pushed. Other than that first pushed node everything is IsScopeProvider==true.
+        Stack<SyntaxNode> inclusiveFinalNodeToConsiderAtEachDepth = new();
+        Stack<(SyntaxNode ScopeProvider, int ChildIndexOfScopeProviderAmongItsSiblings)> returnStack = new();
+        SyntaxNodeWithPosition before = default;
+        SyntaxNodeWithPosition among = default;
+        SyntaxNodeWithPosition after = default;
+        before.Node = javaScriptDocument.CompilationUnit.GlobalNode;
+        before.Position = new Position(currentIndexLine, currentIndexCharacter);
+        before.PositionIndex = currentIndexPosition;
+        SyntaxHelper.RecursiveSearch_FindNodesAdjacentToTheEdit(javaScriptDocument.Chars, customEditorGetNodesAdjacentToCursorFromLspRequest.@params.position.line, customEditorGetNodesAdjacentToCursorFromLspRequest.@params.position.character, ref currentIndexPosition, ref currentIndexLine, ref currentIndexCharacter, ref before, ref among, ref after, inclusiveFinalNodeToConsiderAtEachDepth, returnStack);
+        ///////
+        ///////
+        ///////
 
         var span = CollectionsMarshal.AsSpan(javaScriptDocument.Chars);
 
