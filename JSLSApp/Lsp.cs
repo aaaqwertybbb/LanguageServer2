@@ -9,7 +9,7 @@ namespace JSLSApp;
 /// Single threaded and a lot of pooling for the expensive messages.
 /// (common pools are shared across messages since the single threaded implementation)
 /// </summary>
-internal static class LspDispatcher
+internal static class Lsp
 {
     internal static JavaScriptWorkspace _javaScriptWorkspace = JavaScriptWorkspace.Empty;
     /// <summary>
@@ -39,7 +39,7 @@ internal static class LspDispatcher
     internal static Stack<(SyntaxNode ScopeProvider, int ChildIndexOfScopeProviderAmongItsSiblings)> _returnStack = new();
 
 
-    public static object? GiveMessage(string content, Message request)
+    public static object? Dispatch(string content, Message request)
     {
         switch (request?.Method)
         {

@@ -218,7 +218,7 @@ public class Program
         {
             //Console.Out.WriteLine($"\n====request is null====\n");
         }
-        return LspDispatcher.GiveMessage(content, request);
+        return Lsp.Dispatch(content, request);
     }
 
     public static string MAIN_encodeMessageObject(object messageObject)
