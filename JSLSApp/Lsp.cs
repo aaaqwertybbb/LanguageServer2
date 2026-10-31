@@ -8,6 +8,12 @@ namespace JSLSApp;
 /// <summary>
 /// Single threaded and a lot of pooling for the expensive messages.
 /// (common pools are shared across messages since the single threaded implementation)
+/// 
+/// TODO: probably need to get completion to work again
+/// TODO: hover
+/// TODO: remove the constant code duplication
+/// TODO: probably change any function that recursively yadayada instead of 1 arg you have 2 args 1 that is a common state for traversing and the second is specific to the function. Then all the traversing can be written once probably maybe.
+/// 
 /// </summary>
 internal static class Lsp
 {
