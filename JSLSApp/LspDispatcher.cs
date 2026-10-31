@@ -91,6 +91,10 @@ internal ref struct RecursiveSearch_Args
     internal int TargetIndexLine;
     internal int TargetIndexCharacter;
 
+    internal SyntaxNode? TargetNode;
+    internal Position TargetNodePosition;
+    internal int TargetNodePositionIndex;
+
     internal ReadOnlySpan<char> Chars;
 }
 
@@ -265,11 +269,10 @@ internal static class LspDispatcher
             return request;
         }
 
-        SyntaxNode? result_node = null;
-
         var args = new RecursiveSearch_Args(javaScriptDocument, definitionRequest.@params.position.line, definitionRequest.@params.position.character, _inclusiveFinalNodeToConsiderAtEachDepth, _returnStack);
 
-        result_node = SyntaxHelper.RecursiveSearch(ref args);
+        SyntaxHelper.RecursiveSearch(ref args);
+        SyntaxNode? result_node = args.TargetNode;
 
         args.InclusiveFinalNodeToConsiderAtEachDepth.Clear();
         args.ReturnStack.Clear();

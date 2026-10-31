@@ -18,7 +18,7 @@ public class LexerTests
         var aaa = Format_didOpenTextDocumentNotification(FileText);
         JSLSApp.Program.MAIN_decodeMessage(aaa);
         JSLSApp.Program.MAIN_decodeMessage(customFullFileLexRequest);
-        JSLSApp.Program.MAIN_decodeMessage(customEditorGetNodesAdjacentToCursorFromLspRequest);
+        JSLSApp.Program.MAIN_decodeMessage(DefinitionRequestOne);
 
 
 
@@ -39,11 +39,9 @@ public class LexerTests
     public const string customFullFileLexRequest = "Content-Length: 157\r\n\r\n{\"id\":1,\"method\":\"textDocument/CustomFullFileLexRequest\",\"params\":{\"textDocument\":{\"uri\":\"file:///C:/Users/hunte/Repos/New folder (7)/Editor2/testFile.js\"}}}\\n";
     public const string customEditorGetNodesAdjacentToCursorFromLspRequest = "Content-Length: 219\r\n\r\n{\"id\":3,\"method\":\"textDocument/CustomEditorGetNodesAdjacentToCursorFromLspRequest\",\"params\":{\"textDocument\":{\"uri\":\"file:///C:/Users/hunte/Repos/New folder (7)/Editor2/testFile.js\"},\"position\":{\"line\":0,\"character\":0}}}\\n";
 
-    public const string FileText = "function EDI_init() {\\n    \\n}\\n\\nfunction EDI_render_do() {\\n    \\n}";
+    public const string FileText = "let x = 2;\\nreturn x;";
 
-    // 0,0 is wrongly (4,9) not (0,9)
-    // 3,0 is missing after
-    public const string DefinitionRequestOne = "Content-Length: 179\r\n\r\n{\"id\":3,\"method\":\"textDocument/definition\",\"params\":{\"textDocument\":{\"uri\":\"file:///C:/Users/hunte/Repos/New folder (7)/Editor2/testFile.js\"},\"position\":{\"line\":2,\"character\":7}}}\n";
+    public const string DefinitionRequestOne = "Content-Length: 179\r\n\r\n{\"id\":3,\"method\":\"textDocument/definition\",\"params\":{\"textDocument\":{\"uri\":\"file:///C:/Users/hunte/Repos/New folder (7)/Editor2/testFile.js\"},\"position\":{\"line\":1,\"character\":7}}}\n";
     public const string DefinitionRequestTwo = "Content-Length: 179\r\n\r\n{\"id\":3,\"method\":\"textDocument/definition\",\"params\":{\"textDocument\":{\"uri\":\"file:///C:/Users/hunte/Repos/New folder (7)/Editor2/testFile.js\"},\"position\":{\"line\":2,\"character\":7}}}\n";
     public const string DefinitionRequestThree = "Content-Length: 179\r\n\r\n{\"id\":3,\"method\":\"textDocument/definition\",\"params\":{\"textDocument\":{\"uri\":\"file:///C:/Users/hunte/Repos/New folder (7)/Editor2/testFile.js\"},\"position\":{\"line\":5,\"character\":7}}}\n";
     public const string DefinitionRequestFour = "Content-Length: 180\r\n\r\n{\"id\":3,\"method\":\"textDocument/definition\",\"params\":{\"textDocument\":{\"uri\":\"file:///C:/Users/hunte/Repos/New folder (7)/Editor2/testFile.js\"},\"position\":{\"line\":3,\"character\":11}}}\n";

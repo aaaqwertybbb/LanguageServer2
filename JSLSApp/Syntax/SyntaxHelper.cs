@@ -59,73 +59,97 @@ internal static class SyntaxHelper
         return null;
     }
 
-    /// <summary>
-    /// TODO: 'RecursiveSearchArgs' object instance to reduce parameter overhead from inner recursive invocations.
-    /// </summary>
-    public static SyntaxNode? RecursiveSearch(ref RecursiveSearch_Args args)
+    public static void RecursiveSearch(ref RecursiveSearch_Args args)
     {
-        // Do not expect 'ScopeProvider' to stay the same later in this function because the variable is overwritten.
+        // Do not expect 'before' to stay the same later in this function because the variable is overwritten.
         ref var scope = ref args.ScopeProvider.GetScope();
 
-        var parentNode_startLine = args.CurrentIndexLine;
-        var parentNode_startCharacter = args.CurrentIndexCharacter;
-        //var parentNode_endLine;
-        //var parentNode_endCharacter;
+        //var thisFunctionInvocationIsAtAnAfter = false;
 
-        for (int i = 0; i < scope.BodyList.Count; i++)
+        var i = 0;
+        for (; i < scope.BodyList.Count; i++)
         {
             SyntaxNode? child_node = scope.BodyList[i];
             WalkPositionIndices_mutable_RS(ref args, child_node.DistanceFromPreviousNode);
-            var childNode_startLine = args.CurrentIndexLine;
-            var childNode_startCharacter = args.CurrentIndexCharacter;
-            (_, var childNode_endLine, var childNode_endCharacter) = WalkPositionIndices_return_RS(ref args, child_node.Length);
 
-            if (child_node.IsScopeProvider && child_node.GetScope().Type == BodyKind.EXTERNAL_FunctionBody)
+            if (args.CurrentIndexLine < args.TargetIndexLine) // before line
             {
-                continue;
-            }
-            args.TotalChecks++;
-            
-            if (childNode_startLine == args.TargetIndexLine)
-            {
-                // TODO: This might be inaccurate for a function definition (or etc...) that spans a single line; if you tried to target an identifier in the code block it might target the function definition I'm not sure.
-                if (childNode_startCharacter <= args.TargetIndexCharacter && childNode_endCharacter >= args.TargetIndexCharacter)
+                if (child_node.IsScopeProvider)
                 {
-                    return child_node;
-                }
-            }
-            // super arbitrary 1,000 limit until I sleep on the logic.
-            // it should do a tree walking -ish algorithm so 1k isn't too bad?
-            if (args.TotalChecks > 1000)
-            {
-                return null;
-            }
-
-            if (!child_node.IsScopeProvider)
-            {
-                continue;
-            }
-
-            ref var childScope = ref child_node.GetScope();
-            if (childScope.End.line >= args.TargetIndexLine)
-            {
-                if (childScope.BodyList.Count > 0)
-                {
-                    args.ScopeProvider = child_node;
-                    var node = RecursiveSearch(ref args);
-                    if (node is not null)
+                    ref var childScope = ref child_node.GetScope();
+                    if (childScope.End.line >= args.TargetIndexLine && childScope.BodyList.Count > 0)
                     {
-                        return node;
+                        args.ScopeProvider = child_node;
+                        RecursiveSearch(ref args);
+                        i++;
+                        break;
+                    }
+                    else
+                    {
+                        SkipBranchButStillCountItPositionWise_RS(ref args, child_node);
                     }
                 }
+            }
+            else if (args.CurrentIndexLine > args.TargetIndexLine) // after line
+            {
+                //thisFunctionInvocationIsAtAnAfter = true;
                 break;
             }
-            else
+            else // same line
             {
-                SkipBranchButStillCountItPositionWise_RS(ref args, child_node);
+                if (args.CurrentIndexCharacter > args.TargetIndexCharacter) // after character
+                {
+                    //thisFunctionInvocationIsAtAnAfter = true;
+                    break;
+                }
+
+                var found = false;
+
+                if (args.TargetIndexCharacter == args.CurrentIndexCharacter)
+                {
+                    found = true;
+                }
+                else
+                {
+                    // TODO: Awkward assumption that the childNode's `startLine` and `endLine` would be equal. (currently only the length of a node's "word based identifier" is being accounted for, so this is currently true.
+                    (_, _, var childNode_endCharacter) = WalkPositionIndices_return_RS(ref args, child_node.Length);
+                    if (childNode_endCharacter >= args.TargetIndexCharacter)
+                    {
+                        found = true;
+                    }
+                }
+
+                if (!found)
+                    continue;
+
+                args.TargetNode = child_node;
+                args.TargetNodePosition = new Position(args.CurrentIndexLine, args.CurrentIndexCharacter);
+                args.TargetNodePositionIndex = args.CurrentIndexPosition;
+                i++;
+                break;
             }
         }
-        return null;
+
+        //// Found 'among' node: then 'i' is ensured to have been incremented prior to the break.
+        ////
+        //// All nodes are before: 'i' will be >= scope.BodyList.Count.
+        ////
+        //// Found 'after' node: then 'i' will NOT have been incremented prior to the break.
+        ////
+        //if (i < scope.BodyList.Count)
+        //{
+        //    if (args.After.Node is null)
+        //    {
+        //        args.After.Node = scope.BodyList[i];
+        //        if (!thisFunctionInvocationIsAtAnAfter)
+        //        {
+        //            // i was incremented then 'break' but you still need to walk to the node.
+        //            WalkPositionIndices_mutable_FindNodesAdjacentToTheEdit(ref args, args.After.Node.DistanceFromPreviousNode);
+        //        }
+        //        args.After.Position = new(args.CurrentIndexLine, args.CurrentIndexCharacter);
+        //        args.After.PositionIndex = args.CurrentIndexPosition;
+        //    }
+        //}
     }
 
     // Two ref structs, one is the mover and the other is the function specific
