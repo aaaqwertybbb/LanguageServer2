@@ -1,102 +1,9 @@
 ﻿using JSLSApp.LspTypes;
 using JSLSApp.Syntax;
-using System.Runtime.InteropServices;
 using System.Text.Json;
 using Range = JSLSApp.LspTypes.Range;
 
 namespace JSLSApp;
-
-
-internal ref struct RecursiveSearch_FindNodesAdjacentToTheEdit_Args
-{
-    public RecursiveSearch_FindNodesAdjacentToTheEdit_Args(JavaScriptDocument javaScriptDocument, int targetIndexLine, int targetIndexCharacter, Stack<SyntaxNode> inclusiveFinalNodeToConsiderAtEachDepth, Stack<(SyntaxNode ScopeProvider, int ChildIndexOfScopeProviderAmongItsSiblings)> returnStack, ref SyntaxNodeWithPosition before, ref SyntaxNodeWithPosition among, ref SyntaxNodeWithPosition after)
-    {
-        Before = ref before;
-        Among = ref among;
-        After = ref after;
-
-        InclusiveFinalNodeToConsiderAtEachDepth = inclusiveFinalNodeToConsiderAtEachDepth;
-        InclusiveFinalNodeToConsiderAtEachDepth.Clear();
-
-        ReturnStack = returnStack;
-        ReturnStack.Clear();
-
-        CurrentIndexPosition = 0;
-        CurrentIndexLine = 0;
-        CurrentIndexCharacter = 0;
-
-        Before.Node = javaScriptDocument.CompilationUnit.GlobalNode;
-        Before.Position = new Position(CurrentIndexLine, CurrentIndexCharacter);
-        Before.PositionIndex = CurrentIndexPosition;
-
-        TargetIndexLine = targetIndexLine;
-        TargetIndexCharacter = targetIndexCharacter;
-
-        Chars = CollectionsMarshal.AsSpan(javaScriptDocument.Chars);
-    }
-
-    internal ref SyntaxNodeWithPosition Before;
-    internal ref SyntaxNodeWithPosition Among;
-    internal ref SyntaxNodeWithPosition After;
-
-    internal Stack<SyntaxNode> InclusiveFinalNodeToConsiderAtEachDepth;
-    internal Stack<(SyntaxNode ScopeProvider, int ChildIndexOfScopeProviderAmongItsSiblings)> ReturnStack;
-
-    internal int CurrentIndexPosition;
-    internal int CurrentIndexLine;
-    internal int CurrentIndexCharacter;
-
-    internal int TargetIndexLine;
-    internal int TargetIndexCharacter;
-
-    internal ReadOnlySpan<char> Chars;
-}
-
-internal ref struct RecursiveSearch_Args
-{
-    public RecursiveSearch_Args(JavaScriptDocument javaScriptDocument, int targetIndexLine, int targetIndexCharacter, Stack<SyntaxNode> inclusiveFinalNodeToConsiderAtEachDepth, Stack<(SyntaxNode ScopeProvider, int ChildIndexOfScopeProviderAmongItsSiblings)> returnStack)
-    {
-        InclusiveFinalNodeToConsiderAtEachDepth = inclusiveFinalNodeToConsiderAtEachDepth;
-        InclusiveFinalNodeToConsiderAtEachDepth.Clear();
-
-        ReturnStack = returnStack;
-        ReturnStack.Clear();
-
-        CurrentIndexPosition = 0;
-        CurrentIndexLine = 0;
-        CurrentIndexCharacter = 0;
-
-        ScopeProvider = javaScriptDocument.CompilationUnit.GlobalNode;
-
-        TargetIndexLine = targetIndexLine;
-        TargetIndexCharacter = targetIndexCharacter;
-
-        Chars = CollectionsMarshal.AsSpan(javaScriptDocument.Chars);
-    }
-
-    // Contains both IsScopeProvider==true nodes and IsScopeProvider==false nodes
-    // BECAUSE it contains the definition node itself as the first thing that gets pushed.
-    // Other than that first pushed node everything is IsScopeProvider==true.
-    internal Stack<SyntaxNode> InclusiveFinalNodeToConsiderAtEachDepth;
-    internal Stack<(SyntaxNode ScopeProvider, int ChildIndexOfScopeProviderAmongItsSiblings)> ReturnStack;
-
-    internal int TotalChecks;
-
-    internal int CurrentIndexPosition;
-    internal int CurrentIndexLine;
-    internal int CurrentIndexCharacter;
-
-    internal SyntaxNode ScopeProvider;
-
-    internal int TargetIndexLine;
-    internal int TargetIndexCharacter;
-
-    internal SyntaxNode? TargetNode;
-    internal Position TargetNodePosition;
-    internal int TargetNodePositionIndex;
-
-    internal ReadOnlySpan<char> Chars;
-}
 
 /// <summary>
 /// Single threaded and a lot of pooling for the expensive messages.
@@ -130,6 +37,7 @@ internal static class LspDispatcher
     /// </summary>
     internal static Stack<SyntaxNode> _inclusiveFinalNodeToConsiderAtEachDepth = new();
     internal static Stack<(SyntaxNode ScopeProvider, int ChildIndexOfScopeProviderAmongItsSiblings)> _returnStack = new();
+
 
     public static object? GiveMessage(string content, Message request)
     {
