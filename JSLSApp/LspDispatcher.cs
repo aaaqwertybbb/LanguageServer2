@@ -201,76 +201,9 @@ internal static class LspDispatcher
         return request;
     }
 
-    private static Message DeserializeContent_CompletionSlice(string content, Message request)
-    {
-        var completionRequestSlice = JsonSerializer.Deserialize<TextDocumentCompletionRequest_slice>(content);
-        if (completionRequestSlice is null || completionRequestSlice.@params.textDocument.uri is null || _completionItemArray is null)
-        {
-            return request;
-        }
-
-        completionRequestSlice.@params.textDocument.uri = EnsureLocalPath(completionRequestSlice.@params.textDocument.uri);
-
-        var found = _javaScriptWorkspace.OpenedSourceFileAbsolutePathToInMemoryContentMap.TryGetValue(completionRequestSlice.@params.textDocument.uri, out var javaScriptDocument);
-        if (!found || javaScriptDocument is null)
-        {
-            return request;
-        }
-
-        if (string.IsNullOrWhiteSpace(completionRequestSlice.@params.filter))
-        {
-            completionRequestSlice.@params.filter = string.Empty;
-        }
-
-        var filterChanged = false;
-
-        if (_completionItemArray_sliceFiltered_previousFilter != completionRequestSlice.@params.filter)
-        {
-            if (completionRequestSlice.@params.filter.StartsWith(_completionItemArray_sliceFiltered_previousFilter) || completionRequestSlice.@params.filter.EndsWith(_completionItemArray_sliceFiltered_previousFilter))
-            {
-                filterChanged = true;
-                _completionItemArray_sliceFiltered_previousFilter = completionRequestSlice.@params.filter;
-                _completionItemArray_sliceFiltered = _completionItemArray_sliceFiltered.Where(x => x.label.Contains(_completionItemArray_sliceFiltered_previousFilter)).ToArray();
-            }
-            else
-            {
-                filterChanged = true;
-                _completionItemArray_sliceFiltered_previousFilter = completionRequestSlice.@params.filter;
-                _completionItemArray_sliceFiltered = _completionItemArray.Where(x => x.label.Contains(_completionItemArray_sliceFiltered_previousFilter)).ToArray();
-            }
-        }
-
-        var lengthSlice = completionRequestSlice.@params.indexEnd - completionRequestSlice.@params.indexStart;
-        if (_completionItemArray_sliceFiltered.Length - completionRequestSlice.@params.indexStart < lengthSlice)
-        {
-            if (filterChanged)
-            {
-                completionRequestSlice.@params.indexStart -= (lengthSlice - (_completionItemArray_sliceFiltered.Length - completionRequestSlice.@params.indexStart));
-                if (completionRequestSlice.@params.indexStart < 0)
-                {
-                    completionRequestSlice.@params.indexStart = 0;
-                }
-            }
-        }
-        var sliceItems = _completionItemArray_sliceFiltered.Skip(completionRequestSlice.@params.indexStart).Take(lengthSlice).ToArray();
-
-        var textDocumentCompletionResponseResult = new TextDocumentCompletionResponseResult()
-        {
-            isIncomplete = false,
-            items = sliceItems,
-            itemsStart = completionRequestSlice.@params.indexStart,
-            itemsEnd = completionRequestSlice.@params.indexEnd,
-            totalLength = _completionItemArray_sliceFiltered.Length,
-        };
-
-        var textDocumentCompletionResponse = new TextDocumentCompletionResponse(completionRequestSlice.id, textDocumentCompletionResponseResult);
-        Console.Out.WriteLine(Program.MAIN_encodeMessageObject(textDocumentCompletionResponse));
-
-        return request;
-    }
-
     private static Message DeserializeContent_Definition(string content, Message request)
     {
+        // TODO: 'Deserialize...Into?' exists? does it?
         var definitionRequest = JsonSerializer.Deserialize<TextDocumentDefinitionRequest>(content);
         if (definitionRequest is null || definitionRequest.@params.textDocument.uri is null)
         {
@@ -324,7 +257,7 @@ internal static class LspDispatcher
                     var indexOf = declarationNode.ParentScopeProvider.GetScope().BodyList.IndexOf(declarationNode);
                     if (indexOf != -1)
                     {
-                        
+
 
                         var targetScopeProvider = declarationNode.ParentScopeProvider;
 
@@ -470,6 +403,74 @@ internal static class LspDispatcher
         // TODO: What does LSP say for responding the failed result null or...?
         var textDocumentDefinitionResponse = new TextDocumentDefinitionResponse(definitionRequest.id, definitionRequest.@params.textDocument.uri, null);
         Console.Out.WriteLine(Program.MAIN_encodeMessageObject(textDocumentDefinitionResponse));
+        return request;
+    }
+
+    private static Message DeserializeContent_CompletionSlice(string content, Message request)
+    {
+        var completionRequestSlice = JsonSerializer.Deserialize<TextDocumentCompletionRequest_slice>(content);
+        if (completionRequestSlice is null || completionRequestSlice.@params.textDocument.uri is null || _completionItemArray is null)
+        {
+            return request;
+        }
+
+        completionRequestSlice.@params.textDocument.uri = EnsureLocalPath(completionRequestSlice.@params.textDocument.uri);
+
+        var found = _javaScriptWorkspace.OpenedSourceFileAbsolutePathToInMemoryContentMap.TryGetValue(completionRequestSlice.@params.textDocument.uri, out var javaScriptDocument);
+        if (!found || javaScriptDocument is null)
+        {
+            return request;
+        }
+
+        if (string.IsNullOrWhiteSpace(completionRequestSlice.@params.filter))
+        {
+            completionRequestSlice.@params.filter = string.Empty;
+        }
+
+        var filterChanged = false;
+
+        if (_completionItemArray_sliceFiltered_previousFilter != completionRequestSlice.@params.filter)
+        {
+            if (completionRequestSlice.@params.filter.StartsWith(_completionItemArray_sliceFiltered_previousFilter) || completionRequestSlice.@params.filter.EndsWith(_completionItemArray_sliceFiltered_previousFilter))
+            {
+                filterChanged = true;
+                _completionItemArray_sliceFiltered_previousFilter = completionRequestSlice.@params.filter;
+                _completionItemArray_sliceFiltered = _completionItemArray_sliceFiltered.Where(x => x.label.Contains(_completionItemArray_sliceFiltered_previousFilter)).ToArray();
+            }
+            else
+            {
+                filterChanged = true;
+                _completionItemArray_sliceFiltered_previousFilter = completionRequestSlice.@params.filter;
+                _completionItemArray_sliceFiltered = _completionItemArray.Where(x => x.label.Contains(_completionItemArray_sliceFiltered_previousFilter)).ToArray();
+            }
+        }
+
+        var lengthSlice = completionRequestSlice.@params.indexEnd - completionRequestSlice.@params.indexStart;
+        if (_completionItemArray_sliceFiltered.Length - completionRequestSlice.@params.indexStart < lengthSlice)
+        {
+            if (filterChanged)
+            {
+                completionRequestSlice.@params.indexStart -= (lengthSlice - (_completionItemArray_sliceFiltered.Length - completionRequestSlice.@params.indexStart));
+                if (completionRequestSlice.@params.indexStart < 0)
+                {
+                    completionRequestSlice.@params.indexStart = 0;
+                }
+            }
+        }
+        var sliceItems = _completionItemArray_sliceFiltered.Skip(completionRequestSlice.@params.indexStart).Take(lengthSlice).ToArray();
+
+        var textDocumentCompletionResponseResult = new TextDocumentCompletionResponseResult()
+        {
+            isIncomplete = false,
+            items = sliceItems,
+            itemsStart = completionRequestSlice.@params.indexStart,
+            itemsEnd = completionRequestSlice.@params.indexEnd,
+            totalLength = _completionItemArray_sliceFiltered.Length,
+        };
+
+        var textDocumentCompletionResponse = new TextDocumentCompletionResponse(completionRequestSlice.id, textDocumentCompletionResponseResult);
+        Console.Out.WriteLine(Program.MAIN_encodeMessageObject(textDocumentCompletionResponse));
+
         return request;
     }
 
@@ -886,6 +887,7 @@ internal static class LspDispatcher
 
     /// <summary>
     /// TODO: this seems a bit GC expensive
+    /// TODO: in the configuration tell the editor you want the local path sans file:///
     /// </summary>
     public static string EnsureLocalPath(string sourceFileAbsolutePath)
     {
