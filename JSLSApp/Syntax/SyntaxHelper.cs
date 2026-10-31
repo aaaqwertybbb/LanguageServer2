@@ -570,6 +570,11 @@ internal static class SyntaxHelper
                 return "GlobalNode";
                 break;
             case SyntaxKind.VariableDeclarationNode:
+                var variableDeclarationNode = (VariableDeclarationNode)node;
+                if (nodeWithPosition.PositionIndex < chars.Length && nodeWithPosition.PositionIndex + variableDeclarationNode.Length <= chars.Length)
+                {
+                    return new string(chars.Slice(nodeWithPosition.PositionIndex, variableDeclarationNode.Length));
+                }
                 if (node.IsIdentifiable)
                 {
                     return node.GetIdentifierHash().ToString();
@@ -577,6 +582,11 @@ internal static class SyntaxHelper
                 return "VariableDeclarationNode";
                 break;
             case SyntaxKind.VariableReferenceNode:
+                var variableReferenceNode = (VariableReferenceNode)node;
+                if (nodeWithPosition.PositionIndex < chars.Length && nodeWithPosition.PositionIndex + variableReferenceNode.Length <= chars.Length)
+                {
+                    return new string(chars.Slice(nodeWithPosition.PositionIndex, variableReferenceNode.Length));
+                }
                 if (node.IsIdentifiable)
                 {
                     return node.GetIdentifierHash().ToString();
