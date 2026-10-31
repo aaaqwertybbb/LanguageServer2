@@ -151,6 +151,9 @@ public class LexerTests
                                                                    - [ ] I exercised and etc...
                                                                    - [ ] I need to sleep for a million years I feel like I'm... idk I can't brain
                                                                    - [ ] tired, stressed, applesauce le random xd
+                                                                   - [ ] Dude I watch Double Blind recently on a daily basis cause it helps me focus. I just play it on the left 33% of my monitor width while I code.
+                                                                   - [ ] And I die laughing everytime because there's a part where he's like "imagine your brain is on fire" and I'm thinking "badumtss"
+                                                                   - [ ] I saw that movie AFTER like a LONG TIME after I saw double blind so it didn't hit the first time it's this nice little thing I have with the movie
                 - [ ] You need to map out the positions of every node kind cause if you miss even just 1 it completely falls apart. (and currently you're missing the majority of them).
             - [ ] Algorithm "???"
     - [ ] When you insert text you update the relative positions of the "node on the left and right of where you are inserting".
