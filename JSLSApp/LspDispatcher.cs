@@ -2,10 +2,55 @@
 using JSLSApp.Syntax;
 using System.Runtime.InteropServices;
 using System.Text.Json;
-using System.Xml.Linq;
 using Range = JSLSApp.LspTypes.Range;
 
 namespace JSLSApp;
+
+
+internal ref struct RecursiveSearch_FindNodesAdjacentToTheEdit_Args
+{
+    public RecursiveSearch_FindNodesAdjacentToTheEdit_Args(JavaScriptDocument javaScriptDocument, int targetIndexLine, int targetIndexCharacter, Stack<SyntaxNode> inclusiveFinalNodeToConsiderAtEachDepth, Stack<(SyntaxNode ScopeProvider, int ChildIndexOfScopeProviderAmongItsSiblings)> returnStack, ref SyntaxNodeWithPosition before, ref SyntaxNodeWithPosition among, ref SyntaxNodeWithPosition after)
+    {
+        _before = ref before;
+        _among = ref among;
+        _after = ref after;
+
+        _inclusiveFinalNodeToConsiderAtEachDepth = inclusiveFinalNodeToConsiderAtEachDepth;
+        _inclusiveFinalNodeToConsiderAtEachDepth.Clear();
+
+        _returnStack = returnStack;
+        _returnStack.Clear();
+
+        _currentIndexPosition = 0;
+        _currentIndexLine = 0;
+        _currentIndexCharacter = 0;
+
+        _before.Node = javaScriptDocument.CompilationUnit.GlobalNode;
+        _before.Position = new Position(_currentIndexLine, _currentIndexCharacter);
+        _before.PositionIndex = _currentIndexPosition;
+
+        _targetIndexLine = targetIndexLine;
+        _targetIndexCharacter = targetIndexCharacter;
+
+        _chars = CollectionsMarshal.AsSpan(javaScriptDocument.Chars);
+    }
+
+    internal ref SyntaxNodeWithPosition _before;
+    internal ref SyntaxNodeWithPosition _among;
+    internal ref SyntaxNodeWithPosition _after;
+
+    internal Stack<SyntaxNode> _inclusiveFinalNodeToConsiderAtEachDepth;
+    internal Stack<(SyntaxNode ScopeProvider, int ChildIndexOfScopeProviderAmongItsSiblings)> _returnStack;
+
+    internal int _currentIndexPosition;
+    internal int _currentIndexLine;
+    internal int _currentIndexCharacter;
+
+    internal int _targetIndexLine;
+    internal int _targetIndexCharacter;
+
+    internal ReadOnlySpan<char> _chars;
+}
 
 internal static class LspDispatcher
 {
@@ -18,6 +63,21 @@ internal static class LspDispatcher
     internal static TextDocumentCompletionItem[]? _completionItemArray_sliceFiltered;
     internal static TextDocumentCompletionItem[]? _completionItemArray;
     internal static SyntaxNode? _completionItemArray_nodeBasedOn;
+
+
+    // =========================================================================================
+    // !!!! #### DeserializeContent_CustomEditorGetNodesAdjacentToCursorFromLspRequest #### !!!!
+    // =========================================================================================
+    internal static CustomEditorGetNodesAdjacentToCursorFromLspRequestResponse _customEditorGetNodesAdjacentToCursorFromLspRequestResponse = new();
+    internal static CustomEditorGetNodesAdjacentToCursorFromLspRequestResponseResult _customEditorGetNodesAdjacentToCursorFromLspRequestResponseResult = new();
+    internal static CustomEditorGetNodesAdjacentToCursorFromLspRequestResponseResultNode _before = new();
+    internal static CustomEditorGetNodesAdjacentToCursorFromLspRequestResponseResultNode _among = new();
+    internal static CustomEditorGetNodesAdjacentToCursorFromLspRequestResponseResultNode _after = new();
+    /// <summary>
+    /// Contains both IsScopeProvider==true nodes and IsScopeProvider==false nodes BECAUSE it contains the definition node itself as the first thing that gets pushed. Other than that first pushed node everything is IsScopeProvider==true.
+    /// </summary>
+    internal static Stack<SyntaxNode> _inclusiveFinalNodeToConsiderAtEachDepth = new();
+    internal static Stack<(SyntaxNode ScopeProvider, int ChildIndexOfScopeProviderAmongItsSiblings)> _returnStack = new();
 
     public static object? GiveMessage(string content, Message request)
     {
@@ -107,34 +167,32 @@ internal static class LspDispatcher
         /// before,among,after are all in reference to the START of a given node.
         /// 
         /// this isn't correct/done I only stopped to cook 1 lb of 98% fat free ground chicken with sriracha I'm gonna eat it now
+        
+        SyntaxNodeWithPosition bbbefore = default;
+        SyntaxNodeWithPosition aaamong = default;
+        SyntaxNodeWithPosition aaafter = default;
 
-        ///////
-        ///////
-        ///////
-        var currentIndexPosition = 0;
-        var currentIndexLine = 0;
-        var currentIndexCharacter = 0;
-        // Contains both IsScopeProvider==true nodes and IsScopeProvider==false nodes BECAUSE it contains the definition node itself as the first thing that gets pushed. Other than that first pushed node everything is IsScopeProvider==true.
-        Stack<SyntaxNode> inclusiveFinalNodeToConsiderAtEachDepth = new();
-        Stack<(SyntaxNode ScopeProvider, int ChildIndexOfScopeProviderAmongItsSiblings)> returnStack = new();
-        SyntaxNodeWithPosition before = default;
-        SyntaxNodeWithPosition among = default;
-        SyntaxNodeWithPosition after = default;
-        before.Node = javaScriptDocument.CompilationUnit.GlobalNode;
-        before.Position = new Position(currentIndexLine, currentIndexCharacter);
-        before.PositionIndex = currentIndexPosition;
-        SyntaxHelper.RecursiveSearch_FindNodesAdjacentToTheEdit(javaScriptDocument.Chars, customEditorGetNodesAdjacentToCursorFromLspRequest.@params.position.line, customEditorGetNodesAdjacentToCursorFromLspRequest.@params.position.character, ref currentIndexPosition, ref currentIndexLine, ref currentIndexCharacter, ref before, ref among, ref after, inclusiveFinalNodeToConsiderAtEachDepth, returnStack);
-        ///////
-        ///////
-        ///////
+        var args = new RecursiveSearch_FindNodesAdjacentToTheEdit_Args(javaScriptDocument, customEditorGetNodesAdjacentToCursorFromLspRequest.@params.position.line, customEditorGetNodesAdjacentToCursorFromLspRequest.@params.position.character, _inclusiveFinalNodeToConsiderAtEachDepth, _returnStack, ref bbbefore, ref aaamong, ref aaafter);
+        SyntaxHelper.RecursiveSearch_FindNodesAdjacentToTheEdit(ref args);
 
-        var span = CollectionsMarshal.AsSpan(javaScriptDocument.Chars);
+        _before.SyntaxKindString = SyntaxHelper.GetSyntaxKindString(args._before.Node?.SyntaxKind ?? SyntaxKind.None);
+        _before.Identifier = SyntaxHelper.GetIdentifierText(args._before, args._chars);
+        _before.Start = args._before.Position;
 
-        var textDocumentDocumentSymbolResponse = new CustomEditorGetNodesAdjacentToCursorFromLspRequestResponse(customEditorGetNodesAdjacentToCursorFromLspRequest.id, new CustomEditorGetNodesAdjacentToCursorFromLspRequestResponseResult(
-            before: new CustomEditorGetNodesAdjacentToCursorFromLspRequestResponseResultNode(SyntaxHelper.GetSyntaxKindString(before.Node?.SyntaxKind ?? SyntaxKind.None), SyntaxHelper.GetIdentifierText(before, span), before.Position),
-            among: new CustomEditorGetNodesAdjacentToCursorFromLspRequestResponseResultNode(SyntaxHelper.GetSyntaxKindString(among.Node?.SyntaxKind ?? SyntaxKind.None), SyntaxHelper.GetIdentifierText(among, span), among.Position),
-            after: new CustomEditorGetNodesAdjacentToCursorFromLspRequestResponseResultNode(SyntaxHelper.GetSyntaxKindString(after.Node?.SyntaxKind ?? SyntaxKind.None), SyntaxHelper.GetIdentifierText(after, span), after.Position)));
-        Console.Out.WriteLine(Program.MAIN_encodeMessageObject(textDocumentDocumentSymbolResponse));
+        _among.SyntaxKindString = SyntaxHelper.GetSyntaxKindString(args._among.Node?.SyntaxKind ?? SyntaxKind.None);
+        _among.Identifier = SyntaxHelper.GetIdentifierText(args._among, args._chars);
+        _among.Start = args._among.Position;
+        
+        _after.SyntaxKindString = SyntaxHelper.GetSyntaxKindString(args._after.Node?.SyntaxKind ?? SyntaxKind.None);
+        _after.Identifier = SyntaxHelper.GetIdentifierText(args._after, args._chars);
+        _after.Start = args._after.Position;
+
+        _customEditorGetNodesAdjacentToCursorFromLspRequestResponse.id = customEditorGetNodesAdjacentToCursorFromLspRequest.id;
+        _customEditorGetNodesAdjacentToCursorFromLspRequestResponseResult.Before = _before;
+        _customEditorGetNodesAdjacentToCursorFromLspRequestResponseResult.Among = _among;
+        _customEditorGetNodesAdjacentToCursorFromLspRequestResponseResult.After = _after;
+        _customEditorGetNodesAdjacentToCursorFromLspRequestResponse.result = _customEditorGetNodesAdjacentToCursorFromLspRequestResponseResult;
+        Console.Out.WriteLine(Program.MAIN_encodeMessageObject(_customEditorGetNodesAdjacentToCursorFromLspRequestResponse));
 
         return request;
     }
