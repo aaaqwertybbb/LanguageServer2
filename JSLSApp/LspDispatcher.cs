@@ -52,6 +52,10 @@ internal ref struct RecursiveSearch_FindNodesAdjacentToTheEdit_Args
     internal ReadOnlySpan<char> Chars;
 }
 
+/// <summary>
+/// Single threaded and a lot of pooling for the expensive messages.
+/// (common pools are shared across messages since the single threaded implementation)
+/// </summary>
 internal static class LspDispatcher
 {
     internal static JavaScriptWorkspace _javaScriptWorkspace = JavaScriptWorkspace.Empty;
