@@ -646,3 +646,16 @@ private static int ReadHeadersAndGetContentLength(Stream stream)
 }
 ```
 ...
+
+====
+
+"Economists call that rent seeking".
+
+I've seen a Jonathan Blow or two in my day
+
+
+
+
+
+
+
