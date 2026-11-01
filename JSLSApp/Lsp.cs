@@ -5,6 +5,11 @@ using Range = JSLSApp.LspTypes.Range;
 
 namespace JSLSApp;
 
+public class EditorCursor
+{
+    public int MyProperty { get; set; }
+}
+
 /// <summary>
 /// Single threaded and a lot of pooling for the expensive messages.
 /// (common pools are shared across messages since the single threaded implementation)
@@ -86,8 +91,6 @@ internal static class Lsp
             return request;
         }
 
-        customFullFileLexRequest.@params.textDocument.uri = EnsureLocalPath(customFullFileLexRequest.@params.textDocument.uri);
-
         var found = _javaScriptWorkspace.OpenedSourceFileAbsolutePathToInMemoryContentMap.TryGetValue(customFullFileLexRequest.@params.textDocument.uri, out var javaScriptDocument);
         if (!found || javaScriptDocument is null)
         {
@@ -112,8 +115,6 @@ internal static class Lsp
         {
             return request;
         }
-
-        customEditorGetNodesAdjacentToCursorFromLspRequest.@params.textDocument.uri = EnsureLocalPath(customEditorGetNodesAdjacentToCursorFromLspRequest.@params.textDocument.uri);
 
         var found = _javaScriptWorkspace.OpenedSourceFileAbsolutePathToInMemoryContentMap.TryGetValue(customEditorGetNodesAdjacentToCursorFromLspRequest.@params.textDocument.uri, out var javaScriptDocument);
         if (!found || javaScriptDocument is null)
@@ -174,8 +175,6 @@ internal static class Lsp
         {
             return request;
         }
-
-        definitionRequest.@params.textDocument.uri = EnsureLocalPath(definitionRequest.@params.textDocument.uri);
 
         var found = _javaScriptWorkspace.OpenedSourceFileAbsolutePathToInMemoryContentMap.TryGetValue(definitionRequest.@params.textDocument.uri, out var javaScriptDocument);
         if (!found || javaScriptDocument is null)
@@ -362,8 +361,6 @@ internal static class Lsp
             return request;
         }
 
-        completionRequestSlice.@params.textDocument.uri = EnsureLocalPath(completionRequestSlice.@params.textDocument.uri);
-
         var found = _javaScriptWorkspace.OpenedSourceFileAbsolutePathToInMemoryContentMap.TryGetValue(completionRequestSlice.@params.textDocument.uri, out var javaScriptDocument);
         if (!found || javaScriptDocument is null)
         {
@@ -429,8 +426,6 @@ internal static class Lsp
         {
             return request;
         }
-
-        completionRequest.@params.textDocument.uri = EnsureLocalPath(completionRequest.@params.textDocument.uri);
 
         var found = _javaScriptWorkspace.OpenedSourceFileAbsolutePathToInMemoryContentMap.TryGetValue(completionRequest.@params.textDocument.uri, out var javaScriptDocument);
         if (!found || javaScriptDocument is null)
@@ -649,8 +644,6 @@ internal static class Lsp
             return request;
         }
 
-        symbolRequest.@params.textDocument.uri = EnsureLocalPath(symbolRequest.@params.textDocument.uri);
-
         var found = _javaScriptWorkspace.OpenedSourceFileAbsolutePathToInMemoryContentMap.TryGetValue(symbolRequest.@params.textDocument.uri, out var javaScriptDocument);
         if (!found || javaScriptDocument is null)
         {
@@ -690,8 +683,6 @@ internal static class Lsp
         {
             return request;
         }
-
-        didChangeTextDocumentNotification.@params.textDocument.uri = EnsureLocalPath(didChangeTextDocumentNotification.@params.textDocument.uri);
 
         if (didChangeTextDocumentNotification.@params.contentChanges is null)
         {
@@ -735,8 +726,6 @@ internal static class Lsp
             return request;
         }
 
-        didCloseTextDocumentNotification.@params.textDocument.uri = EnsureLocalPath(didCloseTextDocumentNotification.@params.textDocument.uri);
-
         if (_javaScriptWorkspace is null)
         {
             //Console.Out.WriteLine($"\n====_javaScriptWorkspace is null====\n");
@@ -754,8 +743,6 @@ internal static class Lsp
         {
             return request;
         }
-
-        didOpenTextDocumentNotification.@params.textDocument.uri = EnsureLocalPath(didOpenTextDocumentNotification.@params.textDocument.uri);
 
         if (didOpenTextDocumentNotification.@params.textDocument.uri is null)
         {
@@ -819,8 +806,6 @@ internal static class Lsp
             return request;
         }
 
-        customEditorVerifyLspTextAgainstEditorTextRequest.@params.textDocument.uri = EnsureLocalPath(customEditorVerifyLspTextAgainstEditorTextRequest.@params.textDocument.uri);
-
         var found = _javaScriptWorkspace.OpenedSourceFileAbsolutePathToInMemoryContentMap.TryGetValue(customEditorVerifyLspTextAgainstEditorTextRequest.@params.textDocument.uri, out var javaScriptDocument);
         if (!found || javaScriptDocument is null)
         {
@@ -831,15 +816,6 @@ internal static class Lsp
         Console.Out.WriteLine(Program.MAIN_encodeMessageObject(customEditorVerifyLspTextAgainstEditorTextResponse));
 
         return request;
-    }
-
-    /// <summary>
-    /// TODO: this seems a bit GC expensive
-    /// TODO: in the configuration tell the editor you want the local path sans file:///
-    /// </summary>
-    public static string EnsureLocalPath(string sourceFileAbsolutePath)
-    {
-        return new Uri(sourceFileAbsolutePath).LocalPath;
     }
 
     /*
