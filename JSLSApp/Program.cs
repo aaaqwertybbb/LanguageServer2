@@ -64,186 +64,94 @@ public class Program
     }
 
     /// <summary>
-    /// 1. The Critical Bug: Naive State Resets (matchIndex = 0)
-    ///     "CContent-Length: 123"
-    /// 2. Thread-Safety & State Pollution
-    ///     You are using a static class field _contentLengthNumberBuffer for the digit buffer.
-    ///     - If you ever make your language server process messages concurrently or on background tasks, this static list will suffer from race conditions and data corruption.
-    ///     - Even if single-threaded, if a parsing error occurs, state can bleed over.
-    /// 3. Over-complicating int.TryParse with Spans
-    ///     You mentioned you don't like using CollectionsMarshal.AsSpan.
-    ///     You don't need it at all! Since you are reading the digits sequentially, you can compute the integer mathematically in real-time using simple base-10 arithmetic
-    ///     (contentLength = (contentLength * 10) + (b - '0')). This eliminates the list buffer completely.
+    /// The rewrite is intentionally written so that you re-capture each section of the header if it appears a second time right?
+    /// It looks very nice, and I think the redundancy is intentional and very good I just wanna make sure,
     /// 
-    /// The Fixed, Optimized Version (Zero Allocations, No Lists, Fully Correct)
+    /// Yes, exactly!...
     /// ...
     /// </summary>
-    /// <param name="stream"></param>
-    /// <returns></returns>
-    /// <exception cref="Exception"></exception>
     private static int ReadHeadersAndGetContentLength(Stream stream)
     {
-        _contentLengthNumberBuffer.Clear();
+        int contentLength = -1;
 
-        var contentLength = -1;
-        var matchIndex = 0;
+        // We track the state of consecutive bytes matching "\r\n\r\n" to find the end of headers
+        // 0 = none, 1 = \r, 2 = \r\n, 3 = \r\n\r, 4 = \r\n\r\n
+        int lspDelimiterState = 0;
+
+        // To match "Content-Length: ", we can keep an index
+        ReadOnlySpan<byte> targetHeader = "Content-Length: "u8; // C# 11 Utf8 literal
+        int headerMatchIndex = 0;
+        bool parsingDigits = false;
 
         while (true)
         {
             int b = stream.ReadByte();
             if (b == -1) return -1; // End of stream
 
-            refreshCauseParsedNumber:
-
-            switch (matchIndex)
+            // --- 1. HANDLE CONTENT-LENGTH MATCHING & PARSING ---
+            if (!parsingDigits)
             {
-                case 0:
-                    if (b == 67 /*C*/)
-                        matchIndex++;
-                    else
-                        matchIndex = 0;
-                    break;
-                case 1:
-                    if (b == 111 /*o*/)
-                        matchIndex++;
-                    else
-                        matchIndex = 0;
-                    break;
-                case 2:
-                    if (b == 110 /*n*/)
-                        matchIndex++;
-                    else
-                        matchIndex = 0;
-                    break;
-                case 3:
-                    if (b == 116 /*t*/)
-                        matchIndex++;
-                    else
-                        matchIndex = 0;
-                    break;
-                case 4:
-                    if (b == 101 /*e*/)
-                        matchIndex++;
-                    else
-                        matchIndex = 0;
-                    break;
-                case 5:
-                    if (b == 110 /*n*/)
-                        matchIndex++;
-                    else
-                        matchIndex = 0;
-                    break;
-                case 6:
-                    if (b == 116 /*t*/)
-                        matchIndex++;
-                    else
-                        matchIndex = 0;
-                    break;
-                case 7:
-                    if (b == 45 /*-*/)
-                        matchIndex++;
-                    else
-                        matchIndex = 0;
-                    break;
-                case 8:
-                    if (b == 76 /*L*/)
-                        matchIndex++;
-                    else
-                        matchIndex = 0;
-                    break;
-                case 9:
-                    if (b == 101 /*e*/)
-                        matchIndex++;
-                    else
-                        matchIndex = 0;
-                    break;
-                case 10:
-                    if (b == 110 /*n*/)
-                        matchIndex++;
-                    else
-                        matchIndex = 0;
-                    break;
-                case 11:
-                    if (b == 103 /*g*/)
-                        matchIndex++;
-                    else
-                        matchIndex = 0;
-                    break;
-                case 12:
-                    if (b == 116 /*t*/)
-                        matchIndex++;
-                    else
-                        matchIndex = 0;
-                    break;
-                case 13:
-                    if (b == 104 /*h*/)
-                        matchIndex++;
-                    else
-                        matchIndex = 0;
-                    break;
-                case 14:
-                    if (b == 58 /*:*/)
-                        matchIndex++;
-                    else
-                        matchIndex = 0;
-                    break;
-                case 15:
-                    if (b == 32 /* */)
-                        matchIndex++;
-                    else
-                        matchIndex = 0;
-                    break;
-                case 16:
-                    // Read "Content-Length: ", now read the number.
-                    if (char.IsAsciiDigit((char)b))
+                if (b == targetHeader[headerMatchIndex])
+                {
+                    headerMatchIndex++;
+                    if (headerMatchIndex == targetHeader.Length)
                     {
-                        _contentLengthNumberBuffer.Add((byte)b);
+                        parsingDigits = true;
+                        contentLength = 0; // Initialize integer compilation
                     }
-                    else
+                }
+                else
+                {
+                    // Fallback reset: Check if the current mismatched byte happens to be 'C' 
+                    // to start a new partial match, otherwise reset to 0.
+                    headerMatchIndex = (b == targetHeader[0]) ? 1 : 0;
+                }
+            }
+            else // We are currently consuming the digits of the Content-Length
+            {
+                if (b >= '0' && b <= '9')
+                {
+                    contentLength = (contentLength * 10) + (b - '0');
+                }
+                else
+                {
+                    // Hit a non-digit character (likely '\r' or ' '). Stop digit parsing.
+                    parsingDigits = false;
+                    headerMatchIndex = (b == targetHeader[0]) ? 1 : 0;
+                }
+            }
+
+            // --- 2. HANDLE END OF HEADERS DETECTION (\r\n\r\n) ---
+            if (b == 13 /* \r */)
+            {
+                if (lspDelimiterState == 0) lspDelimiterState = 1;
+                else if (lspDelimiterState == 2) lspDelimiterState = 3;
+                else lspDelimiterState = 1; // Reset to first \r
+            }
+            else if (b == 10 /* \n */)
+            {
+                if (lspDelimiterState == 1) lspDelimiterState = 2;
+                else if (lspDelimiterState == 3) // Found the second \n -> \r\n\r\n complete!
+                {
+                    // Ensure we actually found a valid Content-Length before returning
+                    if (contentLength > -1)
                     {
-                        matchIndex++;
-                        ReadOnlySpan<byte> aaa = CollectionsMarshal.AsSpan(_contentLengthNumberBuffer); // TODO: I don't like the idea of doing this
-                        if (!int.TryParse(aaa, out contentLength))
-                        {
-                            throw new Exception(contentLength.ToString());
-                        }
-                        goto refreshCauseParsedNumber;
+                        return contentLength;
                     }
-                    break;
-                case 17: // index 0 "\r\n\r\n"
-                    if (b == 13 /*\r*/)
-                        matchIndex++;
-                    else
-                        matchIndex = 17;
-                    break;
-                case 18: // index 1 "\r\n\r\n"
-                    if (b == 10 /*\n*/)
-                        matchIndex++;
-                    else
-                        matchIndex = 17;
-                    break;
-                case 19: // index 2 "\r\n\r\n"
-                    if (b == 13 /*\r*/)
-                        matchIndex++;
-                    else
-                        matchIndex = 17;
-                    break;
-                case 20: // index 3 "\r\n\r\n"
-                    if (b == 10 /*\n*/)
-                    {
-                        matchIndex++;
-                        goto exitWhileLoop;
-                    }
-                    else
-                        matchIndex = 17;
-                    break;
-                case 21: // TODO: This case does nothing because case '20' already has 'goto exitWhileLoop;'
-                    goto exitWhileLoop;
+
+                    // If we hit the end of headers but never found Content-Length, reset and keep looking
+                    lspDelimiterState = 0;
+                }
+                else
+                {
+                    lspDelimiterState = 0;
+                }
+            }
+            else
+            {
+                lspDelimiterState = 0; // Any other character breaks the \r\n stream sequence
             }
         }
-
-        exitWhileLoop:
-        return contentLength;
     }
 
     public static object? MAIN_decodeMessage(ReadOnlyMemory<byte> RENTED_NO_ASYNC_jsonBytes)
