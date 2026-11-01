@@ -4,7 +4,6 @@
 
 using JSLSApp.LspTypes;
 using System.Runtime.InteropServices;
-using System.Text;
 using System.Text.Json;
 
 namespace JSLSApp;
@@ -13,35 +12,23 @@ public class Program
 {
     internal static JsonSerializerOptions _jsonSerializerOptions = new JsonSerializerOptions { PropertyNameCaseInsensitive = true };
     internal static JavaScriptParser? _activeParser = null;
-    /// <summary>
-    /// Contains the bytes casted as ints from the stream
-    /// </summary>
+    /// <summary>Contains the bytes casted as ints from the stream</summary>
     private static List<byte> _contentLengthNumberBuffer = new();
-    private static StringBuilder _sb = new();
 
     private static void Main(string[] args)
     {
         try
         {
-            //if (File.Exists("C:\\Users\\hunte\\Repos\\file.txt"))
-            //{
-            //    File.WriteAllText("C:\\Users\\hunte\\Repos\\file.txt", "");
-            //}
-
-            // 1. Open the raw, un-buffered byte stream
             using Stream stdin = Console.OpenStandardInput();
 
             while (true)
             {
-                // 2. Read the headers byte-by-byte until we find the \r\n\r\n delimiter
                 int contentLength = ReadHeadersAndGetContentLength(stdin);
                 if (contentLength == -1) break; // Stream closed
 
-                // 3. Allocate/Rent a byte buffer strictly for this message's body
                 byte[] buffer = new byte[contentLength];
                 int bytesRead = 0;
                 
-                // 4. Force read exactly 'contentLength' bytes
                 while (bytesRead < contentLength)
                 {
                     int read = stdin.Read(buffer, bytesRead, contentLength - bytesRead);
@@ -49,27 +36,12 @@ public class Program
                     bytesRead += read;
                 }
 
-                foreach (var aaa in buffer)
-                {
-                    _sb.Append((char)aaa);
-                }
-
-                //// 5. Zero-string parsing! Pass the ReadOnlySpan<byte> directly to System.Text.Json
-                //if (File.Exists("C:\\Users\\hunte\\Repos\\file.txt"))
-                //{
-                //    File.AppendAllText("C:\\Users\\hunte\\Repos\\file.txt", "\n\n\n");
-                //    File.AppendAllText("C:\\Users\\hunte\\Repos\\file.txt", System.Text.Encoding.UTF8.GetString(buffer));
-                //    File.AppendAllText("C:\\Users\\hunte\\Repos\\file.txt", "\n\n\n");
-                //}
                 MAIN_decodeMessage(buffer);
             }
         }
         catch (Exception e)
         {
-            //Console.WriteLine(e);
-            //Console.Out.WriteLine(e.ToString() + '\n');
-            var windowShowMessageNotification = new WindowShowMessageNotification(
-                new WindowShowMessageNotificationParams(2, e.ToString()));
+            var windowShowMessageNotification = new WindowShowMessageNotification(new WindowShowMessageNotificationParams(2, e.ToString()));
             if (_activeParser is not null)
             {
                 var localActiveParser = _activeParser;
@@ -77,16 +49,12 @@ public class Program
                 windowShowMessageNotification.@params.message = localActiveParser.DebugString + windowShowMessageNotification.@params.message;
             }
             Console.Out.WriteLine(MAIN_encodeMessageObject(windowShowMessageNotification));
-            return;// null;
+            return;
         }
     }
 
     private static int ReadHeadersAndGetContentLength(Stream stream)
     {
-        //if (File.Exists("C:\\Users\\hunte\\Repos\\file.txt"))
-        //{
-        //    File.AppendAllText("C:\\Users\\hunte\\Repos\\file.txt", "in_ReadHeadersAndGetContentLength");
-        //}
         _contentLengthNumberBuffer.Clear();
 
         var contentLength = -1;
@@ -96,12 +64,6 @@ public class Program
         {
             int b = stream.ReadByte();
             if (b == -1) return -1; // End of stream
-            _sb.Append((char)b);
-
-            //if (File.Exists("C:\\Users\\hunte\\Repos\\file.txt"))
-            //{
-            //    File.AppendAllText("C:\\Users\\hunte\\Repos\\file.txt", matchIndex.ToString());
-            //}
 
             refreshCauseParsedNumber:
 
@@ -215,16 +177,6 @@ public class Program
                         ReadOnlySpan<byte> aaa = CollectionsMarshal.AsSpan(_contentLengthNumberBuffer); // TODO: I don't like the idea of doing this
                         if (!int.TryParse(aaa, out contentLength))
                         {
-                            _sb.Append("\n\n\n");
-                            foreach (var bbb in aaa)
-                            {
-                                _sb.Append(bbb);
-                            }
-                            _sb.Append("\n\n\n");
-                            //if (File.Exists("C:\\Users\\hunte\\Repos\\file.txt"))
-                            //{
-                            //    File.WriteAllText("C:\\Users\\hunte\\Repos\\file.txt", _sb.ToString());
-                            //}
                             throw new Exception(contentLength.ToString());
                         }
                         goto refreshCauseParsedNumber;
@@ -257,29 +209,18 @@ public class Program
                     else
                         matchIndex = 17;
                     break;
-                case 21:
+                case 21: // TODO: This case does nothing because case '20' already has 'goto exitWhileLoop;'
                     goto exitWhileLoop;
             }
         }
 
         exitWhileLoop:
-        //if (File.Exists("C:\\Users\\hunte\\Repos\\file.txt"))
-        //{
-        //    File.AppendAllText("C:\\Users\\hunte\\Repos\\file.txt", "out_ReadHeadersAndGetContentLength");
-        //}
         return contentLength;
     }
 
-    // Update your method signature to accept the raw byte span or array
-    //private static object? MAIN_decodeMessage(ReadOnlySpan<byte> jsonBytes)
-    //{
-    //    // System.Text.Json optimizes perfectly for UTF8 byte arrays
-    //    // e.g., MyLspRequest request = JsonSerializer.Deserialize<MyLspRequest>(jsonBytes);
-    //}
-
     public static object? MAIN_decodeMessage(ReadOnlyMemory<byte> jsonBytes)
     {
-        // Option 2: Keep ReadOnlySpan<byte> and use Utf8JsonReader
+        // TODO: Option 2: Keep ReadOnlySpan<byte> and use Utf8JsonReader
 
         // 1. Parse the byte span ONCE into a lightweight DOM
         using (JsonDocument doc = JsonDocument.Parse(jsonBytes))
