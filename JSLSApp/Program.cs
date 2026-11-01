@@ -277,14 +277,53 @@ public class Program
     //    // e.g., MyLspRequest request = JsonSerializer.Deserialize<MyLspRequest>(jsonBytes);
     //}
 
-    public static object? MAIN_decodeMessage(ReadOnlySpan<byte> jsonBytes)
+    public static object? MAIN_decodeMessage(ReadOnlyMemory<byte> jsonBytes)
     {
-        var request = JsonSerializer.Deserialize<Message>(jsonBytes, _jsonSerializerOptions);
-        if (request is null)
+        // Option 2: Keep ReadOnlySpan<byte> and use Utf8JsonReader
+
+        // 1. Parse the byte span ONCE into a lightweight DOM
+        using (JsonDocument doc = JsonDocument.Parse(jsonBytes))
         {
-            //Console.Out.WriteLine($"\n====request is null====\n");
+            JsonElement root = doc.RootElement;
+
+            // 2. Extract the method string to route the message
+            if (!root.TryGetProperty("method", out JsonElement methodElement))
+            {
+                return null; // Not a standard LSP request/notification
+            }
+
+            string? method = methodElement.GetString();
+
+            switch (method)
+            {
+                case "initialize":
+                    return Lsp.DeserializeContent_Initialize(JsonSerializer.Deserialize<InitializeRequest>(root, _jsonSerializerOptions));
+                case "textDocument/didOpen":
+                    return Lsp.DeserializeContent_DidOpen(JsonSerializer.Deserialize<DidOpenTextDocumentNotification>(root, _jsonSerializerOptions));
+                case "textDocument/didClose":
+                    return Lsp.DeserializeContent_DidClose(JsonSerializer.Deserialize<DidCloseTextDocumentNotification>(root, _jsonSerializerOptions));
+                case "textDocument/didChange":
+                    return Lsp.DeserializeContent_DidChange(JsonSerializer.Deserialize<DidChangeTextDocumentNotification>(root, _jsonSerializerOptions));
+                case "textDocument/documentSymbol":
+                    return Lsp.DeserializeContent_DocumentSymbol(JsonSerializer.Deserialize<TextDocumentDocumentSymbolRequest>(root, _jsonSerializerOptions));
+                case "textDocument/hover":
+                    return Lsp.DeserializeContent_Hover(JsonSerializer.Deserialize<TextDocumentHoverRequest>(root, _jsonSerializerOptions));
+                case "textDocument/definition":
+                    return Lsp.DeserializeContent_Definition(JsonSerializer.Deserialize<TextDocumentDefinitionRequest>(root, _jsonSerializerOptions));
+                case "textDocument/completion":
+                    return Lsp.DeserializeContent_Completion(JsonSerializer.Deserialize<TextDocumentCompletionRequest>(root, _jsonSerializerOptions));
+                case "textDocument/completion_slice":
+                    return Lsp.DeserializeContent_CompletionSlice(JsonSerializer.Deserialize<TextDocumentCompletionRequest_slice>(root, _jsonSerializerOptions));
+                case "textDocument/CustomFullFileLexRequest":
+                    return Lsp.DeserializeContent_CustomFullFileLexRequest(JsonSerializer.Deserialize<CustomFullFileLexRequest>(root, _jsonSerializerOptions));
+                case "textDocument/CustomEditorGetNodesAdjacentToCursorFromLspRequest":
+                    return Lsp.DeserializeContent_CustomEditorGetNodesAdjacentToCursorFromLspRequest(JsonSerializer.Deserialize<CustomEditorGetNodesAdjacentToCursorFromLspRequest>(root, _jsonSerializerOptions));
+                case "textDocument/CustomEditorVerifyLspTextAgainstEditorTextRequest":
+                    return Lsp.DeserializeContent_CustomEditorVerifyLspTextAgainstEditorTextRequest(JsonSerializer.Deserialize<CustomEditorVerifyLspTextAgainstEditorTextRequest>(root, _jsonSerializerOptions));
+                default:
+                    return null;
+            }
         }
-        return Lsp.Dispatch(jsonBytes, request);
     }
 
     public static string MAIN_encodeMessageObject(object messageObject)

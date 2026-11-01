@@ -49,52 +49,17 @@ internal static class Lsp
     internal static Stack<SyntaxNode> _inclusiveFinalNodeToConsiderAtEachDepth = new();
     internal static Stack<(SyntaxNode ScopeProvider, int ChildIndexOfScopeProviderAmongItsSiblings)> _returnStack = new();
 
-
-    public static object? Dispatch(ReadOnlySpan<byte> jsonBytes, Message request)
+    public static Message? DeserializeContent_CustomFullFileLexRequest(CustomFullFileLexRequest? customFullFileLexRequest)
     {
-        switch (request?.Method)
-        {
-            case "initialize":
-                return DeserializeContent_Initialize(jsonBytes, request);
-            case "textDocument/didOpen":
-                return DeserializeContent_DidOpen(jsonBytes, request);
-            case "textDocument/didClose":
-                return DeserializeContent_DidClose(jsonBytes, request);
-            case "textDocument/didChange":
-                return DeserializeContent_DidChange(jsonBytes, request);
-            case "textDocument/documentSymbol":
-                return DeserializeContent_DocumentSymbol(jsonBytes, request);
-            case "textDocument/hover":
-                return DeserializeContent_Hover(jsonBytes, request);
-            case "textDocument/definition":
-                return DeserializeContent_Definition(jsonBytes, request);
-            case "textDocument/completion":
-                return DeserializeContent_Completion(jsonBytes, request);
-            case "textDocument/completion_slice":
-                return DeserializeContent_CompletionSlice(jsonBytes, request);
-            case "textDocument/CustomFullFileLexRequest":
-                return DeserializeContent_CustomFullFileLexRequest(jsonBytes, request);
-            case "textDocument/CustomEditorGetNodesAdjacentToCursorFromLspRequest":
-                return DeserializeContent_CustomEditorGetNodesAdjacentToCursorFromLspRequest(jsonBytes, request);
-            case "textDocument/CustomEditorVerifyLspTextAgainstEditorTextRequest":
-                return DeserializeContent_CustomEditorVerifyLspTextAgainstEditorTextRequest(jsonBytes, request);
-            default:
-                return request;
-        }
-    }
-
-    private static Message DeserializeContent_CustomFullFileLexRequest(ReadOnlySpan<byte> jsonBytes, Message request)
-    {
-        var customFullFileLexRequest = JsonSerializer.Deserialize<CustomFullFileLexRequest>(jsonBytes);
         if (customFullFileLexRequest is null || customFullFileLexRequest.@params.textDocument.uri is null)
         {
-            return request;
+            return null;
         }
 
         var found = _javaScriptWorkspace.OpenedSourceFileAbsolutePathToInMemoryContentMap.TryGetValue(customFullFileLexRequest.@params.textDocument.uri, out var javaScriptDocument);
         if (!found || javaScriptDocument is null)
         {
-            return request;
+            return null;
         }
 
         var javascriptParser = new JavaScriptParser(javaScriptDocument, _javaScriptWorkspace);
@@ -105,21 +70,20 @@ internal static class Lsp
         var textDocumentDocumentSymbolResponse = new CustomFullFileLexResponse(customFullFileLexRequest.id, base64String);
         Console.Out.WriteLine(Program.MAIN_encodeMessageObject(textDocumentDocumentSymbolResponse));
 
-        return request;
+        return null;
     }
 
-    private static Message DeserializeContent_CustomEditorGetNodesAdjacentToCursorFromLspRequest(ReadOnlySpan<byte> jsonBytes, Message request)
+    public static Message? DeserializeContent_CustomEditorGetNodesAdjacentToCursorFromLspRequest(CustomEditorGetNodesAdjacentToCursorFromLspRequest? customEditorGetNodesAdjacentToCursorFromLspRequest)
     {
-        var customEditorGetNodesAdjacentToCursorFromLspRequest = JsonSerializer.Deserialize<CustomEditorGetNodesAdjacentToCursorFromLspRequest>(jsonBytes);
         if (customEditorGetNodesAdjacentToCursorFromLspRequest is null || customEditorGetNodesAdjacentToCursorFromLspRequest.@params.textDocument.uri is null)
         {
-            return request;
+            return null;
         }
 
         var found = _javaScriptWorkspace.OpenedSourceFileAbsolutePathToInMemoryContentMap.TryGetValue(customEditorGetNodesAdjacentToCursorFromLspRequest.@params.textDocument.uri, out var javaScriptDocument);
         if (!found || javaScriptDocument is null)
         {
-            return request;
+            return null;
         }
 
         // maybe 11:00 AM?
@@ -164,22 +128,20 @@ internal static class Lsp
         _customEditorGetNodesAdjacentToCursorFromLspRequestResponse.result = _customEditorGetNodesAdjacentToCursorFromLspRequestResponseResult;
         Console.Out.WriteLine(Program.MAIN_encodeMessageObject(_customEditorGetNodesAdjacentToCursorFromLspRequestResponse));
 
-        return request;
+        return null;
     }
 
-    private static Message DeserializeContent_Definition(ReadOnlySpan<byte> jsonBytes, Message request)
+    public static Message DeserializeContent_Definition(TextDocumentDefinitionRequest? definitionRequest)
     {
-        // TODO: 'Deserialize...Into?' exists? does it?
-        var definitionRequest = JsonSerializer.Deserialize<TextDocumentDefinitionRequest>(jsonBytes);
         if (definitionRequest is null || definitionRequest.@params.textDocument.uri is null)
         {
-            return request;
+            return null;
         }
 
         var found = _javaScriptWorkspace.OpenedSourceFileAbsolutePathToInMemoryContentMap.TryGetValue(definitionRequest.@params.textDocument.uri, out var javaScriptDocument);
         if (!found || javaScriptDocument is null)
         {
-            return request;
+            return null;
         }
 
         var args = new RecursiveSearch_Args(javaScriptDocument, definitionRequest.@params.position.line, definitionRequest.@params.position.character, _inclusiveFinalNodeToConsiderAtEachDepth, _returnStack);
@@ -340,7 +302,7 @@ internal static class Lsp
                         //nodeString = $"{result_node.SyntaxKind}~{result_node.Id_name}";
                         Console.Out.WriteLine(Program.MAIN_encodeMessageObject(
                             new TextDocumentDefinitionResponse(definitionRequest.id, definitionRequest.@params.textDocument.uri, range)));
-                        return request;
+                        return null;
                     }
                 }
             }
@@ -350,21 +312,20 @@ internal static class Lsp
         // TODO: What does LSP say for responding the failed result null or...?
         var textDocumentDefinitionResponse = new TextDocumentDefinitionResponse(definitionRequest.id, definitionRequest.@params.textDocument.uri, null);
         Console.Out.WriteLine(Program.MAIN_encodeMessageObject(textDocumentDefinitionResponse));
-        return request;
+        return null;
     }
 
-    private static Message DeserializeContent_CompletionSlice(ReadOnlySpan<byte> jsonBytes, Message request)
+    public static Message DeserializeContent_CompletionSlice(TextDocumentCompletionRequest_slice? completionRequestSlice)
     {
-        var completionRequestSlice = JsonSerializer.Deserialize<TextDocumentCompletionRequest_slice>(jsonBytes);
         if (completionRequestSlice is null || completionRequestSlice.@params.textDocument.uri is null || _completionItemArray is null)
         {
-            return request;
+            return null;
         }
 
         var found = _javaScriptWorkspace.OpenedSourceFileAbsolutePathToInMemoryContentMap.TryGetValue(completionRequestSlice.@params.textDocument.uri, out var javaScriptDocument);
         if (!found || javaScriptDocument is null)
         {
-            return request;
+            return null;
         }
 
         if (string.IsNullOrWhiteSpace(completionRequestSlice.@params.filter))
@@ -416,21 +377,20 @@ internal static class Lsp
         var textDocumentCompletionResponse = new TextDocumentCompletionResponse(completionRequestSlice.id, textDocumentCompletionResponseResult);
         Console.Out.WriteLine(Program.MAIN_encodeMessageObject(textDocumentCompletionResponse));
 
-        return request;
+        return null;
     }
 
-    private static Message DeserializeContent_Completion(ReadOnlySpan<byte> jsonBytes, Message request)
+    public static Message DeserializeContent_Completion(TextDocumentCompletionRequest? completionRequest)
     {
-        var completionRequest = JsonSerializer.Deserialize<TextDocumentCompletionRequest>(jsonBytes);
         if (completionRequest is null || completionRequest.@params.textDocument.uri is null)
         {
-            return request;
+            return null;
         }
 
         var found = _javaScriptWorkspace.OpenedSourceFileAbsolutePathToInMemoryContentMap.TryGetValue(completionRequest.@params.textDocument.uri, out var javaScriptDocument);
         if (!found || javaScriptDocument is null)
         {
-            return request;
+            return null;
         }
 
         SyntaxNode? result_node = null;
@@ -564,16 +524,15 @@ internal static class Lsp
         var textDocumentCompletionResponse = new TextDocumentCompletionResponse(completionRequest.id, textDocumentCompletionResponseResult);
         Console.Out.WriteLine(Program.MAIN_encodeMessageObject(textDocumentCompletionResponse));
 
-        return request;
+        return null;
     }
 
-    private static Message DeserializeContent_Hover(ReadOnlySpan<byte> jsonBytes, Message request)
+    public static Message DeserializeContent_Hover(TextDocumentHoverRequest? hoverRequest)
     {
-        return request;
-        /*var hoverRequest = JsonSerializer.Deserialize<TextDocumentHoverRequest>(content);
-        if (hoverRequest is null || hoverRequest.@params.textDocument.uri is null)
+        return null;
+        /*if (hoverRequest is null || hoverRequest.@params.textDocument.uri is null)
         {
-            return request;
+            return null;
         }
 
         hoverRequest.@params.textDocument.uri = EnsureLocalPath(hoverRequest.@params.textDocument.uri);
@@ -581,7 +540,7 @@ internal static class Lsp
         var found = _javaScriptWorkspace.OpenedSourceFileAbsolutePathToInMemoryContentMap.TryGetValue(hoverRequest.@params.textDocument.uri, out var javaScriptDocument);
         if (!found || javaScriptDocument is null)
         {
-            return request;
+            return null;
         }
         
         var documentSymbolArray = new DocumentSymbol[javaScriptDocument.CompilationUnit.FunctionDefinitionStartPositionList.Count];
@@ -633,21 +592,20 @@ internal static class Lsp
         var textDocumentHoverResponse = new TextDocumentHoverResponse(hoverRequest.id, $"tooltip example for ({nodeString}) ({hoverRequest.@params.position.line}, {hoverRequest.@params.position.character}) {hoverRequest.@params.textDocument.uri}");
         Console.Out.WriteLine(Program.MAIN_encodeMessageObject(textDocumentHoverResponse));
 
-        return request;*/
+        return null;*/
     }
 
-    private static Message DeserializeContent_DocumentSymbol(ReadOnlySpan<byte> jsonBytes, Message request)
+    public static Message DeserializeContent_DocumentSymbol(TextDocumentDocumentSymbolRequest? symbolRequest)
     {
-        var symbolRequest = JsonSerializer.Deserialize<TextDocumentDocumentSymbolRequest>(jsonBytes);
         if (symbolRequest is null || symbolRequest.@params.textDocument.uri is null)
         {
-            return request;
+            return null;
         }
 
         var found = _javaScriptWorkspace.OpenedSourceFileAbsolutePathToInMemoryContentMap.TryGetValue(symbolRequest.@params.textDocument.uri, out var javaScriptDocument);
         if (!found || javaScriptDocument is null)
         {
-            return request;
+            return null;
         }
 
         var javascriptParser = new JavaScriptParser(javaScriptDocument, _javaScriptWorkspace);
@@ -673,27 +631,26 @@ internal static class Lsp
         var textDocumentDocumentSymbolResponse = new TextDocumentDocumentSymbolResponse(symbolRequest.id, documentSymbolArray);
         Console.Out.WriteLine(Program.MAIN_encodeMessageObject(textDocumentDocumentSymbolResponse));
 
-        return request;
+        return null;
     }
 
-    private static Message DeserializeContent_DidChange(ReadOnlySpan<byte> jsonBytes, Message request)
+    public static Message DeserializeContent_DidChange(DidChangeTextDocumentNotification? didChangeTextDocumentNotification)
     {
-        var didChangeTextDocumentNotification = JsonSerializer.Deserialize<DidChangeTextDocumentNotification>(jsonBytes);
         if (didChangeTextDocumentNotification is null || didChangeTextDocumentNotification.@params.textDocument.uri is null)
         {
-            return request;
+            return null;
         }
 
         if (didChangeTextDocumentNotification.@params.contentChanges is null)
         {
             //Console.Out.WriteLine($"\n====didChangeTextDocumentNotification.@params.contentChanges is null====\n");
-            return request;
+            return null;
         }
 
         if (didChangeTextDocumentNotification.@params.contentChanges.Length == 0)
         {
             //Console.Out.WriteLine($"\n====didChangeTextDocumentNotification.@params.contentChanges.Length == 0====\n");
-            return request;
+            return null;
         }
 
         /*foreach (var item in didChangeTextDocumentNotification.@params.contentChanges)
@@ -711,37 +668,35 @@ internal static class Lsp
         if (_javaScriptWorkspace is null)
         {
             //Console.Out.WriteLine($"\n====_javaScriptWorkspace is null====\n");
-            return request;
+            return null;
         }
 
         _javaScriptWorkspace.DidChangeTextDocumentNotification(didChangeTextDocumentNotification.@params.textDocument.uri, didChangeTextDocumentNotification.@params.contentChanges);
-        return request;
+        return null;
     }
 
-    private static Message DeserializeContent_DidClose(ReadOnlySpan<byte> jsonBytes, Message request)
+    public static Message DeserializeContent_DidClose(DidCloseTextDocumentNotification? didCloseTextDocumentNotification)
     {
-        var didCloseTextDocumentNotification = JsonSerializer.Deserialize<DidCloseTextDocumentNotification>(jsonBytes);
         if (didCloseTextDocumentNotification is null || didCloseTextDocumentNotification.@params.textDocument.uri is null)
         {
-            return request;
+            return null;
         }
 
         if (_javaScriptWorkspace is null)
         {
             //Console.Out.WriteLine($"\n====_javaScriptWorkspace is null====\n");
-            return request;
+            return null;
         }
 
         _javaScriptWorkspace.DidCloseTextDocumentNotification(didCloseTextDocumentNotification.@params.textDocument.uri);
-        return request;
+        return null;
     }
 
-    private static object DeserializeContent_DidOpen(ReadOnlySpan<byte> jsonBytes, Message request)
+    public static object DeserializeContent_DidOpen(DidOpenTextDocumentNotification? didOpenTextDocumentNotification)
     {
-        var didOpenTextDocumentNotification = JsonSerializer.Deserialize<DidOpenTextDocumentNotification>(jsonBytes);
         if (didOpenTextDocumentNotification is null || didOpenTextDocumentNotification.@params.textDocument.uri is null || didOpenTextDocumentNotification.@params.textDocument.text is null)
         {
-            return request;
+            return null;
         }
 
         if (didOpenTextDocumentNotification.@params.textDocument.uri is null)
@@ -761,12 +716,11 @@ internal static class Lsp
         return didOpenTextDocumentNotification;
     }
 
-    private static object DeserializeContent_Initialize(ReadOnlySpan<byte> jsonBytes, Message request)
+    public static object DeserializeContent_Initialize(InitializeRequest? initializeRequest)
     {
-        var initializeRequest = JsonSerializer.Deserialize<InitializeRequest>(jsonBytes);
         if (initializeRequest is null)
         {
-            return request;
+            return null;
         }
 
         // TODO: what is specified for when you receive an initialize request after you've already initialized.
@@ -798,24 +752,23 @@ internal static class Lsp
         return initializeRequest;
     }
 
-    private static Message DeserializeContent_CustomEditorVerifyLspTextAgainstEditorTextRequest(ReadOnlySpan<byte> jsonBytes, Message request)
+    public static Message DeserializeContent_CustomEditorVerifyLspTextAgainstEditorTextRequest(CustomEditorVerifyLspTextAgainstEditorTextRequest? customEditorVerifyLspTextAgainstEditorTextRequest)
     {
-        var customEditorVerifyLspTextAgainstEditorTextRequest = JsonSerializer.Deserialize<CustomEditorVerifyLspTextAgainstEditorTextRequest>(jsonBytes);
         if (customEditorVerifyLspTextAgainstEditorTextRequest is null || customEditorVerifyLspTextAgainstEditorTextRequest.@params.textDocument.uri is null)
         {
-            return request;
+            return null;
         }
 
         var found = _javaScriptWorkspace.OpenedSourceFileAbsolutePathToInMemoryContentMap.TryGetValue(customEditorVerifyLspTextAgainstEditorTextRequest.@params.textDocument.uri, out var javaScriptDocument);
         if (!found || javaScriptDocument is null)
         {
-            return request;
+            return null;
         }
 
         var customEditorVerifyLspTextAgainstEditorTextResponse = new CustomEditorVerifyLspTextAgainstEditorTextResponse(customEditorVerifyLspTextAgainstEditorTextRequest.id, new string(javaScriptDocument.Chars.ToArray()));
         Console.Out.WriteLine(Program.MAIN_encodeMessageObject(customEditorVerifyLspTextAgainstEditorTextResponse));
 
-        return request;
+        return null;
     }
 
     /*
