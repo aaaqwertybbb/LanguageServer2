@@ -3,6 +3,7 @@
  */
 
 using JSLSApp.LspTypes;
+using System.Buffers;
 using System.Runtime.InteropServices;
 using System.Text.Json;
 
@@ -26,17 +27,27 @@ public class Program
                 int contentLength = ReadHeadersAndGetContentLength(stdin);
                 if (contentLength == -1) break; // Stream closed
 
-                byte[] buffer = new byte[contentLength];
-                int bytesRead = 0;
-                
-                while (bytesRead < contentLength)
-                {
-                    int read = stdin.Read(buffer, bytesRead, contentLength - bytesRead);
-                    if (read == 0) break; // End of stream
-                    bytesRead += read;
-                }
+                // NOTE: The pool may return an array LARGER than contentLength.
+                byte[]? rentedBuffer = ArrayPool<byte>.Shared.Rent(contentLength);
 
-                MAIN_decodeMessage(buffer);
+                try
+                {
+                    int bytesRead = 0;
+
+                    while (bytesRead < contentLength)
+                    {
+                        int read = stdin.Read(rentedBuffer, bytesRead, contentLength - bytesRead);
+                        if (read == 0) break; // End of stream
+                        bytesRead += read;
+                    }
+
+                    MAIN_decodeMessage(new ReadOnlyMemory<byte>(rentedBuffer, 0, contentLength));
+                }
+                finally
+                {
+                    ArrayPool<byte>.Shared.Return(rentedBuffer);
+                }
+                
             }
         }
         catch (Exception e)
@@ -218,12 +229,12 @@ public class Program
         return contentLength;
     }
 
-    public static object? MAIN_decodeMessage(ReadOnlyMemory<byte> jsonBytes)
+    public static object? MAIN_decodeMessage(ReadOnlyMemory<byte> RENTED_NO_ASYNC_jsonBytes)
     {
         // TODO: Option 2: Keep ReadOnlySpan<byte> and use Utf8JsonReader
 
         // 1. Parse the byte span ONCE into a lightweight DOM
-        using (JsonDocument doc = JsonDocument.Parse(jsonBytes))
+        using (JsonDocument doc = JsonDocument.Parse(RENTED_NO_ASYNC_jsonBytes))
         {
             JsonElement root = doc.RootElement;
 
