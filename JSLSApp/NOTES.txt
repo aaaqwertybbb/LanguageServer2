@@ -534,3 +534,11 @@ if (b == -1) return -1; // StandardInput was closed, breaks the loop safely
 If Electron closes the app or crashes, ReadByte() returns -1, your method returns -1, and the Main method hits break;, safely shutting down your server without spinning. You are perfectly safe to use this pattern.
 
 Are you planning to handle concurrent requests (like letting a heavy autocomplete computation run without blocking incoming didChange keystroke updates), or are you keeping the server single-threaded for now?
+
+=====
+
+I'm super stressed out. There was left over candy from halloween and I binge ate 1,300 calories of it like a dumbass while writing that
+
+
+
+
