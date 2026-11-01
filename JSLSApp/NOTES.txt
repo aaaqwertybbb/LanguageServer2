@@ -549,3 +549,100 @@ NOBODY called me back btw
 ====
 
 I gotta get this thing optimized so I can save burning up my CPU for when I'm playing vampire survivor likes
+
+====
+>
+Do you have comments on my 'ReadHeadersAndGetContentLength'?
+...
+
+
+
+
+<
+...
+```csharp
+private static int ReadHeadersAndGetContentLength(Stream stream)
+{
+    int contentLength = -1;
+    
+    // We track the state of consecutive bytes matching "\r\n\r\n" to find the end of headers
+    // 0 = none, 1 = \r, 2 = \r\n, 3 = \r\n\r, 4 = \r\n\r\n
+    int lspDelimiterState = 0; 
+    
+    // To match "Content-Length: ", we can keep an index
+    ReadOnlySpan<byte> targetHeader = "Content-Length: "u8; // C# 11 Utf8 literal
+    int headerMatchIndex = 0;
+    bool parsingDigits = false;
+
+    while (true)
+    {
+        int b = stream.ReadByte();
+        if (b == -1) return -1; // End of stream
+
+        // --- 1. HANDLE CONTENT-LENGTH MATCHING & PARSING ---
+        if (!parsingDigits)
+        {
+            if (b == targetHeader[headerMatchIndex])
+            {
+                headerMatchIndex++;
+                if (headerMatchIndex == targetHeader.Length)
+                {
+                    parsingDigits = true;
+                    contentLength = 0; // Initialize integer compilation
+                }
+            }
+            else
+            {
+                // Fallback reset: Check if the current mismatched byte happens to be 'C' 
+                // to start a new partial match, otherwise reset to 0.
+                headerMatchIndex = (b == targetHeader[0]) ? 1 : 0;
+            }
+        }
+        else // We are currently consuming the digits of the Content-Length
+        {
+            if (b >= '0' && b <= '9')
+            {
+                contentLength = (contentLength * 10) + (b - '0');
+            }
+            else
+            {
+                // Hit a non-digit character (likely '\r' or ' '). Stop digit parsing.
+                parsingDigits = false; 
+                headerMatchIndex = (b == targetHeader[0]) ? 1 : 0;
+            }
+        }
+
+        // --- 2. HANDLE END OF HEADERS DETECTION (\r\n\r\n) ---
+        if (b == 13 /* \r */)
+        {
+            if (lspDelimiterState == 0) lspDelimiterState = 1;
+            else if (lspDelimiterState == 2) lspDelimiterState = 3;
+            else lspDelimiterState = 1; // Reset to first \r
+        }
+        else if (b == 10 /* \n */)
+        {
+            if (lspDelimiterState == 1) lspDelimiterState = 2;
+            else if (lspDelimiterState == 3) // Found the second \n -> \r\n\r\n complete!
+            {
+                // Ensure we actually found a valid Content-Length before returning
+                if (contentLength > -1)
+                {
+                    return contentLength;
+                }
+                
+                // If we hit the end of headers but never found Content-Length, reset and keep looking
+                lspDelimiterState = 0; 
+            }
+            else
+            {
+                lspDelimiterState = 0;
+            }
+        }
+        else
+        {
+            lspDelimiterState = 0; // Any other character breaks the \r\n stream sequence
+        }
+    }
+}
+```
+...

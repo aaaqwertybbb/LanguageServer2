@@ -28,7 +28,7 @@ public class Program
                 if (contentLength == -1) break; // Stream closed
 
                 // NOTE: The pool may return an array LARGER than contentLength.
-                byte[]? rentedBuffer = ArrayPool<byte>.Shared.Rent(contentLength);
+                byte[] rentedBuffer = ArrayPool<byte>.Shared.Rent(contentLength);
 
                 try
                 {
@@ -47,7 +47,6 @@ public class Program
                 {
                     ArrayPool<byte>.Shared.Return(rentedBuffer);
                 }
-                
             }
         }
         catch (Exception e)
@@ -64,6 +63,24 @@ public class Program
         }
     }
 
+    /// <summary>
+    /// 1. The Critical Bug: Naive State Resets (matchIndex = 0)
+    ///     "CContent-Length: 123"
+    /// 2. Thread-Safety & State Pollution
+    ///     You are using a static class field _contentLengthNumberBuffer for the digit buffer.
+    ///     - If you ever make your language server process messages concurrently or on background tasks, this static list will suffer from race conditions and data corruption.
+    ///     - Even if single-threaded, if a parsing error occurs, state can bleed over.
+    /// 3. Over-complicating int.TryParse with Spans
+    ///     You mentioned you don't like using CollectionsMarshal.AsSpan.
+    ///     You don't need it at all! Since you are reading the digits sequentially, you can compute the integer mathematically in real-time using simple base-10 arithmetic
+    ///     (contentLength = (contentLength * 10) + (b - '0')). This eliminates the list buffer completely.
+    /// 
+    /// The Fixed, Optimized Version (Zero Allocations, No Lists, Fully Correct)
+    /// ...
+    /// </summary>
+    /// <param name="stream"></param>
+    /// <returns></returns>
+    /// <exception cref="Exception"></exception>
     private static int ReadHeadersAndGetContentLength(Stream stream)
     {
         _contentLengthNumberBuffer.Clear();
