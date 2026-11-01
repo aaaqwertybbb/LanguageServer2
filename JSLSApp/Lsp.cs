@@ -1,14 +1,8 @@
 ﻿using JSLSApp.LspTypes;
 using JSLSApp.Syntax;
-using System.Text.Json;
 using Range = JSLSApp.LspTypes.Range;
 
 namespace JSLSApp;
-
-public class EditorCursor
-{
-    public int MyProperty { get; set; }
-}
 
 /// <summary>
 /// Single threaded and a lot of pooling for the expensive messages.
@@ -32,7 +26,6 @@ internal static class Lsp
     internal static TextDocumentCompletionItem[]? _completionItemArray;
     internal static SyntaxNode? _completionItemArray_nodeBasedOn;
 
-
     // =========================================================================================
     // !!!! #### DeserializeContent_CustomEditorGetNodesAdjacentToCursorFromLspRequest #### !!!!
     // =========================================================================================
@@ -52,9 +45,7 @@ internal static class Lsp
     public static Message? DeserializeContent_CustomFullFileLexRequest(CustomFullFileLexRequest? customFullFileLexRequest)
     {
         if (customFullFileLexRequest is null || customFullFileLexRequest.@params.textDocument.uri is null)
-        {
             return null;
-        }
 
         var found = _javaScriptWorkspace.OpenedSourceFileAbsolutePathToInMemoryContentMap.TryGetValue(customFullFileLexRequest.@params.textDocument.uri, out var javaScriptDocument);
         if (!found || javaScriptDocument is null)
@@ -76,17 +67,13 @@ internal static class Lsp
     public static Message? DeserializeContent_CustomEditorGetNodesAdjacentToCursorFromLspRequest(CustomEditorGetNodesAdjacentToCursorFromLspRequest? customEditorGetNodesAdjacentToCursorFromLspRequest)
     {
         if (customEditorGetNodesAdjacentToCursorFromLspRequest is null || customEditorGetNodesAdjacentToCursorFromLspRequest.@params.textDocument.uri is null)
-        {
             return null;
-        }
 
         var found = _javaScriptWorkspace.OpenedSourceFileAbsolutePathToInMemoryContentMap.TryGetValue(customEditorGetNodesAdjacentToCursorFromLspRequest.@params.textDocument.uri, out var javaScriptDocument);
         if (!found || javaScriptDocument is null)
         {
             return null;
         }
-
-        // maybe 11:00 AM?
 
         /// find the current node (which is gonna be null for this simplest scenario of an edit that "doesn't change anything other than text positions")
         /// then the node that came before
@@ -134,9 +121,7 @@ internal static class Lsp
     public static Message DeserializeContent_Definition(TextDocumentDefinitionRequest? definitionRequest)
     {
         if (definitionRequest is null || definitionRequest.@params.textDocument.uri is null)
-        {
             return null;
-        }
 
         var found = _javaScriptWorkspace.OpenedSourceFileAbsolutePathToInMemoryContentMap.TryGetValue(definitionRequest.@params.textDocument.uri, out var javaScriptDocument);
         if (!found || javaScriptDocument is null)
@@ -318,9 +303,7 @@ internal static class Lsp
     public static Message DeserializeContent_CompletionSlice(TextDocumentCompletionRequest_slice? completionRequestSlice)
     {
         if (completionRequestSlice is null || completionRequestSlice.@params.textDocument.uri is null || _completionItemArray is null)
-        {
             return null;
-        }
 
         var found = _javaScriptWorkspace.OpenedSourceFileAbsolutePathToInMemoryContentMap.TryGetValue(completionRequestSlice.@params.textDocument.uri, out var javaScriptDocument);
         if (!found || javaScriptDocument is null)
@@ -383,9 +366,7 @@ internal static class Lsp
     public static Message DeserializeContent_Completion(TextDocumentCompletionRequest? completionRequest)
     {
         if (completionRequest is null || completionRequest.@params.textDocument.uri is null)
-        {
             return null;
-        }
 
         var found = _javaScriptWorkspace.OpenedSourceFileAbsolutePathToInMemoryContentMap.TryGetValue(completionRequest.@params.textDocument.uri, out var javaScriptDocument);
         if (!found || javaScriptDocument is null)
@@ -531,9 +512,7 @@ internal static class Lsp
     {
         return null;
         /*if (hoverRequest is null || hoverRequest.@params.textDocument.uri is null)
-        {
             return null;
-        }
 
         hoverRequest.@params.textDocument.uri = EnsureLocalPath(hoverRequest.@params.textDocument.uri);
 
@@ -598,9 +577,7 @@ internal static class Lsp
     public static Message DeserializeContent_DocumentSymbol(TextDocumentDocumentSymbolRequest? symbolRequest)
     {
         if (symbolRequest is null || symbolRequest.@params.textDocument.uri is null)
-        {
             return null;
-        }
 
         var found = _javaScriptWorkspace.OpenedSourceFileAbsolutePathToInMemoryContentMap.TryGetValue(symbolRequest.@params.textDocument.uri, out var javaScriptDocument);
         if (!found || javaScriptDocument is null)
@@ -637,9 +614,7 @@ internal static class Lsp
     public static Message DeserializeContent_DidChange(DidChangeTextDocumentNotification? didChangeTextDocumentNotification)
     {
         if (didChangeTextDocumentNotification is null || didChangeTextDocumentNotification.@params.textDocument.uri is null)
-        {
             return null;
-        }
 
         if (didChangeTextDocumentNotification.@params.contentChanges is null)
         {
@@ -678,9 +653,7 @@ internal static class Lsp
     public static Message DeserializeContent_DidClose(DidCloseTextDocumentNotification? didCloseTextDocumentNotification)
     {
         if (didCloseTextDocumentNotification is null || didCloseTextDocumentNotification.@params.textDocument.uri is null)
-        {
             return null;
-        }
 
         if (_javaScriptWorkspace is null)
         {
@@ -695,14 +668,7 @@ internal static class Lsp
     public static object DeserializeContent_DidOpen(DidOpenTextDocumentNotification? didOpenTextDocumentNotification)
     {
         if (didOpenTextDocumentNotification is null || didOpenTextDocumentNotification.@params.textDocument.uri is null || didOpenTextDocumentNotification.@params.textDocument.text is null)
-        {
             return null;
-        }
-
-        if (didOpenTextDocumentNotification.@params.textDocument.uri is null)
-        {
-            return didOpenTextDocumentNotification;
-        }
             
         if (_javaScriptWorkspace is null)
         {
@@ -719,9 +685,7 @@ internal static class Lsp
     public static object DeserializeContent_Initialize(InitializeRequest? initializeRequest)
     {
         if (initializeRequest is null)
-        {
             return null;
-        }
 
         // TODO: what is specified for when you receive an initialize request after you've already initialized.
         _javaScriptWorkspace = JavaScriptWorkspace.Empty;
@@ -755,9 +719,7 @@ internal static class Lsp
     public static Message DeserializeContent_CustomEditorVerifyLspTextAgainstEditorTextRequest(CustomEditorVerifyLspTextAgainstEditorTextRequest? customEditorVerifyLspTextAgainstEditorTextRequest)
     {
         if (customEditorVerifyLspTextAgainstEditorTextRequest is null || customEditorVerifyLspTextAgainstEditorTextRequest.@params.textDocument.uri is null)
-        {
             return null;
-        }
 
         var found = _javaScriptWorkspace.OpenedSourceFileAbsolutePathToInMemoryContentMap.TryGetValue(customEditorVerifyLspTextAgainstEditorTextRequest.@params.textDocument.uri, out var javaScriptDocument);
         if (!found || javaScriptDocument is null)
@@ -770,73 +732,4 @@ internal static class Lsp
 
         return null;
     }
-
-    /*
-     TODO: Deserializing a class where the class contains properties of which are reference type, but not marked as nullable;...
-           ...If the deserializer finds these properties to be null, then it will just let that be so? i.e.: I have to validate them myself or...?
-
-    Google AI:
-
-    < ...
-    <
-    < # System.Text.Json (Default .NET)
-    < 
-    < By default, System.Text.Json ignores the non-nullable annotations and will set the property to null if the data is missing from the JSON.
-    <
-    < To force validation automatically during deserialization, use the following approaches:
-    <
-    < - The required Modifier (Recommended for .NET 7+):...
-    < - JsonRequired Attribute:...
-    < - Global Contract Resolver (.NET 8+):...
-    <
-    < ...
-
-    > what does 'required' do for a nullable reference type? They have to explicitly have the json field ...?
-    (my ... was text that forms the question a bit but taken literally is innacurate so I wanna avoid anyone reading the sentence in its entirety the ... was: "with value 'null'")
-
-    < Yes...
-    <
-    < ...
-
-    TODO tomorrow:
-    - propagate up parent scopes and create one list of all identifiers that are possibly available then re-use it when you slice
-    - import
-        - make ast and connect the two ast(s)?
-    - cache syntax highlighting for the sections you've syntax highlighted drawn
-
-     */
-
-    /*
-     * If anyone wants to know what the next steps would be for something like this:
-     * you could consider changing all the strings to ints
-     * by finding a hash function that results in a unique number over the closed set of all keywords
-     * 
-     * Then any identifier collisions would need to be verified character by character
-     * but they should be rare.
-     * 
-     * This removes a MASSIVE amount of strings.
-     * The lexical scope isn't about indexing a string it should be some kind of non-allocated value
-     * like the hash
-     * 
-     * ========
-     * 
-     * One of the things I did very wrong in the past was trying to flatten the AST into a single array.
-     * I highly recommend NOT doing this after years of doing this.
-     * 
-     * The main reason I had to do that was having the "language server" and "client" being the same app
-     * and thus my GC overhead was massive.
-     * 
-     * By splitting them out, the cost of the AST isn't nearly as large relative to the total object count
-     * and by using one you greatly simplify the logic.
-     * 
-     * My initial thought was that adding a server-client architecture would slow the app down.
-     * But it is the complete opposite (maybe you could find a way but I couldn't).
-     * 
-     * Because the cost of sending messages between them is non-zero yes, but it is nothing
-     * compared to the cost of storing all this allocated memory in this C# program in the same program
-     * as the UI and having the garbage collector explode.
-     * 
-     * I think I want to completely stay away from writing code on this project until I hit 199.9 lbs.
-     * I am quick to get obsessed with things so taking some time away I think is a good thing.
-     */
 }
