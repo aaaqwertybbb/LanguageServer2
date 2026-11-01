@@ -653,7 +653,15 @@ private static int ReadHeadersAndGetContentLength(Stream stream)
 
 I've seen a Jonathan Blow or two in my day
 
+I agree with Jonathan Blow btw on that
 
+What I do incurs no risk, no utility, and therefore ought to incur no profit.
+
+And working less in life isn't a moral highground.
+
+It is just a lifestyle decision.
+
+What I want is to work 40 hours a month on the dot at something low skill.
 
 
 
