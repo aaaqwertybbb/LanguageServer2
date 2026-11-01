@@ -4,7 +4,6 @@
 
 using JSLSApp.LspTypes;
 using System.Buffers;
-using System.Runtime.InteropServices;
 using System.Text.Json;
 
 namespace JSLSApp;
@@ -14,7 +13,6 @@ public class Program
     internal static JsonSerializerOptions _jsonSerializerOptions = new JsonSerializerOptions { PropertyNameCaseInsensitive = true };
     internal static JavaScriptParser? _activeParser = null;
     /// <summary>Contains the bytes casted as ints from the stream</summary>
-    private static List<byte> _contentLengthNumberBuffer = new();
 
     private static void Main(string[] args)
     {
