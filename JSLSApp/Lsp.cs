@@ -50,42 +50,42 @@ internal static class Lsp
     internal static Stack<(SyntaxNode ScopeProvider, int ChildIndexOfScopeProviderAmongItsSiblings)> _returnStack = new();
 
 
-    public static object? Dispatch(string content, Message request)
+    public static object? Dispatch(ReadOnlySpan<byte> jsonBytes, Message request)
     {
         switch (request?.Method)
         {
             case "initialize":
-                return DeserializeContent_Initialize(content, request);
+                return DeserializeContent_Initialize(jsonBytes, request);
             case "textDocument/didOpen":
-                return DeserializeContent_DidOpen(content, request);
+                return DeserializeContent_DidOpen(jsonBytes, request);
             case "textDocument/didClose":
-                return DeserializeContent_DidClose(content, request);
+                return DeserializeContent_DidClose(jsonBytes, request);
             case "textDocument/didChange":
-                return DeserializeContent_DidChange(content, request);
+                return DeserializeContent_DidChange(jsonBytes, request);
             case "textDocument/documentSymbol":
-                return DeserializeContent_DocumentSymbol(content, request);
+                return DeserializeContent_DocumentSymbol(jsonBytes, request);
             case "textDocument/hover":
-                return DeserializeContent_Hover(content, request);
+                return DeserializeContent_Hover(jsonBytes, request);
             case "textDocument/definition":
-                return DeserializeContent_Definition(content, request);
+                return DeserializeContent_Definition(jsonBytes, request);
             case "textDocument/completion":
-                return DeserializeContent_Completion(content, request);
+                return DeserializeContent_Completion(jsonBytes, request);
             case "textDocument/completion_slice":
-                return DeserializeContent_CompletionSlice(content, request);
+                return DeserializeContent_CompletionSlice(jsonBytes, request);
             case "textDocument/CustomFullFileLexRequest":
-                return DeserializeContent_CustomFullFileLexRequest(content, request);
+                return DeserializeContent_CustomFullFileLexRequest(jsonBytes, request);
             case "textDocument/CustomEditorGetNodesAdjacentToCursorFromLspRequest":
-                return DeserializeContent_CustomEditorGetNodesAdjacentToCursorFromLspRequest(content, request);
+                return DeserializeContent_CustomEditorGetNodesAdjacentToCursorFromLspRequest(jsonBytes, request);
             case "textDocument/CustomEditorVerifyLspTextAgainstEditorTextRequest":
-                return DeserializeContent_CustomEditorVerifyLspTextAgainstEditorTextRequest(content, request);
+                return DeserializeContent_CustomEditorVerifyLspTextAgainstEditorTextRequest(jsonBytes, request);
             default:
                 return request;
         }
     }
 
-    private static Message DeserializeContent_CustomFullFileLexRequest(string content, Message request)
+    private static Message DeserializeContent_CustomFullFileLexRequest(ReadOnlySpan<byte> jsonBytes, Message request)
     {
-        var customFullFileLexRequest = JsonSerializer.Deserialize<CustomFullFileLexRequest>(content);
+        var customFullFileLexRequest = JsonSerializer.Deserialize<CustomFullFileLexRequest>(jsonBytes);
         if (customFullFileLexRequest is null || customFullFileLexRequest.@params.textDocument.uri is null)
         {
             return request;
@@ -108,9 +108,9 @@ internal static class Lsp
         return request;
     }
 
-    private static Message DeserializeContent_CustomEditorGetNodesAdjacentToCursorFromLspRequest(string content, Message request)
+    private static Message DeserializeContent_CustomEditorGetNodesAdjacentToCursorFromLspRequest(ReadOnlySpan<byte> jsonBytes, Message request)
     {
-        var customEditorGetNodesAdjacentToCursorFromLspRequest = JsonSerializer.Deserialize<CustomEditorGetNodesAdjacentToCursorFromLspRequest>(content);
+        var customEditorGetNodesAdjacentToCursorFromLspRequest = JsonSerializer.Deserialize<CustomEditorGetNodesAdjacentToCursorFromLspRequest>(jsonBytes);
         if (customEditorGetNodesAdjacentToCursorFromLspRequest is null || customEditorGetNodesAdjacentToCursorFromLspRequest.@params.textDocument.uri is null)
         {
             return request;
@@ -167,10 +167,10 @@ internal static class Lsp
         return request;
     }
 
-    private static Message DeserializeContent_Definition(string content, Message request)
+    private static Message DeserializeContent_Definition(ReadOnlySpan<byte> jsonBytes, Message request)
     {
         // TODO: 'Deserialize...Into?' exists? does it?
-        var definitionRequest = JsonSerializer.Deserialize<TextDocumentDefinitionRequest>(content);
+        var definitionRequest = JsonSerializer.Deserialize<TextDocumentDefinitionRequest>(jsonBytes);
         if (definitionRequest is null || definitionRequest.@params.textDocument.uri is null)
         {
             return request;
@@ -353,9 +353,9 @@ internal static class Lsp
         return request;
     }
 
-    private static Message DeserializeContent_CompletionSlice(string content, Message request)
+    private static Message DeserializeContent_CompletionSlice(ReadOnlySpan<byte> jsonBytes, Message request)
     {
-        var completionRequestSlice = JsonSerializer.Deserialize<TextDocumentCompletionRequest_slice>(content);
+        var completionRequestSlice = JsonSerializer.Deserialize<TextDocumentCompletionRequest_slice>(jsonBytes);
         if (completionRequestSlice is null || completionRequestSlice.@params.textDocument.uri is null || _completionItemArray is null)
         {
             return request;
@@ -419,9 +419,9 @@ internal static class Lsp
         return request;
     }
 
-    private static Message DeserializeContent_Completion(string content, Message request)
+    private static Message DeserializeContent_Completion(ReadOnlySpan<byte> jsonBytes, Message request)
     {
-        var completionRequest = JsonSerializer.Deserialize<TextDocumentCompletionRequest>(content);
+        var completionRequest = JsonSerializer.Deserialize<TextDocumentCompletionRequest>(jsonBytes);
         if (completionRequest is null || completionRequest.@params.textDocument.uri is null)
         {
             return request;
@@ -567,7 +567,7 @@ internal static class Lsp
         return request;
     }
 
-    private static Message DeserializeContent_Hover(string content, Message request)
+    private static Message DeserializeContent_Hover(ReadOnlySpan<byte> jsonBytes, Message request)
     {
         return request;
         /*var hoverRequest = JsonSerializer.Deserialize<TextDocumentHoverRequest>(content);
@@ -636,9 +636,9 @@ internal static class Lsp
         return request;*/
     }
 
-    private static Message DeserializeContent_DocumentSymbol(string content, Message request)
+    private static Message DeserializeContent_DocumentSymbol(ReadOnlySpan<byte> jsonBytes, Message request)
     {
-        var symbolRequest = JsonSerializer.Deserialize<TextDocumentDocumentSymbolRequest>(content);
+        var symbolRequest = JsonSerializer.Deserialize<TextDocumentDocumentSymbolRequest>(jsonBytes);
         if (symbolRequest is null || symbolRequest.@params.textDocument.uri is null)
         {
             return request;
@@ -676,9 +676,9 @@ internal static class Lsp
         return request;
     }
 
-    private static Message DeserializeContent_DidChange(string content, Message request)
+    private static Message DeserializeContent_DidChange(ReadOnlySpan<byte> jsonBytes, Message request)
     {
-        var didChangeTextDocumentNotification = JsonSerializer.Deserialize<DidChangeTextDocumentNotification>(content);
+        var didChangeTextDocumentNotification = JsonSerializer.Deserialize<DidChangeTextDocumentNotification>(jsonBytes);
         if (didChangeTextDocumentNotification is null || didChangeTextDocumentNotification.@params.textDocument.uri is null)
         {
             return request;
@@ -718,9 +718,9 @@ internal static class Lsp
         return request;
     }
 
-    private static Message DeserializeContent_DidClose(string content, Message request)
+    private static Message DeserializeContent_DidClose(ReadOnlySpan<byte> jsonBytes, Message request)
     {
-        var didCloseTextDocumentNotification = JsonSerializer.Deserialize<DidCloseTextDocumentNotification>(content);
+        var didCloseTextDocumentNotification = JsonSerializer.Deserialize<DidCloseTextDocumentNotification>(jsonBytes);
         if (didCloseTextDocumentNotification is null || didCloseTextDocumentNotification.@params.textDocument.uri is null)
         {
             return request;
@@ -736,9 +736,9 @@ internal static class Lsp
         return request;
     }
 
-    private static object DeserializeContent_DidOpen(string content, Message request)
+    private static object DeserializeContent_DidOpen(ReadOnlySpan<byte> jsonBytes, Message request)
     {
-        var didOpenTextDocumentNotification = JsonSerializer.Deserialize<DidOpenTextDocumentNotification>(content);
+        var didOpenTextDocumentNotification = JsonSerializer.Deserialize<DidOpenTextDocumentNotification>(jsonBytes);
         if (didOpenTextDocumentNotification is null || didOpenTextDocumentNotification.@params.textDocument.uri is null || didOpenTextDocumentNotification.@params.textDocument.text is null)
         {
             return request;
@@ -761,9 +761,9 @@ internal static class Lsp
         return didOpenTextDocumentNotification;
     }
 
-    private static object DeserializeContent_Initialize(string content, Message request)
+    private static object DeserializeContent_Initialize(ReadOnlySpan<byte> jsonBytes, Message request)
     {
-        var initializeRequest = JsonSerializer.Deserialize<InitializeRequest>(content);
+        var initializeRequest = JsonSerializer.Deserialize<InitializeRequest>(jsonBytes);
         if (initializeRequest is null)
         {
             return request;
@@ -798,9 +798,9 @@ internal static class Lsp
         return initializeRequest;
     }
 
-    private static Message DeserializeContent_CustomEditorVerifyLspTextAgainstEditorTextRequest(string content, Message request)
+    private static Message DeserializeContent_CustomEditorVerifyLspTextAgainstEditorTextRequest(ReadOnlySpan<byte> jsonBytes, Message request)
     {
-        var customEditorVerifyLspTextAgainstEditorTextRequest = JsonSerializer.Deserialize<CustomEditorVerifyLspTextAgainstEditorTextRequest>(content);
+        var customEditorVerifyLspTextAgainstEditorTextRequest = JsonSerializer.Deserialize<CustomEditorVerifyLspTextAgainstEditorTextRequest>(jsonBytes);
         if (customEditorVerifyLspTextAgainstEditorTextRequest is null || customEditorVerifyLspTextAgainstEditorTextRequest.@params.textDocument.uri is null)
         {
             return request;
