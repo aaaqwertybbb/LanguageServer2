@@ -137,7 +137,7 @@ public class Program
                 }
             }
 
-            Console.WriteLine(Encoding.UTF8.GetString(rentedBuffer, 0, 3));
+            Console.WriteLine(Encoding.UTF8.GetString(rentedBuffer, 0, readLength));
 
             current_message_kind = MessageKind_none;
             current_message_contentLength = 0;
