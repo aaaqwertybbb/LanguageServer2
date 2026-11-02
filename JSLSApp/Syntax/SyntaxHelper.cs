@@ -64,92 +64,30 @@ internal static class SyntaxHelper
         // Do not expect 'before' to stay the same later in this function because the variable is overwritten.
         ref var scope = ref args.ScopeProvider.GetScope();
 
-        //var thisFunctionInvocationIsAtAnAfter = false;
-
         var i = 0;
         for (; i < scope.BodyList.Count; i++)
         {
             SyntaxNode? child_node = scope.BodyList[i];
-            WalkPositionIndices_mutable_RS(ref args, child_node.DistanceFromPreviousNode);
+            args.CurrentIndexPosition += child_node.DistanceFromPreviousNode;
 
-            if (args.CurrentIndexLine < args.TargetIndexLine) // before line
+            if (args.TargetIndexPosition >= args.CurrentIndexPosition && args.TargetIndexPosition <= args.CurrentIndexPosition + child_node.Length)
+            {
+                args.TargetNode = child_node;
+                return;
+            }
+            else if (args.TargetIndexPosition < args.CurrentIndexPosition)
+            {
+                return;
+            }
+            else if (args.TargetIndexPosition > args.CurrentIndexPosition)
             {
                 if (child_node.IsScopeProvider)
                 {
-                    ref var childScope = ref child_node.GetScope();
-                    if (childScope.End.line >= args.TargetIndexLine && childScope.BodyList.Count > 0)
-                    {
-                        args.ScopeProvider = child_node;
-                        RecursiveSearch(ref args);
-                        i++;
-                        break;
-                    }
-                    else
-                    {
-                        SkipBranchButStillCountItPositionWise_RS(ref args, child_node);
-                    }
+                    args.ScopeProvider = child_node;
+                    RecursiveSearch(ref args);
                 }
-            }
-            else if (args.CurrentIndexLine > args.TargetIndexLine) // after line
-            {
-                //thisFunctionInvocationIsAtAnAfter = true;
-                break;
-            }
-            else // same line
-            {
-                if (args.CurrentIndexCharacter > args.TargetIndexCharacter) // after character
-                {
-                    //thisFunctionInvocationIsAtAnAfter = true;
-                    break;
-                }
-
-                var found = false;
-
-                if (args.TargetIndexCharacter == args.CurrentIndexCharacter)
-                {
-                    found = true;
-                }
-                else
-                {
-                    // TODO: Awkward assumption that the childNode's `startLine` and `endLine` would be equal. (currently only the length of a node's "word based identifier" is being accounted for, so this is currently true.
-                    (_, _, var childNode_endCharacter) = WalkPositionIndices_return_RS(ref args, child_node.Length);
-                    if (childNode_endCharacter >= args.TargetIndexCharacter)
-                    {
-                        found = true;
-                    }
-                }
-
-                if (!found)
-                    continue;
-
-                args.TargetNode = child_node;
-                args.TargetNodePosition = new Position(args.CurrentIndexLine, args.CurrentIndexCharacter);
-                args.TargetNodePositionIndex = args.CurrentIndexPosition;
-                i++;
-                break;
             }
         }
-
-        //// Found 'among' node: then 'i' is ensured to have been incremented prior to the break.
-        ////
-        //// All nodes are before: 'i' will be >= scope.BodyList.Count.
-        ////
-        //// Found 'after' node: then 'i' will NOT have been incremented prior to the break.
-        ////
-        //if (i < scope.BodyList.Count)
-        //{
-        //    if (args.After.Node is null)
-        //    {
-        //        args.After.Node = scope.BodyList[i];
-        //        if (!thisFunctionInvocationIsAtAnAfter)
-        //        {
-        //            // i was incremented then 'break' but you still need to walk to the node.
-        //            WalkPositionIndices_mutable_FindNodesAdjacentToTheEdit(ref args, args.After.Node.DistanceFromPreviousNode);
-        //        }
-        //        args.After.Position = new(args.CurrentIndexLine, args.CurrentIndexCharacter);
-        //        args.After.PositionIndex = args.CurrentIndexPosition;
-        //    }
-        //}
     }
 
     // Two ref structs, one is the mover and the other is the function specific
@@ -381,119 +319,6 @@ internal static class SyntaxHelper
                 }
             }
         }
-    }
-
-    public static void SkipBranchButStillCountItPositionWise_RS(ref RecursiveSearch_Args args, SyntaxNode? targetScopeProvider)
-    {
-        var isNaturalHandOff = false;
-        var i = 0;
-        while (targetScopeProvider is not null)
-        {
-            ref var scope = ref targetScopeProvider.GetScope();
-            for (; i < scope.BodyList.Count; i++)
-            {
-                var childNode = scope.BodyList[i];
-                if (args.CurrentIndexPosition < args.Chars.Length)
-                {
-                    var distance = childNode.DistanceFromPreviousNode;
-                    if (args.CurrentIndexPosition + distance >= args.Chars.Length)
-                        distance = args.Chars.Length - args.CurrentIndexPosition;
-
-                    for (var j = 0; j < distance; j++)
-                    {
-                        switch (args.Chars[args.CurrentIndexPosition])
-                        {
-                            //case '\r': TODO: Include or not '\r'? When using my own editor I swap everything to '\n' but...
-                            case '\n':
-                                args.CurrentIndexLine++;
-                                args.CurrentIndexCharacter = 0;
-                                break;
-                            default:
-                                args.CurrentIndexCharacter++;
-                                break;
-                        }
-                        args.CurrentIndexPosition++;
-                    }
-                }
-                if (childNode.IsScopeProvider)
-                {
-                    args.ReturnStack.Push((targetScopeProvider, i));
-                    targetScopeProvider = childNode;
-                    isNaturalHandOff = true;
-                    break;
-                }
-            }
-            if (isNaturalHandOff)
-            {
-                isNaturalHandOff = false;
-                i = 0;
-            }
-            else
-            {
-                if (args.ReturnStack.Count > 0)
-                {
-                    var returnEntry = args.ReturnStack.Pop();
-                    targetScopeProvider = returnEntry.ScopeProvider;
-                    i = returnEntry.ChildIndexOfScopeProviderAmongItsSiblings + 1;
-                }
-                else
-                {
-                    targetScopeProvider = null;
-                }
-            }
-        }
-    }
-    
-    public static void WalkPositionIndices_mutable_RS(ref RecursiveSearch_Args args, int distance)
-    {
-        if (args.CurrentIndexPosition >= args.Chars.Length)
-            return;
-
-        if (args.CurrentIndexPosition + distance >= args.Chars.Length)
-            distance = args.Chars.Length - args.CurrentIndexPosition;
-
-        for (var i = 0; i < distance; i++)
-        {
-            switch (args.Chars[args.CurrentIndexPosition])
-            {
-                //case '\r': TODO: Include or not '\r'? When using my own editor I swap everything to '\n' but...
-                case '\n':
-                    args.CurrentIndexLine++;
-                    args.CurrentIndexCharacter = 0;
-                    break;
-                default:
-                    args.CurrentIndexCharacter++;
-                    break;
-            }
-            args.CurrentIndexPosition++;
-        }
-    }
-
-    public static (int CurrentIndexPosition, int CurrentIndexLine, int CurrentIndexCharacter) WalkPositionIndices_return_RS(ref RecursiveSearch_Args args, int distance)
-    {
-        if (args.CurrentIndexPosition >= args.Chars.Length)
-            return (args.CurrentIndexPosition, args.CurrentIndexLine, args.CurrentIndexCharacter);
-
-        if (args.CurrentIndexPosition + distance >= args.Chars.Length)
-            distance = args.Chars.Length - args.CurrentIndexPosition;
-
-        for (var i = 0; i < distance; i++)
-        {
-            switch (args.Chars[args.CurrentIndexPosition])
-            {
-                //case '\r': TODO: Include or not '\r'? When using my own editor I swap everything to '\n' but...
-                case '\n':
-                    args.CurrentIndexLine++;
-                    args.CurrentIndexCharacter = 0;
-                    break;
-                default:
-                    args.CurrentIndexCharacter++;
-                    break;
-            }
-            args.CurrentIndexPosition++;
-        }
-
-        return (args.CurrentIndexPosition, args.CurrentIndexLine, args.CurrentIndexCharacter);
     }
 
     public static string GetSyntaxKindString(SyntaxKind syntaxKind)

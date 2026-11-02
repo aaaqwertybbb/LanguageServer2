@@ -6,7 +6,7 @@ namespace JSLSApp;
 
 internal ref struct RecursiveSearch_Args
 {
-    public RecursiveSearch_Args(JavaScriptDocument javaScriptDocument, int targetIndexLine, int targetIndexCharacter, Stack<SyntaxNode> inclusiveFinalNodeToConsiderAtEachDepth, Stack<(SyntaxNode ScopeProvider, int ChildIndexOfScopeProviderAmongItsSiblings)> returnStack)
+    public RecursiveSearch_Args(JavaScriptDocument javaScriptDocument, int targetIndexPosition, Stack<SyntaxNode> inclusiveFinalNodeToConsiderAtEachDepth, Stack<(SyntaxNode ScopeProvider, int ChildIndexOfScopeProviderAmongItsSiblings)> returnStack)
     {
         InclusiveFinalNodeToConsiderAtEachDepth = inclusiveFinalNodeToConsiderAtEachDepth;
         InclusiveFinalNodeToConsiderAtEachDepth.Clear();
@@ -15,13 +15,10 @@ internal ref struct RecursiveSearch_Args
         ReturnStack.Clear();
 
         CurrentIndexPosition = 0;
-        CurrentIndexLine = 0;
-        CurrentIndexCharacter = 0;
 
         ScopeProvider = javaScriptDocument.CompilationUnit.GlobalNode;
 
-        TargetIndexLine = targetIndexLine;
-        TargetIndexCharacter = targetIndexCharacter;
+        TargetIndexPosition = targetIndexPosition;
 
         Chars = CollectionsMarshal.AsSpan(javaScriptDocument.Chars);
     }
@@ -35,17 +32,13 @@ internal ref struct RecursiveSearch_Args
     internal int TotalChecks;
 
     internal int CurrentIndexPosition;
-    internal int CurrentIndexLine;
-    internal int CurrentIndexCharacter;
 
     internal SyntaxNode ScopeProvider;
 
-    internal int TargetIndexLine;
-    internal int TargetIndexCharacter;
+    internal int TargetIndexPosition;
 
     internal SyntaxNode? TargetNode;
     internal Position TargetNodePosition;
-    internal int TargetNodePositionIndex;
 
     internal ReadOnlySpan<char> Chars;
 }

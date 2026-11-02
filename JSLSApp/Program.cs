@@ -20,6 +20,7 @@ public class Program
     const byte MessageKind_none = 48 /* 0 */;
     const byte MessageKind_string = 49 /* 1 */;
     const byte MessageKind_textDocument_didOpen = 2;
+    const byte MessageKind_textDocument_definition = 3;
 
     const byte MessageKind_field_separator = 95 /* _ */;
 
@@ -39,6 +40,8 @@ public class Program
 
     private static void Main(string[] args)
     {
+        // TODO: This didn't close correctly I had to kill the previous app with task manager (maybe an exception is bad state or etc... i.e.:TODO)
+
         // Start server on localhost port 8080
         server = new WatsonWsServer("127.0.0.1", 8080, false);
 
@@ -150,6 +153,17 @@ public class Program
                 var base64String = Lsp.DeserializeContent_CustomFullFileLexRequest(str);
                 //server.SendAsync(clientGuid, "hello");
                 server.SendAsync(clientGuid, base64String);
+            }
+            else if (current_message_kind == MessageKind_textDocument_definition)
+            {
+                if (int.TryParse(str, out var positionIndex))
+                {
+                    var positionIndexOfDefinition = Lsp.DeserializeContent_Definition(positionIndex);
+                    if (positionIndexOfDefinition != -1)
+                    {
+                        server.SendAsync(clientGuid, positionIndexOfDefinition.ToString());
+                    }
+                }
             }
 
             current_message_kind = MessageKind_none;

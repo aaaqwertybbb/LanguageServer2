@@ -112,18 +112,18 @@ internal static class Lsp
         return null;
     }
 
-    public static Message DeserializeContent_Definition(TextDocumentDefinitionRequest? definitionRequest)
+    public static int DeserializeContent_Definition(int positionIndex)
     {
-        if (definitionRequest is null || definitionRequest.@params.textDocument.uri is null)
-            return null;
+        if (_javaScriptWorkspace.MostRecentlyOpenedFilePath is null)
+            return -1;
 
-        var found = _javaScriptWorkspace.OpenedSourceFileAbsolutePathToInMemoryContentMap.TryGetValue(definitionRequest.@params.textDocument.uri, out var javaScriptDocument);
+        var found = _javaScriptWorkspace.OpenedSourceFileAbsolutePathToInMemoryContentMap.TryGetValue(_javaScriptWorkspace.MostRecentlyOpenedFilePath, out var javaScriptDocument);
         if (!found || javaScriptDocument is null)
         {
-            return null;
+            return -1;
         }
 
-        var args = new RecursiveSearch_Args(javaScriptDocument, definitionRequest.@params.position.line, definitionRequest.@params.position.character, _inclusiveFinalNodeToConsiderAtEachDepth, _returnStack);
+        var args = new RecursiveSearch_Args(javaScriptDocument, positionIndex, _inclusiveFinalNodeToConsiderAtEachDepth, _returnStack);
 
         SyntaxHelper.RecursiveSearch(ref args);
         SyntaxNode? result_node = args.TargetNode;
@@ -173,8 +173,6 @@ internal static class Lsp
                         var finalNodeToConsider = args.InclusiveFinalNodeToConsiderAtEachDepth.Pop();
 
                         args.CurrentIndexPosition = 0;
-                        args.CurrentIndexLine = 0;
-                        args.CurrentIndexCharacter = 0;
 
                         // TODO: This should probably start as false (it was required to start as false in a similar but not exactly the same scenario)
                         var isNaturalHandOff = true;
@@ -200,17 +198,6 @@ internal static class Lsp
 
                                     for (var j = 0; j < distance; j++)
                                     {
-                                        switch (javaScriptDocument.Chars[args.CurrentIndexPosition])
-                                        {
-                                            //case '\r': TODO: Include or not '\r'? When using my own editor I swap everything to '\n' but...
-                                            case '\n':
-                                                args.CurrentIndexLine++;
-                                                args.CurrentIndexCharacter = 0;
-                                                break;
-                                            default:
-                                                args.CurrentIndexCharacter++;
-                                                break;
-                                        }
                                         args.CurrentIndexPosition++;
                                     }
                                 }
@@ -261,37 +248,16 @@ internal static class Lsp
                             }
                         }
 
-                        var range = new Range
-                        {
-                            start = new Position
-                            {
-                                line = args.CurrentIndexLine,// TODO: relative changes break this; variableReferenceNode.DefinitionLine,
-                                character = args.CurrentIndexCharacter//variableReferenceNode.DefinitionCharacter
-                            },
-                            end = new Position //end = result_node.End, // TODO: relative changes break this;
-                            {
-                                line = args.CurrentIndexLine,
-                                character = args.CurrentIndexCharacter
-                            },
-                        };
-
                         args.InclusiveFinalNodeToConsiderAtEachDepth.Clear();
                         args.ReturnStack.Clear();
 
-                        //nodeString = $"{result_node.SyntaxKind}~{result_node.Id_name}";
-                        Console.Out.WriteLine(Program.MAIN_encodeMessageObject(
-                            new TextDocumentDefinitionResponse(definitionRequest.id, definitionRequest.@params.textDocument.uri, range)));
-                        return null;
+                        return args.CurrentIndexPosition;
                     }
                 }
             }
         }
 
-        //nodeString = "result_node~was_null";
-        // TODO: What does LSP say for responding the failed result null or...?
-        var textDocumentDefinitionResponse = new TextDocumentDefinitionResponse(definitionRequest.id, definitionRequest.@params.textDocument.uri, null);
-        Console.Out.WriteLine(Program.MAIN_encodeMessageObject(textDocumentDefinitionResponse));
-        return null;
+        return -1;
     }
 
     public static Message DeserializeContent_CompletionSlice(TextDocumentCompletionRequest_slice? completionRequestSlice)
@@ -661,6 +627,7 @@ internal static class Lsp
 
     public static object DeserializeContent_DidOpen(string filePath)
     {
+        _javaScriptWorkspace.MostRecentlyOpenedFilePath = filePath;
         var found = _javaScriptWorkspace.OpenedSourceFileAbsolutePathToInMemoryContentMap.TryGetValue(filePath, out var doc);
         if (found)
         {

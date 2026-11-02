@@ -30,6 +30,7 @@ public class JavaScriptWorkspace
 
     public List<string> SourceFileAbsolutePathList { get; } = new();
     public Dictionary<string, JavaScriptDocument> OpenedSourceFileAbsolutePathToInMemoryContentMap { get; set; } = new();
+    public string MostRecentlyOpenedFilePath { get; internal set; }
 
     private JavaScriptWorkspace()
     {
