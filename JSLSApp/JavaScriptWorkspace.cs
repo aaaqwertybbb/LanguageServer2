@@ -59,10 +59,10 @@ public class JavaScriptWorkspace
         //}
     }
 
-    public void DidOpenTextDocumentNotification(string sourceFileAbsolutePath, byte[] buffer, int capacity, int length, bool hadBomMark)
+    public void DidOpenTextDocumentNotification(string sourceFileAbsolutePath, byte[] buffer, int capacity, int length, bool hadBomMark, byte lineEndingKind)
     {
         var localPath = new Uri(sourceFileAbsolutePath).LocalPath;
-        OpenedSourceFileAbsolutePathToInMemoryContentMap.Add(sourceFileAbsolutePath, new JavaScriptDocument(localPath, buffer, capacity, length, hadBomMark));
+        OpenedSourceFileAbsolutePathToInMemoryContentMap.Add(sourceFileAbsolutePath, new JavaScriptDocument(localPath, buffer, capacity, length, hadBomMark, lineEndingKind));
     }
     
     public void DidCloseTextDocumentNotification(string sourceFileAbsolutePath)

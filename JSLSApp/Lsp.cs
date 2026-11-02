@@ -684,6 +684,11 @@ internal static class Lsp
         int length;
         int capacity;
         byte[] buffer;
+        // 0 => None
+        // 1 => CR
+        // 2 => LF
+        // 3 => CRLF
+        byte lineEndingKind = 2;
 
         // Constants for newline parsing
         byte CR = 13; // '\r'
@@ -711,20 +716,62 @@ internal static class Lsp
         // Slice past the BOM to look at pure text data
         ReadOnlySpan<byte> textSpan = fileSpan.Slice(dataStartIndex);
 
+        // 2. Make our judgment based on the first encountered line ending
+        // IndexOfAny will return the absolute first index of either byte found
+        int firstLineBreakIndex = textSpan.IndexOfAny(CR, LF);
+
+        if (firstLineBreakIndex != -1)
+        {
+            // If the first break character we hit is a CR, and it's immediately followed by an LF, it's CRLF.
+            if (textSpan[firstLineBreakIndex] == CR &&
+                firstLineBreakIndex + 1 < textSpan.Length &&
+                textSpan[firstLineBreakIndex + 1] == LF)
+            {
+                lineEndingKind = 3;
+            }
+            else if (textSpan[firstLineBreakIndex] == LF)
+            {
+                // It was either a standalone LF (\n) or an ancient standalone CR (\r).
+                // In either case, we treat the default output target as standard Unix LF.
+                lineEndingKind = 2;
+            }
+            else if (textSpan[firstLineBreakIndex] == CR)
+            {
+                // It was either a standalone LF (\n) or an ancient standalone CR (\r).
+                // In either case, we treat the default output target as standard Unix LF.
+                lineEndingKind = 1;
+            }
+        }
+        else
+        {
+            // Single-line file with no line endings at all. Default to false (LF).
+            lineEndingKind = 2;
+        }
+
         // 3. Allocate a chunk of memory with extra headroom (e.g., 20% extra padding)
         capacity = Math.Max(256, (int)(textSpan.Length * 1.2));
         buffer = new byte[capacity];
 
-        // 3. High-performance, zero-allocation filter pass
+        // 3. High-performance, zero-allocation normalization pass
         int targetIndex = 0;
         for (int i = 0; i < textSpan.Length; i++)
         {
             byte b = textSpan[i];
 
-            // Skip carriage returns entirely
             if (b == CR)
             {
-                continue;
+                // Look ahead: is this a Windows style CRLF pair?
+                if (i + 1 < textSpan.Length && textSpan[i + 1] == LF)
+                {
+                    // Yes! Let the next iteration of the loop naturally handle and write the LF.
+                    continue;
+                }
+                else
+                {
+                    // No, this is an isolated CR. Normalize it into an LF.
+                    buffer[targetIndex++] = LF;
+                    continue;
+                }
             }
 
             buffer[targetIndex++] = b;
@@ -733,7 +780,7 @@ internal static class Lsp
         // 4. Update the actual active length of your string
         length = targetIndex;
 
-        _javaScriptWorkspace.DidOpenTextDocumentNotification(filePath, buffer, capacity, length, hadBomMark);
+        _javaScriptWorkspace.DidOpenTextDocumentNotification(filePath, buffer, capacity, length, hadBomMark, lineEndingKind);
         return null;
     }
 
