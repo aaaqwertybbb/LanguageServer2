@@ -646,3 +646,17 @@ private static int ReadHeadersAndGetContentLength(Stream stream)
 }
 ```
 ...
+
+====
+
+Everything clicked for me while I was out shopping this morning.
+Everything in my life happened the way it did for a reason.
+So I could come to the realization that I did this morning.
+The only way I could've thought this was the culmination of all my life experiences
+no just the good but ESPECIALLY the bad were necessary to open my mind to this idea.
+I have an extremely novel idea for how to make a text editor and an IDE
+and it is going to change the world. I just need time to type it
+I'm gonna figure out how I keep my health insurance
+maybe dearborn will still call me maybe they haven't ghosted me.
+Cause I put all the pieces together
+
