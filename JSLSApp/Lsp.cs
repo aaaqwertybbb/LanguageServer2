@@ -42,12 +42,9 @@ internal static class Lsp
     internal static Stack<SyntaxNode> _inclusiveFinalNodeToConsiderAtEachDepth = new();
     internal static Stack<(SyntaxNode ScopeProvider, int ChildIndexOfScopeProviderAmongItsSiblings)> _returnStack = new();
 
-    public static Message? DeserializeContent_CustomFullFileLexRequest(CustomFullFileLexRequest? customFullFileLexRequest)
+    public static string DeserializeContent_CustomFullFileLexRequest(string filePath)
     {
-        if (customFullFileLexRequest is null || customFullFileLexRequest.@params.textDocument.uri is null)
-            return null;
-
-        var found = _javaScriptWorkspace.OpenedSourceFileAbsolutePathToInMemoryContentMap.TryGetValue(customFullFileLexRequest.@params.textDocument.uri, out var javaScriptDocument);
+        var found = _javaScriptWorkspace.OpenedSourceFileAbsolutePathToInMemoryContentMap.TryGetValue(filePath, out var javaScriptDocument);
         if (!found || javaScriptDocument is null)
         {
             return null;
@@ -58,10 +55,7 @@ internal static class Lsp
 
         var base64String = Convert.ToBase64String(javascriptParser.SyntaxHighlightByteList);
 
-        var textDocumentDocumentSymbolResponse = new CustomFullFileLexResponse(customFullFileLexRequest.id, base64String);
-        Console.Out.WriteLine(Program.MAIN_encodeMessageObject(textDocumentDocumentSymbolResponse));
-
-        return null;
+        return base64String;
     }
 
     public static Message? DeserializeContent_CustomEditorGetNodesAdjacentToCursorFromLspRequest(CustomEditorGetNodesAdjacentToCursorFromLspRequest? customEditorGetNodesAdjacentToCursorFromLspRequest)
@@ -665,21 +659,17 @@ internal static class Lsp
         return null;
     }
 
-    public static object DeserializeContent_DidOpen(DidOpenTextDocumentNotification? didOpenTextDocumentNotification)
+    public static object DeserializeContent_DidOpen(string filePath)
     {
-        if (didOpenTextDocumentNotification is null || didOpenTextDocumentNotification.@params.textDocument.uri is null || didOpenTextDocumentNotification.@params.textDocument.text is null)
-            return null;
-            
-        if (_javaScriptWorkspace is null)
+        var found = _javaScriptWorkspace.OpenedSourceFileAbsolutePathToInMemoryContentMap.TryGetValue(filePath, out var doc);
+        if (found)
         {
-            //Console.Out.WriteLine($"\n====_javaScriptWorkspace is null====\n");
-            return didOpenTextDocumentNotification;
+            return null;
         }
-        
-        _javaScriptWorkspace.DidOpenTextDocumentNotification(
-            didOpenTextDocumentNotification.@params.textDocument.uri,
-            didOpenTextDocumentNotification.@params.textDocument.text);
-        return didOpenTextDocumentNotification;
+        var text = File.ReadAllText(filePath, Program.noBomMark_UTF8Encoding);
+        text = text.ReplaceLineEndings("\n");
+        _javaScriptWorkspace.DidOpenTextDocumentNotification(filePath, text);
+        return null;
     }
 
     public static object DeserializeContent_Initialize(InitializeRequest? initializeRequest)

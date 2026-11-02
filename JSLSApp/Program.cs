@@ -35,6 +35,8 @@ public class Program
     static byte[]? rentedBuffer;
     static int readLength;
 
+    public static UTF8Encoding noBomMark_UTF8Encoding = new UTF8Encoding(encoderShouldEmitUTF8Identifier: false, throwOnInvalidBytes: true);
+
     private static void Main(string[] args)
     {
         // Start server on localhost port 8080
@@ -137,7 +139,18 @@ public class Program
                 }
             }
 
-            Console.WriteLine(Encoding.UTF8.GetString(rentedBuffer, 0, readLength));
+            var str = Encoding.UTF8.GetString(rentedBuffer, 0, readLength);
+
+            Console.WriteLine(str);
+
+            if (current_message_kind == MessageKind_textDocument_didOpen)
+            {
+                Lsp.DeserializeContent_DidOpen(str);
+                // var base64String = Convert.ToBase64String(javascriptParser.SyntaxHighlightByteList);
+                var base64String = Lsp.DeserializeContent_CustomFullFileLexRequest(str);
+                //server.SendAsync(clientGuid, "hello");
+                server.SendAsync(clientGuid, base64String);
+            }
 
             current_message_kind = MessageKind_none;
             current_message_contentLength = 0;
@@ -152,7 +165,7 @@ public class Program
             rentedBuffer = null;
             readLength = 0;
 
-            //server.SendAsync(clientGuid, test.ToArray());
+            
         };
 
         server.Start();
