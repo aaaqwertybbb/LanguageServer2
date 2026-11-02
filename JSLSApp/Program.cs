@@ -170,8 +170,8 @@ public class Program
             {
                 if (int.TryParse(str, out var positionIndex))
                 {
-                    var valueTupleOfNodes = Lsp.DeserializeContent_CustomEditorGetNodesAdjacentToCursorFromLspRequest(positionIndex);
-                    server.SendAsync(clientGuid, "valueTupleOfNodes");
+                    var customEditorGetNodesAdjacentToCursorFromLspRequestResponseResult = Lsp.DeserializeContent_CustomEditorGetNodesAdjacentToCursorFromLspRequest(positionIndex);
+                    server.SendAsync(clientGuid, JsonSerializer.Serialize(customEditorGetNodesAdjacentToCursorFromLspRequestResponseResult));
                 }
             }
 

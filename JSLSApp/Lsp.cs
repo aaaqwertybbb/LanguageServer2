@@ -58,15 +58,15 @@ internal static class Lsp
         return base64String;
     }
 
-    public static (CustomEditorGetNodesAdjacentToCursorFromLspRequestResponseResultNode? Before, CustomEditorGetNodesAdjacentToCursorFromLspRequestResponseResultNode? Among, CustomEditorGetNodesAdjacentToCursorFromLspRequestResponseResultNode? After) DeserializeContent_CustomEditorGetNodesAdjacentToCursorFromLspRequest(int positionIndex)
+    public static CustomEditorGetNodesAdjacentToCursorFromLspRequestResponseResult? DeserializeContent_CustomEditorGetNodesAdjacentToCursorFromLspRequest(int positionIndex)
     {
         if (_javaScriptWorkspace.MostRecentlyOpenedFilePath is null)
-            return (null, null, null);
+            return null;
 
         var found = _javaScriptWorkspace.OpenedSourceFileAbsolutePathToInMemoryContentMap.TryGetValue(_javaScriptWorkspace.MostRecentlyOpenedFilePath, out var javaScriptDocument);
         if (!found || javaScriptDocument is null)
         {
-            return (null, null, null);
+            return null;
         }
 
         /// find the current node (which is gonna be null for this simplest scenario of an edit that "doesn't change anything other than text positions")
@@ -108,7 +108,7 @@ internal static class Lsp
         _customEditorGetNodesAdjacentToCursorFromLspRequestResponseResult.After = _after;
         _customEditorGetNodesAdjacentToCursorFromLspRequestResponse.result = _customEditorGetNodesAdjacentToCursorFromLspRequestResponseResult;
 
-        return (_before, _among, _after);
+        return _customEditorGetNodesAdjacentToCursorFromLspRequestResponse.result;
     }
 
     public static int DeserializeContent_Definition(int positionIndex)
