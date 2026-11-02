@@ -3,6 +3,7 @@
  */
 
 using JSLSApp.LspTypes;
+using System.Buffers;
 using System.Text.Json;
 using WatsonWebsocket;
 
@@ -13,6 +14,25 @@ public class Program
     internal static WatsonWsServer server;
     internal static JavaScriptParser? _activeParser = null;
     /// <summary>Contains the bytes casted as ints from the stream</summary>
+
+    // Goal is to use the same wording as LSP where possible for clarity of communication.
+    const byte MessageKind_none = 48 /* 0 */;
+    const byte MessageKind_string = 49 /* 1 */;
+    const byte MessageKind_textDocument_didOpen = 2;
+
+    const byte MessageKind_field_separator = 45 /* _ */;
+
+    static byte current_message_kind = MessageKind_none;
+    static int current_message_contentLength = 0;
+
+    static int message_contentLength_int = 0;
+    static int messageKindInt = 0;
+
+    static bool seen_separator_messageKind_to_contentLength = false;
+    static bool seen_separator_contentLength_to_aaa = false;
+
+    static byte[]? rentedBuffer;
+    static int readLength;
 
     private static void Main(string[] args)
     {
@@ -43,6 +63,57 @@ public class Program
             //replyBytes[2] = 'l';
             //replyBytes[3] = 'l';
             //replyBytes[4] = 'o';
+
+            var index = 0;
+
+            if (current_message_kind == MessageKind_none)
+            {
+                while (index < transactionBuffer.Length && transactionBuffer[index] != MessageKind_field_separator)
+                {
+                    var b = transactionBuffer[index++];
+                    if (b >= '0' && b <= '9')
+                    {
+                        messageKindInt = (messageKindInt * 10) + (b - '0');
+                    }
+                    // TODO: bad input
+                }
+
+                if (transactionBuffer[index] == MessageKind_field_separator)
+                {
+                    seen_separator_messageKind_to_contentLength = true;
+                    current_message_kind = (byte)messageKindInt;
+                }
+            }
+            
+            if (!seen_separator_contentLength_to_aaa)
+            {
+                while (index < transactionBuffer.Length && transactionBuffer[index] != MessageKind_field_separator)
+                {
+                    var b = transactionBuffer[index++];
+                    if (b >= '0' && b <= '9')
+                    {
+                        message_contentLength_int = (messageKindInt * 10) + (b - '0');
+                    }
+                    // TODO: bad input
+                }
+
+                if (transactionBuffer[index] == MessageKind_field_separator)
+                {
+                    current_message_contentLength = message_contentLength_int;
+                    rentedBuffer = ArrayPool<byte>.Shared.Rent(current_message_contentLength);
+                    seen_separator_contentLength_to_aaa = true;
+                }
+            }
+
+            if (rentedBuffer is not null)
+            {
+                //var remaining = transactionBuffer.Length - index;
+                
+                for (var i = readLength; i < current_message_contentLength; i++)
+                {
+                    rentedBuffer[i] = transactionBuffer[index++];
+                }
+            }
 
             server.SendAsync(clientGuid, test.ToArray());
         };
