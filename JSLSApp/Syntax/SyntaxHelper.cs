@@ -1,4 +1,5 @@
 ﻿using JSLSApp.LspTypes;
+using System.Text;
 
 namespace JSLSApp.Syntax;
 
@@ -178,7 +179,7 @@ internal static class SyntaxHelper
         };
     }
     
-    public static string GetIdentifierText(SyntaxNodeWithPosition nodeWithPosition, ReadOnlySpan<char> chars)
+    public static string GetIdentifierText(SyntaxNodeWithPosition nodeWithPosition, ReadOnlySpan<byte> chars)
     {
         var node = nodeWithPosition.Node;
         if (node is null)
@@ -219,7 +220,7 @@ internal static class SyntaxHelper
                 var functionDeclarationNode = (FunctionDeclarationNode)node;
                 if (nodeWithPosition.PositionIndex < chars.Length && nodeWithPosition.PositionIndex + functionDeclarationNode.Length <= chars.Length)
                 {
-                    return new string(chars.Slice(nodeWithPosition.PositionIndex, functionDeclarationNode.Length));
+                    return Encoding.UTF8.GetString(chars.Slice(nodeWithPosition.PositionIndex, functionDeclarationNode.Length));
                 }
                 if (node.IsIdentifiable)
                 {
@@ -238,7 +239,7 @@ internal static class SyntaxHelper
                 var variableDeclarationNode = (VariableDeclarationNode)node;
                 if (nodeWithPosition.PositionIndex < chars.Length && nodeWithPosition.PositionIndex + variableDeclarationNode.Length <= chars.Length)
                 {
-                    return new string(chars.Slice(nodeWithPosition.PositionIndex, variableDeclarationNode.Length));
+                    return Encoding.UTF8.GetString(chars.Slice(nodeWithPosition.PositionIndex, variableDeclarationNode.Length));
                 }
                 if (node.IsIdentifiable)
                 {
@@ -250,7 +251,7 @@ internal static class SyntaxHelper
                 var variableReferenceNode = (VariableReferenceNode)node;
                 if (nodeWithPosition.PositionIndex < chars.Length && nodeWithPosition.PositionIndex + variableReferenceNode.Length <= chars.Length)
                 {
-                    return new string(chars.Slice(nodeWithPosition.PositionIndex, variableReferenceNode.Length));
+                    return Encoding.UTF8.GetString(chars.Slice(nodeWithPosition.PositionIndex, variableReferenceNode.Length));
                 }
                 if (node.IsIdentifiable)
                 {

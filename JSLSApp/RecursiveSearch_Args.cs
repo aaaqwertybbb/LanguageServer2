@@ -1,6 +1,5 @@
 ﻿using JSLSApp.LspTypes;
 using JSLSApp.Syntax;
-using System.Runtime.InteropServices;
 
 namespace JSLSApp;
 
@@ -20,7 +19,7 @@ internal ref struct RecursiveSearch_Args
 
         TargetIndexPosition = targetIndexPosition;
 
-        Chars = CollectionsMarshal.AsSpan(javaScriptDocument.Chars);
+        Chars = new ReadOnlySpan<byte>(javaScriptDocument.Chars, 0, javaScriptDocument.Count);
     }
 
     // Contains both IsScopeProvider==true nodes and IsScopeProvider==false nodes
@@ -40,5 +39,5 @@ internal ref struct RecursiveSearch_Args
     internal SyntaxNode? TargetNode;
     internal Position TargetNodePosition;
 
-    internal ReadOnlySpan<char> Chars;
+    internal ReadOnlySpan<byte> Chars;
 }

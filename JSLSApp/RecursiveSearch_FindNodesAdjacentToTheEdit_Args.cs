@@ -26,7 +26,7 @@ internal ref struct RecursiveSearch_FindNodesAdjacentToTheEdit_Args
 
         TargetIndexPosition = targetIndexPosition;
 
-        Chars = CollectionsMarshal.AsSpan(javaScriptDocument.Chars);
+        Chars = new ReadOnlySpan<byte>(javaScriptDocument.Chars, 0, javaScriptDocument.Count);
     }
 
     internal ref SyntaxNodeWithPosition Before;
@@ -40,5 +40,5 @@ internal ref struct RecursiveSearch_FindNodesAdjacentToTheEdit_Args
 
     internal int TargetIndexPosition;
 
-    internal ReadOnlySpan<char> Chars;
+    internal ReadOnlySpan<byte> Chars;
 }

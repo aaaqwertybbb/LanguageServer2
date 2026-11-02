@@ -59,10 +59,10 @@ public class JavaScriptWorkspace
         //}
     }
 
-    public void DidOpenTextDocumentNotification(string sourceFileAbsolutePath, string text, bool hadBomMark)
+    public void DidOpenTextDocumentNotification(string sourceFileAbsolutePath, byte[] buffer, int capacity, int length, bool hadBomMark)
     {
         var localPath = new Uri(sourceFileAbsolutePath).LocalPath;
-        OpenedSourceFileAbsolutePathToInMemoryContentMap.Add(sourceFileAbsolutePath, new JavaScriptDocument(localPath, text.ToList(), hadBomMark));
+        OpenedSourceFileAbsolutePathToInMemoryContentMap.Add(sourceFileAbsolutePath, new JavaScriptDocument(localPath, buffer, capacity, length, hadBomMark));
     }
     
     public void DidCloseTextDocumentNotification(string sourceFileAbsolutePath)
@@ -73,7 +73,7 @@ public class JavaScriptWorkspace
 
     public void DidChangeTextDocumentNotification(string sourceFileAbsolutePath, TextDocumentContentChangeEvent[] contentChanges)
     {
-        var found = OpenedSourceFileAbsolutePathToInMemoryContentMap.TryGetValue(sourceFileAbsolutePath, out var doc);
+        /*var found = OpenedSourceFileAbsolutePathToInMemoryContentMap.TryGetValue(sourceFileAbsolutePath, out var doc);
         if (!found)
         {
             //Console.Out.WriteLine($"\n====ERROR DidChangeTextDocumentNotification did not find file====\n");
@@ -104,8 +104,8 @@ public class JavaScriptWorkspace
                     continue;
                 }
 
-                var startIndexPosition = FindPositionFromLineAndCharacter(doc.Chars, change.range.start.line, change.range.start.character);
-                var endIndexPosition = FindPositionFromLineAndCharacter(doc.Chars, change.range.end.line, change.range.end.character);
+                var startIndexPosition = FindPositionFromLineAndCharacter(doc.Chars, doc.Count, change.range.start.line, change.range.start.character);
+                var endIndexPosition = FindPositionFromLineAndCharacter(doc.Chars, doc.Count, change.range.end.line, change.range.end.character);
 
                 var count = endIndexPosition - startIndexPosition;
 
@@ -140,7 +140,7 @@ public class JavaScriptWorkspace
                 
                 doc.Chars.InsertRange(indexPosition, change.text);
             }
-        }
+        }*/
     }
 
     /*public void Recursive_FileDiscovery(string targetDir)
@@ -189,8 +189,9 @@ public class JavaScriptWorkspace
     /// <summary>
     /// Returns the positionIndex if found, otherwise -1.
     /// </summary>
-    public int FindPositionFromLineAndCharacter(List<char> chars, int indexLine, int indexCharacter)
+    public int FindPositionFromLineAndCharacter(byte[] chars, int count, int indexLine, int indexCharacter)
     {
+        /*
         // current line index
         var line = 0;
         // current character index amongst a line
@@ -240,6 +241,7 @@ public class JavaScriptWorkspace
             // TODO: this is actually saying a bug exists when the "position" turns out to be count
             return chars.Count;
         }
+        */
         return -1;
     }
 }

@@ -2,7 +2,6 @@
 using JSLSApp.Syntax;
 using System.Runtime.InteropServices;
 using System.Text;
-using static System.Net.Mime.MediaTypeNames;
 using Range = JSLSApp.LspTypes.Range;
 
 namespace JSLSApp;
@@ -66,7 +65,7 @@ internal static class Lsp
     /// </summary>
     public static void DeserializeContent_CustomSaveFile()
     {
-        if (_javaScriptWorkspace.MostRecentlyOpenedFilePath is null)
+        /*if (_javaScriptWorkspace.MostRecentlyOpenedFilePath is null)
             return;
 
         var found = _javaScriptWorkspace.OpenedSourceFileAbsolutePathToInMemoryContentMap.TryGetValue(_javaScriptWorkspace.MostRecentlyOpenedFilePath, out var javaScriptDocument);
@@ -95,7 +94,7 @@ internal static class Lsp
             // but the stream writer will not duplicate the BOM because we are already mid-stream.
             using (var writer = new StreamWriter(fs, saveEncoding, bufferSize: 4096, leaveOpen: true))
             {
-                writer.Write(CollectionsMarshal.AsSpan(javaScriptDocument.Chars));
+                writer.Write(new ReadOnlySpan<byte>(javaScriptDocument.Chars, 0, javaScriptDocument.Count));
             }
         }
 
@@ -103,7 +102,7 @@ internal static class Lsp
 
         //File.WriteAllText(_javaScriptWorkspace.MostRecentlyOpenedFilePath, CollectionsMarshal.AsSpan(javaScriptDocument.Chars), saveEncoding);
 
-        //File.WriteAllText(_javaScriptWorkspace.MostRecentlyOpenedFilePath, CollectionsMarshal.AsSpan(javaScriptDocument.Chars));
+        //File.WriteAllText(_javaScriptWorkspace.MostRecentlyOpenedFilePath, CollectionsMarshal.AsSpan(javaScriptDocument.Chars));*/
     }
 
     public static CustomEditorGetNodesAdjacentToCursorFromLspRequestResponseResult? DeserializeContent_CustomEditorGetNodesAdjacentToCursorFromLspRequest(int positionIndex)
@@ -237,11 +236,11 @@ internal static class Lsp
                             for (; i < scope.BodyList.Count; i++)
                             {
                                 var childNode = scope.BodyList[i];
-                                if (args.CurrentIndexPosition < javaScriptDocument.Chars.Count)
+                                if (args.CurrentIndexPosition < javaScriptDocument.Count)
                                 {
                                     var distance = childNode.DistanceFromPreviousNode;
-                                    if (args.CurrentIndexPosition + distance >= javaScriptDocument.Chars.Count)
-                                        distance = javaScriptDocument.Chars.Count - args.CurrentIndexPosition;
+                                    if (args.CurrentIndexPosition + distance >= javaScriptDocument.Count)
+                                        distance = javaScriptDocument.Count - args.CurrentIndexPosition;
 
                                     for (var j = 0; j < distance; j++)
                                     {
@@ -681,26 +680,60 @@ internal static class Lsp
             return null;
         }
 
-        string text;
         bool hadBomMark;
+        int length;
+        int capacity;
+        byte[] buffer;
 
-        // Pass true to detectEncodingFromByteOrderMarks
-        using (var reader = new StreamReader(filePath, Encoding.UTF8, detectEncodingFromByteOrderMarks: true))
+        // Constants for newline parsing
+        byte CR = 13; // '\r'
+        byte LF = 10; // '\n'
+
+        byte[] fileBytes = File.ReadAllBytes(filePath);
+        ReadOnlySpan<byte> fileSpan = fileBytes;
+
+        int dataStartIndex = 0;
+
+        // 1. Detect and strip the BOM
+        if (fileSpan.Length >= 3 &&
+            fileSpan[0] == 0xEF &&
+            fileSpan[1] == 0xBB &&
+            fileSpan[2] == 0xBF)
         {
-            text = reader.ReadToEnd();
-
-            // Check if the reader matched a BOM-emitted encoding profile
-            var detectedEncoding = reader.CurrentEncoding;
-
-            // In .NET, if a UTF-8 BOM is detected, CurrentEncoding will have Preamble bytes
-            hadBomMark = detectedEncoding.GetPreamble().Length > 0;
+            hadBomMark = true;
+            dataStartIndex = 3;
+        }
+        else
+        {
+            hadBomMark = false;
         }
 
-        //var text = File.ReadAllText(filePath, Program.noBomMark_UTF8Encoding);
-        
-        text = text.ReplaceLineEndings("\n"); // TODO: probably can do this in a less GC heavy way.
+        // Slice past the BOM to look at pure text data
+        ReadOnlySpan<byte> textSpan = fileSpan.Slice(dataStartIndex);
 
-        _javaScriptWorkspace.DidOpenTextDocumentNotification(filePath, text, hadBomMark);
+        // 3. Allocate a chunk of memory with extra headroom (e.g., 20% extra padding)
+        capacity = Math.Max(256, (int)(textSpan.Length * 1.2));
+        buffer = new byte[capacity];
+
+        // 3. High-performance, zero-allocation filter pass
+        int targetIndex = 0;
+        for (int i = 0; i < textSpan.Length; i++)
+        {
+            byte b = textSpan[i];
+
+            // Skip carriage returns entirely
+            if (b == CR)
+            {
+                continue;
+            }
+
+            buffer[targetIndex++] = b;
+        }
+
+        // 4. Update the actual active length of your string
+        length = targetIndex;
+
+        _javaScriptWorkspace.DidOpenTextDocumentNotification(filePath, buffer, capacity, length, hadBomMark);
         return null;
     }
 
@@ -749,7 +782,7 @@ internal static class Lsp
             return null;
         }
 
-        var customEditorVerifyLspTextAgainstEditorTextResponse = new CustomEditorVerifyLspTextAgainstEditorTextResponse(customEditorVerifyLspTextAgainstEditorTextRequest.id, new string(javaScriptDocument.Chars.ToArray()));
+        var customEditorVerifyLspTextAgainstEditorTextResponse = new CustomEditorVerifyLspTextAgainstEditorTextResponse(customEditorVerifyLspTextAgainstEditorTextRequest.id, Encoding.UTF8.GetString(javaScriptDocument.Chars, 0, javaScriptDocument.Count));
         Console.Out.WriteLine(Program.MAIN_encodeMessageObject(customEditorVerifyLspTextAgainstEditorTextResponse));
 
         return null;

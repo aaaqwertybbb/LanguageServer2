@@ -1,7 +1,5 @@
 ﻿using JSLSApp.LspTypes;
 using JSLSApp.Syntax;
-using System.Text;
-using System.Xml.Linq;
 
 namespace JSLSApp;
 
@@ -163,11 +161,11 @@ public class JavaScriptParser
         OpenScope(_globalNode, new Position(0, 0));
         _lexicalScope = new();
 
-        _syntaxHighlightByteList = new byte[_doc.Chars.Count];
+        _syntaxHighlightByteList = new byte[_doc.Count];
 
         _doc.HasBeenParsedAtLeastOnce = true;
 
-        while (_pos < _doc.Chars.Count)
+        while (_pos < _doc.Count)
         {
             SyntaxToken token;
             if (_peekTokenExists)
@@ -668,262 +666,262 @@ public class JavaScriptParser
 
     public SyntaxToken Lex()
     {
-        while (_pos < _doc.Chars.Count)
+        while (_pos < _doc.Count)
         {
             // TODO: various multicharacter tokens
             switch (_doc.Chars[_pos])
             {
-                case 'a':
-                case 'b':
-                case 'c':
-                case 'd':
-                case 'e':
-                case 'f':
-                case 'g':
-                case 'h':
-                case 'i':
-                case 'j':
-                case 'k':
-                case 'l':
-                case 'm':
-                case 'n':
-                case 'o':
-                case 'p':
-                case 'q':
-                case 'r':
-                case 's':
-                case 't':
-                case 'u':
-                case 'v':
-                case 'w':
-                case 'x':
-                case 'y':
-                case 'z':
-                case 'A':
-                case 'B':
-                case 'C':
-                case 'D':
-                case 'E':
-                case 'F':
-                case 'G':
-                case 'H':
-                case 'I':
-                case 'J':
-                case 'K':
-                case 'L':
-                case 'M':
-                case 'N':
-                case 'O':
-                case 'P':
-                case 'Q':
-                case 'R':
-                case 'S':
-                case 'T':
-                case 'U':
-                case 'V':
-                case 'W':
-                case 'X':
-                case 'Y':
-                case 'Z':
-                case '_':
+                case 97:
+                case 98:
+                case 99:
+                case 100:
+                case 101:
+                case 102:
+                case 103:
+                case 104:
+                case 105:
+                case 106:
+                case 107:
+                case 108:
+                case 109:
+                case 110:
+                case 111:
+                case 112:
+                case 113:
+                case 114:
+                case 115:
+                case 116:
+                case 117:
+                case 118:
+                case 119:
+                case 120:
+                case 121:
+                case 122:
+                case 65:
+                case 66:
+                case 67:
+                case 68:
+                case 69:
+                case 70:
+                case 71:
+                case 72:
+                case 73:
+                case 74:
+                case 75:
+                case 76:
+                case 77:
+                case 78:
+                case 79:
+                case 80:
+                case 81:
+                case 82:
+                case 83:
+                case 84:
+                case 85:
+                case 86:
+                case 87:
+                case 88:
+                case 89:
+                case 90:
+                case 95:
                     return Lex_IdentifierOrKeyword();
-                case '0':
-                case '1':
-                case '2':
-                case '3':
-                case '4':
-                case '5':
-                case '6':
-                case '7':
-                case '8':
-                case '9':
+                case 48:
+                case 49:
+                case 50:
+                case 51:
+                case 52:
+                case 53:
+                case 54:
+                case 55:
+                case 56:
+                case 57:
                     return Lex_Number();
-                case ' ':
-                case '\t':
-                case '\r':
-                case '\n':
+                case 32:
+                case 9:
+                case 13 /* \r */:
+                case 10 /* \n */:
                     return Lex_Whitespace();
-                case '/':
-                    if (_pos <= _doc.Chars.Count - 2)
+                case 47:
+                    if (_pos <= _doc.Count - 2)
                     {
-                        if (_doc.Chars[_pos + 1] == '/')
+                        if (_doc.Chars[_pos + 1] == 47)
                         {
                             return Lex_SingleLineComment();
                         }
-                        else if (_doc.Chars[_pos + 1] == '*')
+                        else if (_doc.Chars[_pos + 1] == 42)
                         {
                             return Lex_MultiLineComment();
                         }
                     }
                     break;
-                case '\"':
+                case 34:
                     return Lex_String('\"');
-                case '\'':
+                case 39:
                     return Lex_String('\'');
-                case '`':
+                case 96:
                     return Lex_String('`');
-                case '(':
+                case 40:
                     {
                         _pos++;
                         var startPosition = new Position(_indexLine, _indexChar);
                         _indexChar++;
                         return new SyntaxToken(SyntaxKind.OpenParenthesisToken, startPosition, 1);
                     }
-                case ')':
+                case 41:
                     {
                         _pos++;
                         var startPosition = new Position(_indexLine, _indexChar);
                         _indexChar++;
                         return new SyntaxToken(SyntaxKind.CloseParenthesisToken, startPosition, 1);
                     }
-                case '{':
+                case 123:
                     {
                         _pos++;
                         var startPosition = new Position(_indexLine, _indexChar);
                         _indexChar++;
                         return new SyntaxToken(SyntaxKind.OpenBraceToken, startPosition, 1);
                     }
-                case '}':
+                case 125:
                     {
                         _pos++;
                         var startPosition = new Position(_indexLine, _indexChar);
                         _indexChar++;
                         return new SyntaxToken(SyntaxKind.CloseBraceToken, startPosition, 1);
                     }
-                case '[':
+                case 91:
                     {
                         _pos++;
                         var startPosition = new Position(_indexLine, _indexChar);
                         _indexChar++;
                         return new SyntaxToken(SyntaxKind.OpenSquareToken, startPosition, 1);
                     }
-                case ']':
+                case 93:
                     {
                         _pos++;
                         var startPosition = new Position(_indexLine, _indexChar);
                         _indexChar++;
                         return new SyntaxToken(SyntaxKind.CloseSquareToken, startPosition, 1);
                     }
-                case '=':
+                case 61:
                     {
                         _pos++;
                         var startPosition = new Position(_indexLine, _indexChar);
                         _indexChar++;
                         return new SyntaxToken(SyntaxKind.EqualsToken, startPosition, 1);
                     }
-                case ',':
+                case 44:
                     {
                         _pos++;
                         var startPosition = new Position(_indexLine, _indexChar);
                         _indexChar++;
                         return new SyntaxToken(SyntaxKind.CommaToken, startPosition, 1);
                     }
-                case ';':
+                case 59:
                     {
                         _pos++;
                         var startPosition = new Position(_indexLine, _indexChar);
                         _indexChar++;
                         return new SyntaxToken(SyntaxKind.SemicolonToken, startPosition, 1);
                     }
-                case '<':
+                case 60:
                     {
                         _pos++;
                         var startPosition = new Position(_indexLine, _indexChar);
                         _indexChar++;
                         return new SyntaxToken(SyntaxKind.OpenAngleToken, startPosition, 1);
                     }
-                case '>':
+                case 62:
                     {
                         _pos++;
                         var startPosition = new Position(_indexLine, _indexChar);
                         _indexChar++;
                         return new SyntaxToken(SyntaxKind.CloseAngleToken, startPosition, 1);
                     }
-                case '&':
+                case 38:
                     {
                         _pos++;
                         var startPosition = new Position(_indexLine, _indexChar);
                         _indexChar++;
                         return new SyntaxToken(SyntaxKind.AmpersandToken, startPosition, 1);
                     }
-                case '.':
+                case 46:
                     {
                         _pos++;
                         var startPosition = new Position(_indexLine, _indexChar);
                         _indexChar++;
                         return new SyntaxToken(SyntaxKind.PeriodToken, startPosition, 1);
                     }
-                case '|':
+                case 124:
                     {
                         _pos++;
                         var startPosition = new Position(_indexLine, _indexChar);
                         _indexChar++;
                         return new SyntaxToken(SyntaxKind.PipeToken, startPosition, 1);
                     }
-                case ':':
+                case 58:
                     {
                         _pos++;
                         var startPosition = new Position(_indexLine, _indexChar);
                         _indexChar++;
                         return new SyntaxToken(SyntaxKind.ColonToken, startPosition, 1);
                     }
-                case '+':
+                case 43:
                     {
                         _pos++;
                         var startPosition = new Position(_indexLine, _indexChar);
                         _indexChar++;
                         return new SyntaxToken(SyntaxKind.PlusToken, startPosition, 1);
                     }
-                case '-':
+                case 45:
                     {
                         _pos++;
                         var startPosition = new Position(_indexLine, _indexChar);
                         _indexChar++;
                         return new SyntaxToken(SyntaxKind.MinusToken, startPosition, 1);
                     }
-                case '*':
+                case 42:
                     {
                         _pos++;
                         var startPosition = new Position(_indexLine, _indexChar);
                         _indexChar++;
                         return new SyntaxToken(SyntaxKind.StarToken, startPosition, 1);
                     }
-                case '^':
+                case 94:
                     {
                         _pos++;
                         var startPosition = new Position(_indexLine, _indexChar);
                         _indexChar++;
                         return new SyntaxToken(SyntaxKind.CaretToken, startPosition, 1);
                     }
-                case '%':
+                case 37:
                     {
                         _pos++;
                         var startPosition = new Position(_indexLine, _indexChar);
                         _indexChar++;
                         return new SyntaxToken(SyntaxKind.PercentToken, startPosition, 1);
                     }
-                case '$':
+                case 36:
                     {
                         _pos++;
                         var startPosition = new Position(_indexLine, _indexChar);
                         _indexChar++;
                         return new SyntaxToken(SyntaxKind.DollarSignToken, startPosition, 1);
                     }
-                case '#':
+                case 35:
                     {
                         _pos++;
                         var startPosition = new Position(_indexLine, _indexChar);
                         _indexChar++;
                         return new SyntaxToken(SyntaxKind.PoundToken, startPosition, 1);
                     }
-                case '@':
+                case 64:
                     {
                         _pos++;
                         var startPosition = new Position(_indexLine, _indexChar);
                         _indexChar++;
                         return new SyntaxToken(SyntaxKind.AtToken, startPosition, 1);
                     }
-                case '!':
+                case 33:
                     {
                         _pos++;
                         var startPosition = new Position(_indexLine, _indexChar);
@@ -961,9 +959,13 @@ public class JavaScriptParser
         _indexChar++;
 
 
-        while (_pos < _doc.Chars.Count)
+        while (_pos < _doc.Count)
         {
-            if (char.IsLetterOrDigit(_doc.Chars[_pos]))
+            byte b = _doc.Chars[_pos];
+            bool isLetterOrDigit = b is >= (byte)'0' and <= (byte)'9'
+                                     or >= (byte)'A' and <= (byte)'Z'
+                                     or >= (byte)'a' and <= (byte)'z';
+            if (isLetterOrDigit)
             {
                 length++;
                 charIntSum = ((charIntSum << 5) - charIntSum) + _doc.Chars[_pos];
@@ -1416,9 +1418,10 @@ public class JavaScriptParser
         _pos++;
         _indexChar++;
 
-        while (_pos < _doc.Chars.Count)
+        while (_pos < _doc.Count)
         {
-            if (char.IsDigit(_doc.Chars[_pos]))
+            byte b = _doc.Chars[_pos];
+            if (b >= '0' && b <= '9')
             {
                 length++;
             }
@@ -1447,18 +1450,18 @@ public class JavaScriptParser
         var length = 1;
         switch (_doc.Chars[_pos])
         {
-            case '\r':
+            case 13 /* \r */:
                 _indexLine++;
                 _indexChar = 0;
-                if (_pos <= _doc.Chars.Count - 2)
+                if (_pos <= _doc.Count - 2)
                 {
-                    if (_doc.Chars[_pos + 1] == '\n')
+                    if (_doc.Chars[_pos + 1] == 10 /* \n */)
                     {
                         _pos++;
                     }
                 }
                 break;
-            case '\n':
+            case 10 /* \n */:
                 _indexLine++;
                 _indexChar = 0;
                 break;
@@ -1469,9 +1472,11 @@ public class JavaScriptParser
         _pos++;
 
 
-        while (_pos < _doc.Chars.Count)
+        while (_pos < _doc.Count)
         {
-            if (char.IsWhiteSpace(_doc.Chars[_pos]))
+            byte b = _doc.Chars[_pos];
+            bool isWhiteSpace = b is 0x20 or >= 0x09 and <= 0x0D;
+            if (isWhiteSpace)
             {
                 length++;
             }
@@ -1482,18 +1487,18 @@ public class JavaScriptParser
 
             switch (_doc.Chars[_pos])
             {
-                case '\r':
+                case 13 /* \r */:
                     _indexLine++;
                     _indexChar = 0;
-                    if (_pos <= _doc.Chars.Count - 2)
+                    if (_pos <= _doc.Count - 2)
                     {
-                        if (_doc.Chars[_pos + 1] == '\n')
+                        if (_doc.Chars[_pos + 1] == 10 /* \n */)
                         {
                             _pos++;
                         }
                     }
                     break;
-                case '\n':
+                case 10 /* \n */:
                     _indexLine++;
                     _indexChar = 0;
                     break;
@@ -1516,18 +1521,18 @@ public class JavaScriptParser
         _pos++;
         _indexChar++;
 
-        while (_pos < _doc.Chars.Count)
+        while (_pos < _doc.Count)
         {
             switch (_doc.Chars[_pos])
             {
-                case '\r':
+                case 13 /* \r */:
                     length++;
                     _pos++;
                     _indexLine++;
                     _indexChar = 0;
-                    if (_pos <= _doc.Chars.Count - 1)
+                    if (_pos <= _doc.Count - 1)
                     {
-                        if (_doc.Chars[_pos] == '\n')
+                        if (_doc.Chars[_pos] == 10 /* \n */)
                         {
                             // I'm going to have everything length wise as though '\r\n' are just '\n'.
                             // Maybe is best to make start and end positions I'm not sure.
@@ -1544,7 +1549,7 @@ public class JavaScriptParser
                     {
                         goto functionEnding;
                     }
-                case '\n':
+                case 10 /* \n */:
                     length++;
                     _pos++;
                     _indexLine++;
@@ -1558,11 +1563,11 @@ public class JavaScriptParser
                     {
                         goto functionEnding;
                     }
-                case '\\':
+                case 92:
                     length++;
                     _pos++;
                     _indexChar++;
-                    if (_pos <= _doc.Chars.Count - 1)
+                    if (_pos <= _doc.Count - 1)
                     {
                         length++;
                         _pos++;
@@ -1596,18 +1601,18 @@ public class JavaScriptParser
         _pos += 2;
         _indexChar += 2;
 
-        while (_pos < _doc.Chars.Count)
+        while (_pos < _doc.Count)
         {
             switch (_doc.Chars[_pos])
             {
-                case '\r':
+                case 13 /* \r */:
                     length++;
                     _pos++;
                     _indexLine++;
                     _indexChar = 0;
-                    if (_pos <= _doc.Chars.Count - 1)
+                    if (_pos <= _doc.Count - 1)
                     {
-                        if (_doc.Chars[_pos] == '\n')
+                        if (_doc.Chars[_pos] == 10 /* \n */)
                         {
                             // I'm going to have everything length wise as though '\r\n' are just '\n'.
                             // Maybe is best to make start and end positions I'm not sure.
@@ -1616,7 +1621,7 @@ public class JavaScriptParser
                         }
                     }
                     goto functionEnding;
-                case '\n':
+                case 10 /* \n */:
                     length++;
                     _pos++;
                     _indexLine++;
@@ -1647,16 +1652,16 @@ public class JavaScriptParser
         _pos += 2;
         _indexChar += 2;
 
-        while (_pos < _doc.Chars.Count)
+        while (_pos < _doc.Count)
         {
             switch (_doc.Chars[_pos])
             {
-                case '*':
+                case 42:
                     length++;
                     _pos++;
                     _indexChar++;
-                    if (_pos <= _doc.Chars.Count - 1 &&
-                        _doc.Chars[_pos] == '/')
+                    if (_pos <= _doc.Count - 1 &&
+                        _doc.Chars[_pos] == 47)
                     {
                         length++;
                         _pos++;
@@ -1664,15 +1669,15 @@ public class JavaScriptParser
                         goto functionEnding;
                     }
                     break;
-                case '\r':
+                case 13 /* \r */:
                     _seenLineEnd_flagForStringsAndComments = true;
                     length++;
                     _pos++;
                     _indexLine++;
                     _indexChar = 0;
-                    if (_pos <= _doc.Chars.Count - 1)
+                    if (_pos <= _doc.Count - 1)
                     {
-                        if (_doc.Chars[_pos] == '\n')
+                        if (_doc.Chars[_pos] == 10 /* \n */)
                         {
                             // I'm going to have everything length wise as though '\r\n' are just '\n'.
                             // Maybe is best to make start and end positions I'm not sure.
@@ -1681,7 +1686,7 @@ public class JavaScriptParser
                         }
                     }
                     break;
-                case '\n':
+                case 10 /* \n */:
                     _seenLineEnd_flagForStringsAndComments = true;
                     length++;
                     _pos++;
