@@ -4,6 +4,7 @@
 
 using JSLSApp.LspTypes;
 using System.Buffers;
+using System.Text;
 using System.Text.Json;
 using WatsonWebsocket;
 
@@ -20,7 +21,7 @@ public class Program
     const byte MessageKind_string = 49 /* 1 */;
     const byte MessageKind_textDocument_didOpen = 2;
 
-    const byte MessageKind_field_separator = 45 /* _ */;
+    const byte MessageKind_field_separator = 95 /* _ */;
 
     static byte current_message_kind = MessageKind_none;
     static int current_message_contentLength = 0;
@@ -78,10 +79,20 @@ public class Program
                     // TODO: bad input
                 }
 
+                if (index >= transactionBuffer.Length)
+                {
+                    throw new NotImplementedException();
+                }
+
                 if (transactionBuffer[index] == MessageKind_field_separator)
                 {
+                    index++;
                     seen_separator_messageKind_to_contentLength = true;
                     current_message_kind = (byte)messageKindInt;
+                }
+                else
+                {
+                    throw new NotImplementedException();
                 }
             }
             
@@ -92,13 +103,23 @@ public class Program
                     var b = transactionBuffer[index++];
                     if (b >= '0' && b <= '9')
                     {
-                        message_contentLength_int = (messageKindInt * 10) + (b - '0');
+                        message_contentLength_int = (message_contentLength_int * 10) + (b - '0');
+                    }
+                    else
+                    {
+                        throw new NotImplementedException();
                     }
                     // TODO: bad input
                 }
 
+                if (index >= transactionBuffer.Length)
+                {
+                    throw new NotImplementedException();
+                }
+
                 if (transactionBuffer[index] == MessageKind_field_separator)
                 {
+                    index++;
                     current_message_contentLength = message_contentLength_int;
                     rentedBuffer = ArrayPool<byte>.Shared.Rent(current_message_contentLength);
                     seen_separator_contentLength_to_aaa = true;
@@ -112,10 +133,26 @@ public class Program
                 for (var i = readLength; i < current_message_contentLength; i++)
                 {
                     rentedBuffer[i] = transactionBuffer[index++];
+                    readLength++;
                 }
             }
 
-            server.SendAsync(clientGuid, test.ToArray());
+            Console.WriteLine(Encoding.UTF8.GetString(rentedBuffer, 0, 3));
+
+            current_message_kind = MessageKind_none;
+            current_message_contentLength = 0;
+
+            message_contentLength_int = 0;
+            messageKindInt = 0;
+
+            seen_separator_messageKind_to_contentLength = false;
+            seen_separator_contentLength_to_aaa = false;
+
+            ArrayPool<byte>.Shared.Return(rentedBuffer);
+            rentedBuffer = null;
+            readLength = 0;
+
+            //server.SendAsync(clientGuid, test.ToArray());
         };
 
         server.Start();
