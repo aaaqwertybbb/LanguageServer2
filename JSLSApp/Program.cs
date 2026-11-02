@@ -21,6 +21,7 @@ public class Program
     const byte MessageKind_string = 49 /* 1 */;
     const byte MessageKind_textDocument_didOpen = 2;
     const byte MessageKind_textDocument_definition = 3;
+    const byte MessageKind_custom_editorGetNodesAdjacentToCursor = 4;
 
     const byte MessageKind_field_separator = 95 /* _ */;
 
@@ -163,6 +164,14 @@ public class Program
                     {
                         server.SendAsync(clientGuid, positionIndexOfDefinition.ToString());
                     }
+                }
+            }
+            else if (current_message_kind == MessageKind_custom_editorGetNodesAdjacentToCursor)
+            {
+                if (int.TryParse(str, out var positionIndex))
+                {
+                    var valueTupleOfNodes = Lsp.DeserializeContent_CustomEditorGetNodesAdjacentToCursorFromLspRequest(positionIndex);
+                    server.SendAsync(clientGuid, "valueTupleOfNodes");
                 }
             }
 

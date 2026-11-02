@@ -58,15 +58,15 @@ internal static class Lsp
         return base64String;
     }
 
-    public static Message? DeserializeContent_CustomEditorGetNodesAdjacentToCursorFromLspRequest(CustomEditorGetNodesAdjacentToCursorFromLspRequest? customEditorGetNodesAdjacentToCursorFromLspRequest)
+    public static (CustomEditorGetNodesAdjacentToCursorFromLspRequestResponseResultNode? Before, CustomEditorGetNodesAdjacentToCursorFromLspRequestResponseResultNode? Among, CustomEditorGetNodesAdjacentToCursorFromLspRequestResponseResultNode? After) DeserializeContent_CustomEditorGetNodesAdjacentToCursorFromLspRequest(int positionIndex)
     {
-        if (customEditorGetNodesAdjacentToCursorFromLspRequest is null || customEditorGetNodesAdjacentToCursorFromLspRequest.@params.textDocument.uri is null)
-            return null;
+        if (_javaScriptWorkspace.MostRecentlyOpenedFilePath is null)
+            return (null, null, null);
 
-        var found = _javaScriptWorkspace.OpenedSourceFileAbsolutePathToInMemoryContentMap.TryGetValue(customEditorGetNodesAdjacentToCursorFromLspRequest.@params.textDocument.uri, out var javaScriptDocument);
+        var found = _javaScriptWorkspace.OpenedSourceFileAbsolutePathToInMemoryContentMap.TryGetValue(_javaScriptWorkspace.MostRecentlyOpenedFilePath, out var javaScriptDocument);
         if (!found || javaScriptDocument is null)
         {
-            return null;
+            return (null, null, null);
         }
 
         /// find the current node (which is gonna be null for this simplest scenario of an edit that "doesn't change anything other than text positions")
@@ -83,7 +83,7 @@ internal static class Lsp
         SyntaxNodeWithPosition bbbefore = default;
         SyntaxNodeWithPosition aaamong = default;
         SyntaxNodeWithPosition aaafter = default;
-        var args = new RecursiveSearch_FindNodesAdjacentToTheEdit_Args(javaScriptDocument, customEditorGetNodesAdjacentToCursorFromLspRequest.@params.position.line, customEditorGetNodesAdjacentToCursorFromLspRequest.@params.position.character, _inclusiveFinalNodeToConsiderAtEachDepth, _returnStack, ref bbbefore, ref aaamong, ref aaafter);
+        var args = new RecursiveSearch_FindNodesAdjacentToTheEdit_Args(javaScriptDocument, positionIndex, _inclusiveFinalNodeToConsiderAtEachDepth, _returnStack, ref bbbefore, ref aaamong, ref aaafter);
 
         SyntaxHelper.RecursiveSearch_FindNodesAdjacentToTheEdit(ref args);
 
@@ -92,24 +92,23 @@ internal static class Lsp
 
         _before.SyntaxKindString = SyntaxHelper.GetSyntaxKindString(args.Before.Node?.SyntaxKind ?? SyntaxKind.None);
         _before.Identifier = SyntaxHelper.GetIdentifierText(args.Before, args.Chars);
-        _before.Start = args.Before.Position;
+        _before.PositionIndex = args.Before.PositionIndex;
 
         _among.SyntaxKindString = SyntaxHelper.GetSyntaxKindString(args.Among.Node?.SyntaxKind ?? SyntaxKind.None);
         _among.Identifier = SyntaxHelper.GetIdentifierText(args.Among, args.Chars);
-        _among.Start = args.Among.Position;
+        _among.PositionIndex = args.Among.PositionIndex;
         
         _after.SyntaxKindString = SyntaxHelper.GetSyntaxKindString(args.After.Node?.SyntaxKind ?? SyntaxKind.None);
         _after.Identifier = SyntaxHelper.GetIdentifierText(args.After, args.Chars);
-        _after.Start = args.After.Position;
+        _after.PositionIndex = args.After.PositionIndex;
 
-        _customEditorGetNodesAdjacentToCursorFromLspRequestResponse.id = customEditorGetNodesAdjacentToCursorFromLspRequest.id;
+        //_customEditorGetNodesAdjacentToCursorFromLspRequestResponse.id = customEditorGetNodesAdjacentToCursorFromLspRequest.id;
         _customEditorGetNodesAdjacentToCursorFromLspRequestResponseResult.Before = _before;
         _customEditorGetNodesAdjacentToCursorFromLspRequestResponseResult.Among = _among;
         _customEditorGetNodesAdjacentToCursorFromLspRequestResponseResult.After = _after;
         _customEditorGetNodesAdjacentToCursorFromLspRequestResponse.result = _customEditorGetNodesAdjacentToCursorFromLspRequestResponseResult;
-        Console.Out.WriteLine(Program.MAIN_encodeMessageObject(_customEditorGetNodesAdjacentToCursorFromLspRequestResponse));
 
-        return null;
+        return (_before, _among, _after);
     }
 
     public static int DeserializeContent_Definition(int positionIndex)

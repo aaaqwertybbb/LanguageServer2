@@ -6,7 +6,7 @@ namespace JSLSApp;
 
 internal ref struct RecursiveSearch_FindNodesAdjacentToTheEdit_Args
 {
-    public RecursiveSearch_FindNodesAdjacentToTheEdit_Args(JavaScriptDocument javaScriptDocument, int targetIndexLine, int targetIndexCharacter, Stack<SyntaxNode> inclusiveFinalNodeToConsiderAtEachDepth, Stack<(SyntaxNode ScopeProvider, int ChildIndexOfScopeProviderAmongItsSiblings)> returnStack, ref SyntaxNodeWithPosition before, ref SyntaxNodeWithPosition among, ref SyntaxNodeWithPosition after)
+    public RecursiveSearch_FindNodesAdjacentToTheEdit_Args(JavaScriptDocument javaScriptDocument, int targetIndexPosition, Stack<SyntaxNode> inclusiveFinalNodeToConsiderAtEachDepth, Stack<(SyntaxNode ScopeProvider, int ChildIndexOfScopeProviderAmongItsSiblings)> returnStack, ref SyntaxNodeWithPosition before, ref SyntaxNodeWithPosition among, ref SyntaxNodeWithPosition after)
     {
         Before = ref before;
         Among = ref among;
@@ -19,15 +19,12 @@ internal ref struct RecursiveSearch_FindNodesAdjacentToTheEdit_Args
         ReturnStack.Clear();
 
         CurrentIndexPosition = 0;
-        CurrentIndexLine = 0;
-        CurrentIndexCharacter = 0;
 
         Before.Node = javaScriptDocument.CompilationUnit.GlobalNode;
-        Before.Position = new Position(CurrentIndexLine, CurrentIndexCharacter);
+        //Before.Position = new Position(CurrentIndexLine, CurrentIndexCharacter);
         Before.PositionIndex = CurrentIndexPosition;
 
-        TargetIndexLine = targetIndexLine;
-        TargetIndexCharacter = targetIndexCharacter;
+        TargetIndexPosition = targetIndexPosition;
 
         Chars = CollectionsMarshal.AsSpan(javaScriptDocument.Chars);
     }
@@ -40,11 +37,8 @@ internal ref struct RecursiveSearch_FindNodesAdjacentToTheEdit_Args
     internal Stack<(SyntaxNode ScopeProvider, int ChildIndexOfScopeProviderAmongItsSiblings)> ReturnStack;
 
     internal int CurrentIndexPosition;
-    internal int CurrentIndexLine;
-    internal int CurrentIndexCharacter;
 
-    internal int TargetIndexLine;
-    internal int TargetIndexCharacter;
+    internal int TargetIndexPosition;
 
     internal ReadOnlySpan<char> Chars;
 }

@@ -7,14 +7,14 @@ public class CustomEditorGetNodesAdjacentToCursorFromLspRequestResponseResultNod
         
     }
 
-    public CustomEditorGetNodesAdjacentToCursorFromLspRequestResponseResultNode(string syntaxKindString, string identifier, Position start)
+    public CustomEditorGetNodesAdjacentToCursorFromLspRequestResponseResultNode(string syntaxKindString, string identifier, int positionIndex)
     {
         SyntaxKindString = syntaxKindString;
         Identifier = identifier;
-        Start = start;
+        PositionIndex = positionIndex;
     }
 
     public string SyntaxKindString { get; set; }
     public string Identifier { get; set; }
-    public Position Start { get; set; }
+    public int PositionIndex { get; set; }
 }
