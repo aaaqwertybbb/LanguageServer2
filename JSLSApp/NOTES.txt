@@ -660,3 +660,19 @@ I'm gonna figure out how I keep my health insurance
 maybe dearborn will still call me maybe they haven't ghosted me.
 Cause I put all the pieces together
 
+====
+
+I have a massive rewrite in mind.
+
+I'm going to drop support for LSP entirely.
+
+Electron is rendererProcess -> mainProcess -> languageServerProcessConsoleInputStream
+
+I want to use C# and Blazor.
+
+I create the editor entirely using vanilla JS and leverage Blazor websockets to send every user event to C#.
+
+C# then replicates byte array of the text editor. And the cursor position.
+
+All edits use a transaction buffer and this transaction buffer is mirrored in the vanilla JS and the C# server side Blazor host.
+
