@@ -948,6 +948,7 @@ public class JavaScriptParser
     {
         // TODO: hash collisions amongst identifiers (not a keyword)?
         //
+        // NOTE: if you change this to 5381 make sure your pre-calculated case integers match the 5381 seed formula!
         var charIntSum = 0; // TODO: Google AI "a starting seed" // A standard starting seed for DJB2 is 5381"
         var startPosition = new Position(_indexLine, _indexChar);
         
@@ -962,33 +963,37 @@ public class JavaScriptParser
         while (_pos < _doc.Count)
         {
             byte b = _doc.Chars[_pos];
-            bool isLetterOrDigit = b is >= (byte)'0' and <= (byte)'9'
-                                     or >= (byte)'A' and <= (byte)'Z'
-                                     or >= (byte)'a' and <= (byte)'z';
-            if (isLetterOrDigit)
+            bool isValidIdentifierChar = b is >= (byte)'0' and <= (byte)'9'
+                                           or >= (byte)'A' and <= (byte)'Z'
+                                           or >= (byte)'a' and <= (byte)'z'
+                                           or (byte)'_';
+            if (isValidIdentifierChar)
             {
                 length++;
+                // Standard DJB2 hash formula: hash * 33 + c
                 charIntSum = ((charIntSum << 5) - charIntSum) + _doc.Chars[_pos];
+
+                _pos++;
+                _indexChar++;
             }
             else
             {
-                if (_doc.Chars[_pos] == '_')
-                {
-                    length++;
-                    charIntSum = ((charIntSum << 5) - charIntSum) + _doc.Chars[_pos];
-                }
-                else
-                {
-                    break;
-                }
+                break;
             }
-
-            _pos++;
-            _indexChar++;
         }
 
         var syntaxKind = SyntaxKind.IdentifierToken;
         var flagControlKeyword = false;
+
+        /*
+         TODO:
+            Google AI (fast CPU SIMD vectors under the hood):
+
+            if (tokenSpan.SequenceEqual("const"u8))
+            {
+                syntaxKind = SyntaxKind.ConstKeywordToken;
+            }
+         */
 
         switch (charIntSum)
         {
