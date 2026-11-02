@@ -1,5 +1,8 @@
 ﻿using JSLSApp.LspTypes;
 using JSLSApp.Syntax;
+using System.Runtime.InteropServices;
+using System.Text;
+using static System.Net.Mime.MediaTypeNames;
 using Range = JSLSApp.LspTypes.Range;
 
 namespace JSLSApp;
@@ -56,6 +59,51 @@ internal static class Lsp
         var base64String = Convert.ToBase64String(javascriptParser.SyntaxHighlightByteList);
 
         return base64String;
+    }
+
+    /// <summary>
+    /// this isn't gonna work cuz the line endings are changing anyways maybe that's the issue I'm seeing I thought it was the BOM changing
+    /// </summary>
+    public static void DeserializeContent_CustomSaveFile()
+    {
+        if (_javaScriptWorkspace.MostRecentlyOpenedFilePath is null)
+            return;
+
+        var found = _javaScriptWorkspace.OpenedSourceFileAbsolutePathToInMemoryContentMap.TryGetValue(_javaScriptWorkspace.MostRecentlyOpenedFilePath, out var javaScriptDocument);
+        if (!found || javaScriptDocument is null)
+        {
+            return;
+        }
+
+        // Choose the exact match for what the user originally opened
+        Encoding saveEncoding = javaScriptDocument.HadBomMark ? Program.Utf8WithBom : Program.Utf8NoBom;
+
+        string filePath = _javaScriptWorkspace.MostRecentlyOpenedFilePath;
+
+        // 1. Open the file stream manually
+        using (var fs = new FileStream(filePath, FileMode.Create, FileAccess.Write, FileShare.None))
+        {
+            // 2. Explicitly write the BOM if the encoding dictates it
+            if (javaScriptDocument.HadBomMark)
+            {
+                ReadOnlySpan<byte> preamble = saveEncoding.GetPreamble();
+                fs.Write(preamble);
+            }
+
+            // 3. Write your zero-allocation character span using a StreamWriter
+            // Crucial: Pass the encoding so it knows how to transform the chars, 
+            // but the stream writer will not duplicate the BOM because we are already mid-stream.
+            using (var writer = new StreamWriter(fs, saveEncoding, bufferSize: 4096, leaveOpen: true))
+            {
+                writer.Write(CollectionsMarshal.AsSpan(javaScriptDocument.Chars));
+            }
+        }
+
+
+
+        //File.WriteAllText(_javaScriptWorkspace.MostRecentlyOpenedFilePath, CollectionsMarshal.AsSpan(javaScriptDocument.Chars), saveEncoding);
+
+        //File.WriteAllText(_javaScriptWorkspace.MostRecentlyOpenedFilePath, CollectionsMarshal.AsSpan(javaScriptDocument.Chars));
     }
 
     public static CustomEditorGetNodesAdjacentToCursorFromLspRequestResponseResult? DeserializeContent_CustomEditorGetNodesAdjacentToCursorFromLspRequest(int positionIndex)
@@ -632,9 +680,27 @@ internal static class Lsp
         {
             return null;
         }
-        var text = File.ReadAllText(filePath, Program.noBomMark_UTF8Encoding);
-        text = text.ReplaceLineEndings("\n");
-        _javaScriptWorkspace.DidOpenTextDocumentNotification(filePath, text);
+
+        string text;
+        bool hadBomMark;
+
+        // Pass true to detectEncodingFromByteOrderMarks
+        using (var reader = new StreamReader(filePath, Encoding.UTF8, detectEncodingFromByteOrderMarks: true))
+        {
+            text = reader.ReadToEnd();
+
+            // Check if the reader matched a BOM-emitted encoding profile
+            var detectedEncoding = reader.CurrentEncoding;
+
+            // In .NET, if a UTF-8 BOM is detected, CurrentEncoding will have Preamble bytes
+            hadBomMark = detectedEncoding.GetPreamble().Length > 0;
+        }
+
+        //var text = File.ReadAllText(filePath, Program.noBomMark_UTF8Encoding);
+        
+        text = text.ReplaceLineEndings("\n"); // TODO: probably can do this in a less GC heavy way.
+
+        _javaScriptWorkspace.DidOpenTextDocumentNotification(filePath, text, hadBomMark);
         return null;
     }
 

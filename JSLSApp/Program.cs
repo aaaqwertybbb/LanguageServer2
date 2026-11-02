@@ -22,6 +22,7 @@ public class Program
     const byte MessageKind_textDocument_didOpen = 2;
     const byte MessageKind_textDocument_definition = 3;
     const byte MessageKind_custom_editorGetNodesAdjacentToCursor = 4;
+    const byte MessageKind_custom_saveFile = 5;
 
     const byte MessageKind_field_separator = 95 /* _ */;
 
@@ -37,7 +38,13 @@ public class Program
     static byte[]? rentedBuffer;
     static int readLength;
 
-    public static UTF8Encoding noBomMark_UTF8Encoding = new UTF8Encoding(encoderShouldEmitUTF8Identifier: false, throwOnInvalidBytes: true);
+    //public static UTF8Encoding noBomMark_UTF8Encoding = new UTF8Encoding(encoderShouldEmitUTF8Identifier: false, throwOnInvalidBytes: true);
+
+    // UTF-8 without BOM (your default)
+    public static readonly Encoding Utf8NoBom = new UTF8Encoding(encoderShouldEmitUTF8Identifier: false);
+
+    // UTF-8 with BOM
+    public static readonly Encoding Utf8WithBom = new UTF8Encoding(encoderShouldEmitUTF8Identifier: true);
 
     private static void Main(string[] args)
     {
@@ -53,25 +60,13 @@ public class Program
         server.MessageReceived += (sender, args) =>
         {
             ReadOnlySpan<byte> transactionBuffer = args.Data;
-            // args.Data[0] => 104 => 'h'
-            // args.Data[1] => 105 => 'i'
+            
+            //Console.WriteLine($"Received {transactionBuffer.Length} bytes of transaction data.");
 
-            // Process your text editor sync logic here
-            Console.WriteLine($"Received {transactionBuffer.Length} bytes of transaction data.");
-
-            // Look up the exact GUID assigned to this JS client
             Guid clientGuid = args.Client.Guid;
 
-            // Echo or broadcast back if necessary
-            var test = "hello"u8;
-            //byte[] replyBytes = new byte[5];
-            //replyBytes[0] = 'h';
-            //replyBytes[1] = 'e';
-            //replyBytes[2] = 'l';
-            //replyBytes[3] = 'l';
-            //replyBytes[4] = 'o';
-
             var index = 0;
+            var str = "";
 
             if (current_message_kind == MessageKind_none)
             {
@@ -95,6 +90,10 @@ public class Program
                     index++;
                     seen_separator_messageKind_to_contentLength = true;
                     current_message_kind = (byte)messageKindInt;
+                    if (current_message_kind == MessageKind_custom_saveFile)
+                    {
+                        goto noParameters;
+                    }
                 }
                 else
                 {
@@ -113,9 +112,8 @@ public class Program
                     }
                     else
                     {
-                        throw new NotImplementedException();
+                        throw new NotImplementedException(); // TODO: bad input
                     }
-                    // TODO: bad input
                 }
 
                 if (index >= transactionBuffer.Length)
@@ -134,8 +132,6 @@ public class Program
 
             if (rentedBuffer is not null)
             {
-                //var remaining = transactionBuffer.Length - index;
-                
                 for (var i = readLength; i < current_message_contentLength; i++)
                 {
                     rentedBuffer[i] = transactionBuffer[index++];
@@ -143,16 +139,15 @@ public class Program
                 }
             }
 
-            var str = Encoding.UTF8.GetString(rentedBuffer, 0, readLength);
+            str = Encoding.UTF8.GetString(rentedBuffer, 0, readLength);
+            //Console.WriteLine(str);
 
-            Console.WriteLine(str);
+            noParameters:
 
             if (current_message_kind == MessageKind_textDocument_didOpen)
             {
                 Lsp.DeserializeContent_DidOpen(str);
-                // var base64String = Convert.ToBase64String(javascriptParser.SyntaxHighlightByteList);
                 var base64String = Lsp.DeserializeContent_CustomFullFileLexRequest(str);
-                //server.SendAsync(clientGuid, "hello");
                 server.SendAsync(clientGuid, base64String);
             }
             else if (current_message_kind == MessageKind_textDocument_definition)
@@ -174,6 +169,10 @@ public class Program
                     server.SendAsync(clientGuid, JsonSerializer.Serialize(customEditorGetNodesAdjacentToCursorFromLspRequestResponseResult));
                 }
             }
+            else if (current_message_kind == MessageKind_custom_saveFile)
+            {
+                //Lsp.DeserializeContent_CustomSaveFile();
+            }
 
             current_message_kind = MessageKind_none;
             current_message_contentLength = 0;
@@ -184,11 +183,13 @@ public class Program
             seen_separator_messageKind_to_contentLength = false;
             seen_separator_contentLength_to_aaa = false;
 
-            ArrayPool<byte>.Shared.Return(rentedBuffer);
-            rentedBuffer = null;
-            readLength = 0;
-
+            if (rentedBuffer is not null)
+            {
+                ArrayPool<byte>.Shared.Return(rentedBuffer);
+                rentedBuffer = null;
+            }
             
+            readLength = 0;
         };
 
         server.Start();
