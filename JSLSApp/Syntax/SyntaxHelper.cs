@@ -157,14 +157,6 @@ internal static class SyntaxHelper
                 }
                 else if (args.TargetIndexPosition > args.CurrentIndexPosition)
                 {
-                    // Capture the true parent scope provider before overwriting it
-                    //
-                    // Bug: If a child of a parentScopeProvider is a VariableDeclarationNode
-                    // and then the next child 'IsScopeProvider' this will push the VariableDeclarationNode
-                    // onto the ReturnStack and throw and exception during the "pop back up" phase.
-                    // Perhaps my initial code was wrong.
-                    //SyntaxNode parentScopeProvider = args.Before.Node;
-
                     args.Before.Node = child_node;
                     args.Before.PositionIndex = args.CurrentIndexPosition;
 
@@ -218,13 +210,6 @@ internal static class SyntaxHelper
                 var parentContext = args.ReturnStack.Pop();
 
                 //// Re-inflate the parent loop's state
-                //// args.Before.Node is acting as our scope provider context here
-                ///
-                //args.Before.Node = parentContext.ScopeProvider;
-                //
-                // Bug: You actually cannot set the args.Before.Node here.
-                // My logic for tracking nodes has the right most and highest depth node as the before node after "pop back up"
-                // This feels slightly awkward but nevertheless it is consistent. I might change this implementation detail.
                 scopeProvider = parentContext.ScopeProvider;
                 scope = ref scopeProvider.GetScope();
 
