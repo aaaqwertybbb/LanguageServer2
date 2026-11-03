@@ -688,3 +688,8 @@ I don't want to have any children
     - [ ] the second points (maybe) 33%
     - [ ] the third points to (maybe) 66%
     - [ ] by position, so your searches have a starting node closer to the actual target
+
+Google AI is actually super collaborative.
+So often I find if I were to blindly copy and paste the generated code that the app would break and continually have tiny cracks in logic that build up over time.
+But collaborative in a good way.
+Cause I just read the generated code, fill in those tiny cracks and then it generates the bulk of the code for me.
