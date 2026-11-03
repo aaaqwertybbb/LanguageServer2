@@ -693,3 +693,8 @@ Google AI is actually super collaborative.
 So often I find if I were to blindly copy and paste the generated code that the app would break and continually have tiny cracks in logic that build up over time.
 But collaborative in a good way.
 Cause I just read the generated code, fill in those tiny cracks and then it generates the bulk of the code for me.
+
+When I copy and paste code from the AI it is actually multiple iterations of me talking to the AI and
+it fixes my bugs
+then I fix its bugs
+and vice versa etc...
