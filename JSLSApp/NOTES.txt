@@ -679,3 +679,12 @@ All edits use a transaction buffer and this transaction buffer is mirrored in th
 ====
 
 I don't want to have any children
+
+====
+
+- [ ] Optimizations
+    - [ ] Dynamically split the text into thirds.
+    - [ ] the first third points to the GlobalNode
+    - [ ] the second points (maybe) 33%
+    - [ ] the third points to (maybe) 66%
+    - [ ] by position, so your searches have a starting node closer to the actual target
