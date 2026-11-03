@@ -60,36 +60,63 @@ internal static class SyntaxHelper
         return null;
     }
 
+    /// <summary>
+    /// Internally is implemented as a 'while' loop.
+    /// </summary>
     public static void RecursiveSearch(ref RecursiveSearch_Args args)
     {
-        // Do not expect 'before' to stay the same later in this function because the variable is overwritten.
         ref var scope = ref args.ScopeProvider.GetScope();
-
         var i = 0;
-        for (; i < scope.BodyList.Count; i++)
-        {
-            SyntaxNode? child_node = scope.BodyList[i];
-            args.CurrentIndexPosition += child_node.DistanceFromPreviousNode;
 
-            if (args.TargetIndexPosition >= args.CurrentIndexPosition && args.TargetIndexPosition <= args.CurrentIndexPosition + child_node.Length)
+        while (true)
+        {
+            bool descended = false;
+
+            for (; i < scope.BodyList.Count; i++)
             {
-                args.TargetNode = child_node;
-                return;
-            }
-            else if (args.TargetIndexPosition < args.CurrentIndexPosition)
-            {
-                return;
-            }
-            else if (args.TargetIndexPosition > args.CurrentIndexPosition)
-            {
-                if (child_node.IsScopeProvider)
+                SyntaxNode? child_node = scope.BodyList[i];
+                args.CurrentIndexPosition += child_node.DistanceFromPreviousNode;
+
+                if (args.TargetIndexPosition >= args.CurrentIndexPosition && args.TargetIndexPosition <= args.CurrentIndexPosition + child_node.Length)
                 {
-                    args.ScopeProvider = child_node;
-                    RecursiveSearch(ref args);
+                    args.TargetNode = child_node;
+                    return;
+                }
+                else if (args.TargetIndexPosition < args.CurrentIndexPosition)
+                {
+                    return;
+                }
+                else if (args.TargetIndexPosition > args.CurrentIndexPosition)
+                {
+                    if (child_node.IsScopeProvider)
+                    {
+                        args.ReturnStack.Push((args.ScopeProvider, i + 1));
+                        args.ScopeProvider = child_node;
+                        scope = ref args.ScopeProvider.GetScope();
+                        i = 0;
+                        descended = true;
+                        break;
+                    }
+                }
+            }
+
+            if (!descended)
+            {
+                if (args.ReturnStack.Count > 0)
+                {
+                    var parentContext = args.ReturnStack.Pop();
+                    args.ScopeProvider = parentContext.ScopeProvider;
+                    scope = ref args.ScopeProvider.GetScope();
+                    i = parentContext.ChildIndexOfScopeProviderAmongItsSiblings;
+                }
+                else
+                {
+                    return;
                 }
             }
         }
     }
+
 
     // Two ref structs, one is the mover and the other is the function specific
 
