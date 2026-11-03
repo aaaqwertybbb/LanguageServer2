@@ -5,7 +5,10 @@ namespace JSLSApp;
 
 internal ref struct RecursiveSearch_Args
 {
-    public RecursiveSearch_Args(JavaScriptDocument javaScriptDocument, int targetIndexPosition, Stack<SyntaxNode> inclusiveFinalNodeToConsiderAtEachDepth, Stack<(SyntaxNode ScopeProvider, int ChildIndexOfScopeProviderAmongItsSiblings)> returnStack)
+    public RecursiveSearch_Args(JavaScriptDocument javaScriptDocument,
+        int targetIndexPosition,
+        Stack<SyntaxNode> inclusiveFinalNodeToConsiderAtEachDepth,
+        Stack<(SyntaxNode ScopeProvider, int ChildIndexOfScopeProviderAmongItsSiblings, bool IsAtAnAfter)> returnStack)
     {
         InclusiveFinalNodeToConsiderAtEachDepth = inclusiveFinalNodeToConsiderAtEachDepth;
         InclusiveFinalNodeToConsiderAtEachDepth.Clear();
@@ -26,7 +29,16 @@ internal ref struct RecursiveSearch_Args
     // BECAUSE it contains the definition node itself as the first thing that gets pushed.
     // Other than that first pushed node everything is IsScopeProvider==true.
     internal Stack<SyntaxNode> InclusiveFinalNodeToConsiderAtEachDepth;
-    internal Stack<(SyntaxNode ScopeProvider, int ChildIndexOfScopeProviderAmongItsSiblings)> ReturnStack;
+    /// <summary>
+    /// IsAtAnAfter is being ignored in this function, but the same Stack object is being pooled from a scenario where IsAtAnAfter is necessary.
+    /// </summary>
+    /// <remarks>
+    /// As of writing this 'remarks' the only scenario where IsAtAnAfter is necessary is for tracking the 'before', 'among', and 'after' nodes.
+    /// The GC overhead of a separate app level Stack solely for one less variable in the value tuple is certainly not worthwhile.
+    /// Especially because size of this stack is arbitrary -- based on the nesting of the code being parsed --, and thus
+    /// may or may not be a "large object".
+    /// </remarks>
+    internal Stack<(SyntaxNode ScopeProvider, int ChildIndexOfScopeProviderAmongItsSiblings, bool IsAtAnAfter)> ReturnStack;
 
     internal int TotalChecks;
 

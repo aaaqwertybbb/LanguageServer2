@@ -90,7 +90,7 @@ internal static class SyntaxHelper
                 {
                     if (child_node.IsScopeProvider)
                     {
-                        args.ReturnStack.Push((args.ScopeProvider, i + 1));
+                        args.ReturnStack.Push((args.ScopeProvider, i + 1, false));
                         args.ScopeProvider = child_node;
                         scope = ref args.ScopeProvider.GetScope();
                         i = 0;
@@ -117,10 +117,9 @@ internal static class SyntaxHelper
         }
     }
 
-
-    // Two ref structs, one is the mover and the other is the function specific
-
     /// <summary>
+    /// Internally is implemented as a 'while' loop.
+    /// 
     /// If you're going to invoke this: 'before.Node.IsScopeProvider' must be true.
     /// That is not to say the end resulting 'before.Node.IsScopeProvider' has to be true.
     /// 
@@ -130,64 +129,122 @@ internal static class SyntaxHelper
     /// </summary>
     public static void RecursiveSearch_FindNodesAdjacentToTheEdit(ref RecursiveSearch_FindNodesAdjacentToTheEdit_Args args)
     {
-        // Do not expect 'before' to stay the same later in this function because the variable is overwritten.
-        ref var scope = ref args.Before.Node.GetScope();
-
-        // TODO: 'thisFunctionInvocationIsAtAnAfter' is probably obsolete.
-        var thisFunctionInvocationIsAtAnAfter = false;
-        
+        var scopeProvider = args.Before.Node;
+        ref var scope = ref scopeProvider.GetScope();
         var i = 0;
-        for (; i < scope.BodyList.Count; i++)
+        var thisFunctionInvocationIsAtAnAfter = false;
+
+        while (true)
         {
-            SyntaxNode? child_node = scope.BodyList[i];
-            args.CurrentIndexPosition += child_node.DistanceFromPreviousNode;
+            bool descended = false;
 
-            if (args.TargetIndexPosition >= args.CurrentIndexPosition && args.TargetIndexPosition <= args.CurrentIndexPosition + child_node.Length)
+            for (; i < scope.BodyList.Count; i++)
             {
-                args.Among.Node = child_node;
-                args.Among.PositionIndex = args.CurrentIndexPosition;
-                i++;
-                break;
-            }
-            else if (args.TargetIndexPosition < args.CurrentIndexPosition)
-            {
-                thisFunctionInvocationIsAtAnAfter = true;
-                break;
-            }
-            else if (args.TargetIndexPosition > args.CurrentIndexPosition)
-            {
-                args.Before.Node = child_node;
-                args.Before.PositionIndex = args.CurrentIndexPosition;
+                SyntaxNode? child_node = scope.BodyList[i];
+                args.CurrentIndexPosition += child_node.DistanceFromPreviousNode;
 
-                if (child_node.IsScopeProvider)
+                if (args.TargetIndexPosition >= args.CurrentIndexPosition && args.TargetIndexPosition <= args.CurrentIndexPosition + child_node.Length)
                 {
-                    RecursiveSearch_FindNodesAdjacentToTheEdit(ref args);
-                    if (args.After.Node is not null)
+                    args.Among.Node = child_node;
+                    args.Among.PositionIndex = args.CurrentIndexPosition;
+                    i++;
+                    break; // Break the for-loop to run the trailing 'After' detection logic
+                }
+                else if (args.TargetIndexPosition < args.CurrentIndexPosition)
+                {
+                    thisFunctionInvocationIsAtAnAfter = true;
+                    break; // Break the for-loop to run the trailing 'After' detection logic
+                }
+                else if (args.TargetIndexPosition > args.CurrentIndexPosition)
+                {
+                    // Capture the true parent scope provider before overwriting it
+                    //
+                    // Bug: If a child of a parentScopeProvider is a VariableDeclarationNode
+                    // and then the next child 'IsScopeProvider' this will push the VariableDeclarationNode
+                    // onto the ReturnStack and throw and exception during the "pop back up" phase.
+                    // Perhaps my initial code was wrong.
+                    //SyntaxNode parentScopeProvider = args.Before.Node;
+
+                    args.Before.Node = child_node;
+                    args.Before.PositionIndex = args.CurrentIndexPosition;
+
+                    if (child_node.IsScopeProvider)
+                    {
+                        // 1. Push the CAPTURED parent state onto the stack
+                        args.ReturnStack.Push((scopeProvider, i, thisFunctionInvocationIsAtAnAfter));
+
+                        // 2. Descend into the child scope context
+                        scopeProvider = child_node;
+                        scope = ref scopeProvider.GetScope();
+
+                        // 3. Reset state variables for the nested scope
+                        i = 0;
+                        thisFunctionInvocationIsAtAnAfter = false;
+                        descended = true;
                         break;
+                    }
                 }
             }
-        }
 
-        // Found 'among' node: then 'i' is ensured to have been incremented prior to the break.
-        //
-        // All nodes are before: 'i' will be >= scope.BodyList.Count.
-        //
-        // Found 'after' node: then 'i' will NOT have been incremented prior to the break.
-        //
-        if (i < scope.BodyList.Count)
-        {
-            if (args.After.Node is null)
+            // Skip the epilogue if we just cleanly moved downwards into a child scope
+            if (descended)
             {
-                args.After.Node = scope.BodyList[i];                
-                if (!thisFunctionInvocationIsAtAnAfter)
+                continue;
+            }
+
+            // --- Epilogue Logic (Executed when a loop terminates or breaks out) ---
+            if (i < scope.BodyList.Count)
+            {
+                if (args.After.Node is null)
                 {
-                    // i was incremented then 'break' but you still need to walk to the node.
-                    args.CurrentIndexPosition += args.After.Node.DistanceFromPreviousNode;
+                    args.After.Node = scope.BodyList[i];
+                    if (!thisFunctionInvocationIsAtAnAfter)
+                    {
+                        args.CurrentIndexPosition += args.After.Node.DistanceFromPreviousNode;
+                    }
+                    args.After.PositionIndex = args.CurrentIndexPosition;
                 }
-                args.After.PositionIndex = args.CurrentIndexPosition;
+            }
+
+            // Check if we have an After node. If so, we are entirely done.
+            if (args.After.Node is not null)
+            {
+                return;
+            }
+
+            // If the current scope is fully exhausted and no After node was assigned, pop back up
+            if (args.ReturnStack.Count > 0)
+            {
+                var parentContext = args.ReturnStack.Pop();
+
+                //// Re-inflate the parent loop's state
+                //// args.Before.Node is acting as our scope provider context here
+                ///
+                //args.Before.Node = parentContext.ScopeProvider;
+                //
+                // Bug: You actually cannot set the args.Before.Node here.
+                // My logic for tracking nodes has the right most and highest depth node as the before node after "pop back up"
+                // This feels slightly awkward but nevertheless it is consistent. I might change this implementation detail.
+                scopeProvider = parentContext.ScopeProvider;
+                scope = ref scopeProvider.GetScope();
+
+                i = parentContext.ChildIndexOfScopeProviderAmongItsSiblings;
+                thisFunctionInvocationIsAtAnAfter = parentContext.IsAtAnAfter;
+
+                // Because your original code had:
+                // if (args.After.Node is not null) break;
+                // immediately after the recursive call, checking it above handles this perfectly.
+                // We just advance the parent loop by one increment step now.
+                i++;
+            }
+            else
+            {
+                // Stack is empty and we finished processing the root scope
+                return;
             }
         }
     }
+
 
     public static string GetSyntaxKindString(SyntaxKind syntaxKind)
     {

@@ -42,7 +42,7 @@ internal static class Lsp
     /// Contains both IsScopeProvider==true nodes and IsScopeProvider==false nodes BECAUSE it contains the definition node itself as the first thing that gets pushed. Other than that first pushed node everything is IsScopeProvider==true.
     /// </summary>
     internal static Stack<SyntaxNode> _inclusiveFinalNodeToConsiderAtEachDepth = new();
-    internal static Stack<(SyntaxNode ScopeProvider, int ChildIndexOfScopeProviderAmongItsSiblings)> _returnStack = new();
+    internal static Stack<(SyntaxNode ScopeProvider, int ChildIndexOfScopeProviderAmongItsSiblings, bool IsAtAnAfter)> _returnStack = new();
 
     public static string DeserializeContent_CustomFullFileLexRequest(string filePath)
     {
@@ -251,7 +251,7 @@ internal static class Lsp
                                 {
                                     if (childNode != finalNodeToConsider)
                                     {
-                                        args.ReturnStack.Push((targetScopeProvider, i));
+                                        args.ReturnStack.Push((targetScopeProvider, i, false));
                                     }
                                     else
                                     {

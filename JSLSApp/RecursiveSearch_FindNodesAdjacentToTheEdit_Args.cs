@@ -1,12 +1,17 @@
-﻿using JSLSApp.LspTypes;
-using JSLSApp.Syntax;
-using System.Runtime.InteropServices;
+﻿using JSLSApp.Syntax;
 
 namespace JSLSApp;
 
 internal ref struct RecursiveSearch_FindNodesAdjacentToTheEdit_Args
 {
-    public RecursiveSearch_FindNodesAdjacentToTheEdit_Args(JavaScriptDocument javaScriptDocument, int targetIndexPosition, Stack<SyntaxNode> inclusiveFinalNodeToConsiderAtEachDepth, Stack<(SyntaxNode ScopeProvider, int ChildIndexOfScopeProviderAmongItsSiblings)> returnStack, ref SyntaxNodeWithPosition before, ref SyntaxNodeWithPosition among, ref SyntaxNodeWithPosition after)
+    public RecursiveSearch_FindNodesAdjacentToTheEdit_Args(
+        JavaScriptDocument javaScriptDocument,
+        int targetIndexPosition,
+        Stack<SyntaxNode> inclusiveFinalNodeToConsiderAtEachDepth,
+        Stack<(SyntaxNode ScopeProvider, int ChildIndexOfScopeProviderAmongItsSiblings, bool IsAtAnAfter)> returnStack,
+        ref SyntaxNodeWithPosition before,
+        ref SyntaxNodeWithPosition among,
+        ref SyntaxNodeWithPosition after)
     {
         Before = ref before;
         Among = ref among;
@@ -34,7 +39,7 @@ internal ref struct RecursiveSearch_FindNodesAdjacentToTheEdit_Args
     internal ref SyntaxNodeWithPosition After;
 
     internal Stack<SyntaxNode> InclusiveFinalNodeToConsiderAtEachDepth;
-    internal Stack<(SyntaxNode ScopeProvider, int ChildIndexOfScopeProviderAmongItsSiblings)> ReturnStack;
+    internal Stack<(SyntaxNode ScopeProvider, int ChildIndexOfScopeProviderAmongItsSiblings, bool IsAtAnAfter)> ReturnStack;
 
     internal int CurrentIndexPosition;
 
