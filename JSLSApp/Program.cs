@@ -140,8 +140,15 @@ public class Program
                 }
             }
 
-            str = Encoding.UTF8.GetString(rentedBuffer, 0, readLength);
-            //Console.WriteLine(str);
+
+            // TODO: Remove this hack to avoid the string allocation for insert...
+            // ...overall 99% of them should never be doing this maybe if you have a "send message" then it makes sense but
+            // other than that you can prob do everything without this.
+            if (current_message_kind != MessageKind_custom_edit_InsertLtr)
+            {
+                str = Encoding.UTF8.GetString(rentedBuffer, 0, readLength);
+                //Console.WriteLine(str);
+            }
 
             noParameters:
 
@@ -176,8 +183,10 @@ public class Program
             }
             else if (current_message_kind == MessageKind_custom_edit_InsertLtr)
             {
-                // 46_ss
-                var aaa = 2;
+                // TODO: ReadOnlySpan instead of 'ReadOnlyMemory'?
+                // 'bytes' is a view over the rentedBuffer that needs to be synchronously handled then this function returns the buffer to the ArrayPool soon after.
+                (int PositionIndex, ReadOnlyMemory<byte> Bytes) aaa = Lsp.DeserializeContent_CustomInsertLtr_ParseMessageBuffer(rentedBuffer);
+                Lsp.DeserializeContent_CustomInsertLtr(aaa.PositionIndex, aaa.Bytes);
             }
 
             current_message_kind = MessageKind_none;

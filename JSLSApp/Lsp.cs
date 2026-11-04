@@ -60,6 +60,16 @@ internal static class Lsp
         return base64String;
     }
 
+    public static (int PositionIndex, ReadOnlyMemory<byte> Bytes) DeserializeContent_CustomInsertLtr_ParseMessageBuffer(byte[] rentedBuffer)
+    {
+        return (0, new ReadOnlyMemory<byte>(rentedBuffer, 0, 0));
+    }
+    
+    public static void DeserializeContent_CustomInsertLtr(int positionIndex, ReadOnlyMemory<byte> viewOverRentedBuffer)
+    {
+
+    }
+
     public static void DeserializeContent_CustomSaveFile()
     {
         if (_javaScriptWorkspace.MostRecentlyOpenedFilePath is null)
