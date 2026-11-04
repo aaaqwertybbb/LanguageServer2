@@ -24,6 +24,7 @@ public class Program
     const byte MessageKind_custom_editorGetNodesAdjacentToCursor = 4;
     const byte MessageKind_custom_saveFile = 5;
     const byte MessageKind_custom_edit_InsertLtr = 6;
+    const byte MessageKind_custom_edit_Remove = 7;
 
     internal const byte MessageKind_field_separator = 95 /* _ */;
 
@@ -187,6 +188,13 @@ public class Program
                 // 'bytes' is a view over the rentedBuffer that needs to be synchronously handled then this function returns the buffer to the ArrayPool soon after.
                 (int PositionIndex, ReadOnlyMemory<byte> Bytes) aaa = Lsp.DeserializeContent_CustomInsertLtr_ParseMessageBuffer(new ReadOnlyMemory<byte>(rentedBuffer, 0, readLength));
                 Lsp.DeserializeContent_CustomInsertLtr(aaa.PositionIndex, aaa.Bytes);
+            }
+            else if (current_message_kind == MessageKind_custom_edit_Remove)
+            {
+                // TODO: ReadOnlySpan instead of 'ReadOnlyMemory'?
+                // 'bytes' is a view over the rentedBuffer that needs to be synchronously handled then this function returns the buffer to the ArrayPool soon after.
+                (int PositionIndex, int Length) aaa = Lsp.DeserializeContent_CustomRemove_ParseMessageBuffer(new ReadOnlyMemory<byte>(rentedBuffer, 0, readLength));
+                Lsp.DeserializeContent_CustomRemove(aaa.PositionIndex, aaa.Length);
             }
 
             current_message_kind = MessageKind_none;

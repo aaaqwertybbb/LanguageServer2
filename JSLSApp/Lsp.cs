@@ -61,6 +61,62 @@ internal static class Lsp
         return base64String;
     }
 
+    public static (int PositionIndex, int Length) DeserializeContent_CustomRemove_ParseMessageBuffer(ReadOnlyMemory<byte> viewOverRentedBuffer)
+    {
+        var span = viewOverRentedBuffer.Span;
+
+        var index = 0;
+        var positionIndex = 0;
+        var length = 0;
+
+        while (index < span.Length && span[index] != Program.MessageKind_field_separator)
+        {
+            var b = span[index++];
+            if (b >= '0' && b <= '9')
+            {
+                positionIndex = (positionIndex * 10) + (b - '0');
+            }
+            else
+            {
+                throw new NotImplementedException(); // TODO: bad input
+            }
+        }
+
+        if (index >= span.Length)
+        {
+            throw new NotImplementedException();
+        }
+
+        if (span[index] == Program.MessageKind_field_separator)
+        {
+            index++;
+        }
+        else
+        {
+            throw new NotImplementedException();
+        }
+
+        while (index < span.Length)
+        {
+            var b = span[index++];
+            if (b >= '0' && b <= '9')
+            {
+                length = (length * 10) + (b - '0');
+            }
+            else
+            {
+                throw new NotImplementedException(); // TODO: bad input
+            }
+        }
+
+        return (positionIndex, length);
+    }
+
+    public static void DeserializeContent_CustomRemove(int positionIndex, int length)
+    {
+
+    }
+
     public static (int PositionIndex, ReadOnlyMemory<byte> Bytes) DeserializeContent_CustomInsertLtr_ParseMessageBuffer(ReadOnlyMemory<byte> viewOverRentedBuffer)
     {
         var span = viewOverRentedBuffer.Span;
