@@ -1,5 +1,6 @@
 ﻿using JSLSApp.LspTypes;
 using JSLSApp.Syntax;
+using System.Buffers;
 using System.Runtime.InteropServices;
 using System.Text;
 using Range = JSLSApp.LspTypes.Range;
@@ -60,14 +61,110 @@ internal static class Lsp
         return base64String;
     }
 
-    public static (int PositionIndex, ReadOnlyMemory<byte> Bytes) DeserializeContent_CustomInsertLtr_ParseMessageBuffer(byte[] rentedBuffer)
+    public static (int PositionIndex, ReadOnlyMemory<byte> Bytes) DeserializeContent_CustomInsertLtr_ParseMessageBuffer(ReadOnlyMemory<byte> viewOverRentedBuffer)
     {
-        return (0, new ReadOnlyMemory<byte>(rentedBuffer, 0, 0));
+        var span = viewOverRentedBuffer.Span;
+
+        var index = 0;
+        var positionIndex = 0;
+
+        while (index < span.Length && span[index] != Program.MessageKind_field_separator)
+        {
+            var b = span[index++];
+            if (b >= '0' && b <= '9')
+            {
+                positionIndex = (positionIndex * 10) + (b - '0');
+            }
+            else
+            {
+                throw new NotImplementedException(); // TODO: bad input
+            }
+        }
+
+        if (index >= span.Length)
+        {
+            throw new NotImplementedException();
+        }
+
+        if (span[index] == Program.MessageKind_field_separator)
+        {
+            index++;
+        }
+        else
+        {
+            throw new NotImplementedException();
+        }
+
+        return (positionIndex, viewOverRentedBuffer.Slice(index));
     }
     
     public static void DeserializeContent_CustomInsertLtr(int positionIndex, ReadOnlyMemory<byte> viewOverRentedBuffer)
     {
+        if (_javaScriptWorkspace.MostRecentlyOpenedFilePath is null)
+            return;
 
+        var found = _javaScriptWorkspace.OpenedSourceFileAbsolutePathToInMemoryContentMap.TryGetValue(_javaScriptWorkspace.MostRecentlyOpenedFilePath, out var javaScriptDocument);
+        if (!found || javaScriptDocument is null)
+        {
+            return;
+        }
+
+        // 1. Get a Span over the incoming segment
+        ReadOnlySpan<byte> incomingSpan = viewOverRentedBuffer.Span;
+        int length = incomingSpan.Length;
+
+        // 2. Validate target insertion index bounds against current Document state
+        // javaScriptDocument.Count matches INTS[fEDI_textByteList_count]
+        if (positionIndex < 0 || positionIndex > javaScriptDocument.Count)
+        {
+            throw new ArgumentOutOfRangeException(nameof(positionIndex), "Insertion index out of document bounds.");
+        }
+
+        // 3. Ensure internal capacity (matches EDI_textByteList_ensureCapacityForInsertion)
+        int requiredCapacity = javaScriptDocument.Count + length;
+        if (requiredCapacity > javaScriptDocument.Capacity)
+        {
+            // Calculate new capacity (e.g., doubling or adding 20% breathing room)
+            int newCapacity = Math.Max(256, Math.Max(javaScriptDocument.Capacity * 2, requiredCapacity));
+
+            // Allocate a new internal buffer
+            byte[] newBuffer = new byte[newCapacity];
+
+            // Copy the pre-split segment over to the new array
+            if (positionIndex > 0)
+            {
+                Array.Copy(javaScriptDocument.Chars, 0, newBuffer, 0, positionIndex);
+            }
+
+            // Copy the trailing segment over to the new array, offset by the incoming text length
+            if (positionIndex < javaScriptDocument.Count)
+            {
+                Array.Copy(javaScriptDocument.Chars, positionIndex, newBuffer, positionIndex + length, javaScriptDocument.Count - positionIndex);
+            }
+
+            // Swap the reference and update metadata
+            javaScriptDocument.Chars = newBuffer;
+            javaScriptDocument.Capacity = newCapacity;
+        }
+        else
+        {
+            // 4. Shift trailing bytes to the right to make room (matches EDI_textByteList_copyTo)
+            if (positionIndex != javaScriptDocument.Count)
+            {
+                // Span-based copy handles overlapping regions beautifully without buffer corruption
+                Span<byte> docSpan = javaScriptDocument.Chars.AsSpan();
+                ReadOnlySpan<byte> trailingSegment = docSpan.Slice(positionIndex, javaScriptDocument.Count - positionIndex);
+                Span<byte> destinationSegment = docSpan.Slice(positionIndex + length);
+
+                trailingSegment.CopyTo(destinationSegment);
+            }
+        }
+
+        // 5. Blit the incoming bytes directly into the gap (matches .set(segmentToInsert, index))
+        incomingSpan.CopyTo(javaScriptDocument.Chars.AsSpan(positionIndex, length));
+
+        // 6. Finalize tracking properties
+        javaScriptDocument.Count += length;
     }
 
     public static void DeserializeContent_CustomSaveFile()

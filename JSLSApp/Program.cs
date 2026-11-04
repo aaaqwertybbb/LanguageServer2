@@ -25,7 +25,7 @@ public class Program
     const byte MessageKind_custom_saveFile = 5;
     const byte MessageKind_custom_edit_InsertLtr = 6;
 
-    const byte MessageKind_field_separator = 95 /* _ */;
+    internal const byte MessageKind_field_separator = 95 /* _ */;
 
     static byte current_message_kind = MessageKind_none;
     static int current_message_contentLength = 0;
@@ -185,7 +185,7 @@ public class Program
             {
                 // TODO: ReadOnlySpan instead of 'ReadOnlyMemory'?
                 // 'bytes' is a view over the rentedBuffer that needs to be synchronously handled then this function returns the buffer to the ArrayPool soon after.
-                (int PositionIndex, ReadOnlyMemory<byte> Bytes) aaa = Lsp.DeserializeContent_CustomInsertLtr_ParseMessageBuffer(rentedBuffer);
+                (int PositionIndex, ReadOnlyMemory<byte> Bytes) aaa = Lsp.DeserializeContent_CustomInsertLtr_ParseMessageBuffer(new ReadOnlyMemory<byte>(rentedBuffer, 0, readLength));
                 Lsp.DeserializeContent_CustomInsertLtr(aaa.PositionIndex, aaa.Bytes);
             }
 

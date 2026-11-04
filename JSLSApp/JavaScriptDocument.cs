@@ -17,9 +17,9 @@ public class JavaScriptDocument
     }
 
     public string UriPath { get; }
-    public byte[] Chars { get; }
-    public int Capacity { get; }
-    public int Count { get; }
+    public byte[] Chars { get; set; }
+    public int Capacity { get; set; }
+    public int Count { get; set; }
     public bool HasBeenParsedAtLeastOnce { get; set; }
     public JavaScriptCompilationUnit CompilationUnit { get; set; }
     public bool HadBomMark { get; set; }
