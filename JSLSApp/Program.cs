@@ -23,6 +23,7 @@ public class Program
     const byte MessageKind_textDocument_definition = 3;
     const byte MessageKind_custom_editorGetNodesAdjacentToCursor = 4;
     const byte MessageKind_custom_saveFile = 5;
+    const byte MessageKind_custom_edit_InsertLtr = 6;
 
     const byte MessageKind_field_separator = 95 /* _ */;
 
@@ -172,6 +173,10 @@ public class Program
             else if (current_message_kind == MessageKind_custom_saveFile)
             {
                 Lsp.DeserializeContent_CustomSaveFile();
+            }
+            else if (current_message_kind == MessageKind_custom_edit_InsertLtr)
+            { // 46ss 
+                var aaa = 2;
             }
 
             current_message_kind = MessageKind_none;
