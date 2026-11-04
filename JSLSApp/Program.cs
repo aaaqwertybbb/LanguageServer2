@@ -171,7 +171,7 @@ public class Program
             }
             else if (current_message_kind == MessageKind_custom_saveFile)
             {
-                //Lsp.DeserializeContent_CustomSaveFile();
+                Lsp.DeserializeContent_CustomSaveFile();
             }
 
             current_message_kind = MessageKind_none;
