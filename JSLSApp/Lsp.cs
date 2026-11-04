@@ -114,8 +114,48 @@ internal static class Lsp
 
     public static void DeserializeContent_CustomRemove(int positionIndex, int length)
     {
+        if (_javaScriptWorkspace.MostRecentlyOpenedFilePath is null)
+            return;
 
+        var found = _javaScriptWorkspace.OpenedSourceFileAbsolutePathToInMemoryContentMap.TryGetValue(_javaScriptWorkspace.MostRecentlyOpenedFilePath, out var javaScriptDocument);
+        if (!found || javaScriptDocument is null)
+        {
+            return;
+        }
+
+        // 1. Edge Case: If nothing is being removed, get out immediately
+        if (length <= 0)
+        {
+            return;
+        }
+
+        // 2. Validate removal parameters against document state bounds
+        if (positionIndex < 0 || positionIndex + length > javaScriptDocument.Count)
+        {
+            throw new ArgumentOutOfRangeException(nameof(positionIndex), "The removal range exceeds current document bounds.");
+        }
+
+        // 3. Shift the trailing data to the left to overwrite the removed region
+        int trailingSegmentIndex = positionIndex + length;
+        int trailingSegmentLength = javaScriptDocument.Count - trailingSegmentIndex;
+
+        if (trailingSegmentLength > 0)
+        {
+            // Span-based CopyTo safely manages shifting memory regions to the left (like memmove)
+            Span<byte> docSpan = javaScriptDocument.Chars.AsSpan();
+            ReadOnlySpan<byte> trailingSegment = docSpan.Slice(trailingSegmentIndex, trailingSegmentLength);
+            Span<byte> destinationSegment = docSpan.Slice(positionIndex);
+
+            trailingSegment.CopyTo(destinationSegment);
+        }
+
+        // 4. Update the active tracked count
+        javaScriptDocument.Count -= length;
+
+        // Optional Clean up: If you want to erase leftover byte remnants at the end of the tracked data range:
+        // Array.Clear(javaScriptDocument.Chars, javaScriptDocument.Count, length);
     }
+
 
     public static (int PositionIndex, ReadOnlyMemory<byte> Bytes) DeserializeContent_CustomInsertLtr_ParseMessageBuffer(ReadOnlyMemory<byte> viewOverRentedBuffer)
     {
@@ -181,6 +221,7 @@ internal static class Lsp
         if (requiredCapacity > javaScriptDocument.Capacity)
         {
             // Calculate new capacity (e.g., doubling or adding 20% breathing room)
+            // TODO: use the same growth algorithm as the editor i.e.: something like '// 1. Scale geometrically by 1.125x (current + current / 8)' with 1024 minimums or something.
             int newCapacity = Math.Max(256, Math.Max(javaScriptDocument.Capacity * 2, requiredCapacity));
 
             // Allocate a new internal buffer
