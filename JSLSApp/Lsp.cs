@@ -1021,9 +1021,10 @@ internal static class Lsp
         int cleanTextLength = targetIndex;
         int targetCapacity = cleanTextLength + paddingLength;
 
+        int remainingLength = fileBytes.Length - cleanTextLength;
         // 7. Security: Zero-out only the 1024 padding bytes to clear out "ghost data"
         // This utilizes a highly optimized native CPU memset command under the hood
-        fileBytes.AsSpan(cleanTextLength, paddingLength).Clear();
+        fileBytes.AsSpan(cleanTextLength, remainingLength).Clear();
 
         _javaScriptWorkspace.DidOpenTextDocumentNotification(
             filePath,
