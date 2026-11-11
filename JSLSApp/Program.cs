@@ -48,6 +48,8 @@ public class Program
     // UTF-8 with BOM
     public static readonly Encoding Utf8WithBom = new UTF8Encoding(encoderShouldEmitUTF8Identifier: true);
 
+    private static Guid _currentClientGuid = Guid.Empty;
+
     private static void Main(string[] args)
     {
         // TODO: This didn't close correctly I had to kill the previous app with task manager (maybe an exception is bad state or etc... i.e.:TODO)
@@ -55,17 +57,35 @@ public class Program
         // Start server on localhost port 8080
         server = new WatsonWsServer("127.0.0.1", 8080, false);
 
-        server.ClientConnected += (sender, args) => Console.WriteLine($"JS Client connected: {args.Client.IpPort}");
-        server.ClientDisconnected += (sender, args) => Console.WriteLine("JS Client disconnected");
+        server.ClientConnected += (sender, args) =>
+        {
+            Console.WriteLine($"JS Client connected: {args.Client.IpPort} | {args.Client.Guid} 'Lsp._javaScriptWorkspace = new JavaScriptWorkspace();'");
+            _currentClientGuid = args.Client.Guid;
+            Lsp._javaScriptWorkspace = new JavaScriptWorkspace();
+        };
+
+        server.ClientDisconnected += (sender, args) =>
+        {
+            Console.WriteLine("JS Client disconnected 'Lsp._javaScriptWorkspace = null;'");
+            Lsp._javaScriptWorkspace = null;
+        };
 
         // Handle incoming transaction buffers (Byte Arrays)
         server.MessageReceived += (sender, args) =>
         {
+            Guid clientGuid = args.Client.Guid;
+
+            if (clientGuid != _currentClientGuid)
+            {
+                Console.WriteLine($"Message from clientGuid:'{clientGuid}' was ignored because the most ClientConnected event had a clientGuid:'{_currentClientGuid}'.");
+                return;
+            }
+
             ReadOnlySpan<byte> transactionBuffer = args.Data;
             
             //Console.WriteLine($"Received {transactionBuffer.Length} bytes of transaction data.");
 
-            Guid clientGuid = args.Client.Guid;
+            
 
             var index = 0;
             var str = "";

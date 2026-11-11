@@ -18,7 +18,11 @@ namespace JSLSApp;
 /// </summary>
 internal static class Lsp
 {
-    internal static JavaScriptWorkspace _javaScriptWorkspace = JavaScriptWorkspace.Empty;
+    /// <summary>
+    /// Any websocket connection should create an instance of this, and then it is set null when connection closes.
+    /// Any messages that are not from the most recently created connection (check the clientGuid) they will be ignored.
+    /// </summary>
+    internal static JavaScriptWorkspace _javaScriptWorkspace = null!;
     /// <summary>
     /// TODO: awkward and...
     /// I don't think 'slice' is in LSP specification but I need to start like this cause it is only way I'll get something "initially working".
@@ -1044,7 +1048,7 @@ internal static class Lsp
             return null;
 
         // TODO: what is specified for when you receive an initialize request after you've already initialized.
-        _javaScriptWorkspace = JavaScriptWorkspace.Empty;
+        //_javaScriptWorkspace = JavaScriptWorkspace.Empty;
         _completionItemArray = null;
         _completionItemArray_sliceFiltered = null;
         _completionItemArray_nodeBasedOn = null;

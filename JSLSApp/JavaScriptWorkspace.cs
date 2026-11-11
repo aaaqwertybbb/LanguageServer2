@@ -5,8 +5,6 @@ namespace JSLSApp;
 
 public class JavaScriptWorkspace
 {
-    public static JavaScriptWorkspace Empty = new JavaScriptWorkspace();
-
     /// <summary>
     /// To determine which constructor was originally used check '<see cref="_isWorkspace"/>'
     /// If <see cref="JavaScriptWorkspace(List{WorkspaceFolder}?)"/> is used, '<see cref="_isWorkspace"/>' is true, otherwise false.
@@ -32,7 +30,7 @@ public class JavaScriptWorkspace
     public Dictionary<string, JavaScriptDocument> OpenedSourceFileAbsolutePathToInMemoryContentMap { get; set; } = new();
     public string MostRecentlyOpenedFilePath { get; internal set; }
 
-    private JavaScriptWorkspace()
+    public JavaScriptWorkspace()
     {
         _workspaceFolders = new();
     }
